@@ -1,14 +1,37 @@
+<template>
+  <v-app>
+    <AppHeader />
+    <v-main>
+      <!-- 여기에 라우터 뷰 또는 페이지 컴포넌트가 표시됩니다 -->
+      <router-view />
+    </v-main>
+  </v-app>
+</template>
+
 <script setup>
+import AppHeader from '@/components/Layout/AppHeader.vue';
+
+// 특별히 글로벌 컴포넌트를 불러올 필요 없으면 비워도 됩니다
+</script>
+
+<style scoped>
+/* 필요하다면 전역 스타일 작성 */
+</style>
+
+
+
+
+
+
+
+
+
+
+<!-- <script setup>
 import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
-
-  <!-- ✅ (삭제예정) 라우터가 여기 화면에 페이지를 띄움 -->
-  <!-- <div id="app">
-    <router-view />  
-  </div> -->
-
   <div>
     <a href="https://vite.dev" target="_blank">
       <img src="/vite.svg" class="logo" alt="Vite logo" />
@@ -33,4 +56,4 @@ import HelloWorld from './components/HelloWorld.vue'
 .logo.vue:hover {
   filter: drop-shadow(0 0 2em #42b883aa);
 }
-</style>
+</style> -->
