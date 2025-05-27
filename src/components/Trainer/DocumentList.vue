@@ -1,19 +1,24 @@
 <template>
-  <v-row v-if="documents.length > 0" :class="viewMode === 'list' ? 'd-block' : ''">
-    <v-col
-      v-for="doc in documents"
-      :key="doc.id"
-      :cols="viewMode === 'grid' ? 12 : 12"
-      :md="viewMode === 'grid' ? 6 : 12"
-      :lg="viewMode === 'grid' ? 3 : 12"
-    >
-      <v-card class="h-100" @click="selectDocument(doc)" style="cursor: pointer;">
-        <v-card-title class="text-truncate">{{ doc.originalName }}</v-card-title>
-        <v-card-subtitle>{{ formatDate(doc.uploadDate) }} / {{ formatSize(doc.fileSize) }}</v-card-subtitle>
-        <v-card-text>
-          <v-chip variant="outlined" color="primary" size="small">{{ doc.fileType }}</v-chip>
-        </v-card-text>
-      </v-card>
+  <v-row v-if="documents.length > 0">
+    <v-col cols="12">
+      <v-table>
+        <thead>
+          <tr>
+            <th>파일 이름</th>
+            <th>업로드 날짜</th>
+            <th>파일 크기</th>
+            <th>파일 유형</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="doc in documents" :key="doc.id" @click="selectDocument(doc)" style="cursor: pointer;">
+            <td>{{ doc.originalName }}</td>
+            <td>{{ formatDate(doc.uploadDate) }}</td>
+            <td>{{ formatSize(doc.fileSize) }}</td>
+            <td>{{ doc.fileType }}</td>
+          </tr>
+        </tbody>
+      </v-table>
     </v-col>
   </v-row>
 

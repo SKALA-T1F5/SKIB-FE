@@ -12,6 +12,7 @@ import DocumentManagement from '@/components/Trainer/DocumentManagement.vue'
 import ExamManagement from '@/components/Trainer/ExamManagement.vue'
 import ProblemManagement from '@/components/Trainer/ProblemManagement.vue'
 import TraineeManagement from '@/components/Trainer/TraineeManagement.vue'
+import ProjectDetail from '@/components/Trainer/ProjectDetail.vue'
 
 // Trainee Components
 import TraineeLogin from '@/components/Trainee/Login.vue'
@@ -38,10 +39,11 @@ const routes = [
     children: [
       { path: 'mypage', name: 'TrainerMyPage', component: TrainerMyPage },
       { path: 'project', name: 'Project', component: Project },
-      { path: 'document', name: 'DocumentManagement', component: DocumentManagement },
-      { path: 'exam', name: 'ExamManagement', component: ExamManagement },
-      { path: 'problem', name: 'ProblemManagement', component: ProblemManagement },
-      { path: 'trainees', name: 'TrainerTraineeManagement', component: TraineeManagement }
+      { path: 'project/:projectId/document', name: 'DocumentManagement', component: DocumentManagement },
+      { path: 'project/:projectId/exam', name: 'ExamManagement', component: ExamManagement },
+      { path: 'project/:projectId/problem', name: 'ProblemManagement', component: ProblemManagement },
+      { path: 'project/:projectId/trainees', name: 'TrainerTraineeManagement', component: TraineeManagement },
+      { path: 'project/:projectId/projectdetail', name: 'ProjectDetail', component: ProjectDetail }
     ]
   },
 
@@ -61,6 +63,8 @@ const routes = [
   // 기본 경로 (✅ 임시주석 : 미로그인시 로그인페이지로, 차후 주석 해제)
   // { path: '/', redirect: '/trainer/login' },
   // { path: '/:pathMatch(.*)*', redirect: '/' } // 404 처리
+  { path: '/', redirect: '/trainer/project' },
+  { path: '/:pathMatch(.*)*', redirect: '/' } // 404 처리
 ]
 
 const router = createRouter({

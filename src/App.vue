@@ -1,15 +1,19 @@
 <template>
   <v-app>
     <AppHeader />
+    <SideNavigation />
     <v-main>
       <!-- 여기에 라우터 뷰 또는 페이지 컴포넌트가 표시됩니다 -->
       <router-view />
     </v-main>
+    <Footer />
   </v-app>
 </template>
 
 <script setup>
 import AppHeader from '@/components/Layout/AppHeader.vue';
+import SideNavigation from '@/components/Layout/SideNavigation.vue';
+import Footer from '@/components/Layout/Footer.vue';
 
 // 특별히 글로벌 컴포넌트를 불러올 필요 없으면 비워도 됩니다
 </script>

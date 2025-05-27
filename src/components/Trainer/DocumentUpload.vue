@@ -4,7 +4,7 @@
       <div class="d-flex align-center justify-space-between mb-6">
         <h2 class="text-xl font-weight-semibold text-grey-darken-3">문서 업로드</h2>
         <v-btn
-          class="orange"
+          class="primary"
           @click="triggerFileInput"
           :disabled="isUploading"
         >
@@ -188,7 +188,7 @@ const uploadFiles = async (files) => {
 }
 
 .drop-zone:hover {
-  border-color: #ff9800; /* primary color 예시 */
+  border-color: #464646; /* primary color 예시 */
 }
 
 .drop-zone-active {
@@ -199,6 +199,6 @@ const uploadFiles = async (files) => {
 .upload-icon-wrapper {
   width: 64px;
   height: 64px;
-  background-color: #ffe0b2; /* orange-100 예시 */
+  background-color: #525252; /* orange-100 예시 */
 }
 </style>

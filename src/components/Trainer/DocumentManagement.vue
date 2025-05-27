@@ -1,56 +1,51 @@
 <template>
   <v-container fluid class="py-6">
-    <v-card>
-      <v-card-title>
-        <div class="text-h6">문서 업로드</div>
-      </v-card-title>
+    <!-- TabNavigation 컴포넌트: 화면 전환을 위한 탭 네비게이션 -->
+    <TabNavigation>
+      <template #document-management>
+        <!-- 문서 업로드 카드 -->
+        <v-card>
+          <v-card-title>
+            <div class="text-h6">문서 업로드</div>
+          </v-card-title>
 
-      <v-divider></v-divider>
+          <v-divider></v-divider>
 
-      <v-card-text>
-        <!-- 문서 업로드 영역 -->
-        <DocumentUpload @files-uploaded="fetchDocuments" />
-      </v-card-text>
-    </v-card>
-    <br>
-    
+          <v-card-text>
+            <!-- 문서 업로드 영역 -->
+            <DocumentUpload @files-uploaded="fetchDocuments" />
+          </v-card-text>
+        </v-card>
+        <br>
 
-    <v-card>
-      <v-card-title>
-        <div class="text-h6">문서 목록</div>
-      </v-card-title>
-      <v-divider></v-divider>
-      <v-card-text>
+        <!-- 문서 목록 카드 -->
+        <v-card>
+          <v-card-title>
+            <div class="text-h6">문서 목록</div>
+          </v-card-title>
+          <v-divider></v-divider>
+          <v-card-text>
 
-        <!-- 필터 & 뷰 전환 영역 -->
-        <DocumentFilters
-          v-model:search-query="searchQuery"
-          v-model:filter-type="filterType"
-          v-model:view-mode="viewMode"
-        />
+            <!-- 필터 & 뷰 전환 영역 -->
+            <DocumentFilters v-model:search-query="searchQuery" v-model:filter-type="filterType"
+              v-model:view-mode="viewMode" />
 
-        <!-- 문서 리스트 -->
-        <DocumentList
-          :documents="filteredDocuments"
-          :view-mode="viewMode"
-          :search-query="searchQuery"
-          :filter-type="filterType"
-          @preview="preview"
-        />
-      </v-card-text>
+            <!-- 문서 리스트 -->
+            <DocumentList :documents="filteredDocuments" :view-mode="viewMode" :search-query="searchQuery"
+              :filter-type="filterType" @preview="preview" />
+          </v-card-text>
 
-      <v-divider></v-divider>
+          <v-divider></v-divider>
 
-      <v-card-actions class="justify-end">
-        <span class="text-caption text-grey mr-4">총 {{ filteredDocuments.length }}개 문서</span>
-      </v-card-actions>
-    </v-card>
+          <v-card-actions class="justify-end">
+            <span class="text-caption text-grey mr-4">총 {{ filteredDocuments.length }}개 문서</span>
+          </v-card-actions>
+        </v-card>
 
-    <!-- 미리보기 다이얼로그 -->
-    <DocumentPreviewDialog
-      v-model="previewDialog"
-      :selected-document="selectedDocument"
-    />
+        <!-- 미리보기 다이얼로그 -->
+        <DocumentPreviewDialog v-model="previewDialog" :selected-document="selectedDocument" />
+      </template>
+    </TabNavigation>
   </v-container>
 </template>
 
@@ -60,17 +55,15 @@ import DocumentUpload from './DocumentUpload.vue';
 import DocumentFilters from './DocumentFilters.vue';
 import DocumentList from './DocumentList.vue';
 import DocumentPreviewDialog from './DocumentPreviewDialog.vue';
+import TabNavigation from '../Layout/TabNavigation.vue';
 
-// useToast, apiRequest 등은 프로젝트에 맞게 구현 또는 Vuetify 스낵바/토스트 사용
-// useQueryClient, useMutation은 @tanstack/vue-query 또는 유사 라이브러리 사용 또는 직접 구현
-
-// 문서 데이터 상태
+// 문서 데이터 상태 관리
 const documents = ref([]);
 const searchQuery = ref('');
 const filterType = ref('');
 const viewMode = ref('grid');
 
-// 미리보기 다이얼로그 상태
+// 미리보기 다이얼로그 상태 관리
 const previewDialog = ref(false);
 const selectedDocument = ref(null);
 
@@ -117,6 +110,4 @@ function preview(doc) {
 
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
