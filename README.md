@@ -16,5 +16,10 @@
 
 ## Directory Structure
 ```Plain Text
-
+└── 📂public
+        ├── 💾vite.svg
+└── 📂src
+        ├── 📂assets
+        ├── 📂components
+        ├── ...
 ```
