@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <!-- 탭 전환 UI -->
-    <TabNavigation v-model="activeTab" :tabs="tabs" />
+    <TabNavigation v-model="activeTab" />
    
     <v-card color="secondary" elevation="0">
     <v-window v-model="activeTab">
@@ -36,8 +36,7 @@ import ProblemManagement from './ProblemManagement.vue'
 import TraineeManagement from './TraineeManagement.vue'
 import ExamManagement from './ExamManagement.vue'
 
-const activeTab = ref('0')
-const tabs = ['Project', 'Documents', 'Questions', 'Tests', 'Trainees']
+const activeTab = ref(0)
 
 
 </script>

@@ -22,6 +22,9 @@
             <div>합격 점수: {{ exam.passingScore }}점</div>
             <div>마지막 수정일: {{ exam.lastModified }}</div>
             <div>재응시 여부: {{ exam.retakeable ? '가능' : '불가능' }}</div>
+            <br>
+            <div>합격자 수: {{ exam.passCount }}/{{ exam.totalApplicants }}명</div>
+            <div>평균 점수: {{ exam.averageScore }}점</div>
           </v-card-text>
           <v-card-actions>
             <v-btn text color="primary">상세 보기</v-btn>
@@ -51,6 +54,9 @@ const exams = ref([
     passingScore: 70,
     lastModified: '2023-10-26',
     retakeable: true,
+    passCount: 15,
+    totalApplicants: 20,
+    averageScore: 75,
   },
   {
     id: 2,
@@ -60,6 +66,9 @@ const exams = ref([
     passingScore: 80,
     lastModified: '2023-10-25',
     retakeable: false,
+    passCount: 8,
+    totalApplicants: 10,
+    averageScore: 85,
   },
   {
     id: 3,
@@ -69,6 +78,9 @@ const exams = ref([
     passingScore: 75,
     lastModified: '2023-10-24',
     retakeable: true,
+    passCount: 12,
+    totalApplicants: 15,
+    averageScore: 78,
   },
 ]);
 </script>

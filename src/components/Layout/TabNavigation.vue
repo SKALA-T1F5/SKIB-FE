@@ -5,15 +5,15 @@
       <v-icon size="x-small" class="mr-1" color="grey lighten-1">mdi-arrow-left</v-icon>
       <span style="font-size: 0.75rem; color: #bdbdbd;">Main</span>
     </div>
-
-  <v-sheet class="tab-bar" rounded="pill" color="#f2f5f9" height="56">
+    <br>
+  <v-sheet class="tab-bar"  color="secondary" height="44px">
     <v-tabs
       v-model="activeTab"
-      bg-color="transparent"
+      hide-slider
       align-tabs="center"
       class="custom-tabs"
       grow
-      height="40"
+      height="44px"
     >
       <v-tab
         v-for="(tab, index) in tabs"
@@ -26,6 +26,7 @@
       </v-tab>
     </v-tabs>
   </v-sheet>
+  <br>
 </div>
 </template>
 
@@ -60,12 +61,12 @@
 
 <style scoped>
 .tab-bar {
-  padding: 4px;
+  padding: 0px;
   border-radius: 999px;
 }
 
 .custom-tabs {
-  min-height: 56px;
+  min-height: 44px;
 }
 
 .custom-tab {
@@ -74,13 +75,14 @@
   color: #555;
   border-radius: 999px;
   transition: background-color 0.2s ease;
-  height: 48px;
-  line-height: 48px;
+  height: 44px;
+  line-height: 44px;
   padding: 0 24px;
 }
 
 .custom-tab.active-tab {
-  background-color: #1e1f4b;
-  color: white !important;
+  background-color: #191D5A;
+  color: rgb(255, 255, 255) !important;
+  border-radius: 99px !important;
 }
 </style>
