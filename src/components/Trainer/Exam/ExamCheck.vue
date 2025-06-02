@@ -62,11 +62,11 @@
       <!-- 하단 버튼 섹션 -->
       <v-row class="mt-4">
         <v-col cols="12" class="d-flex justify-space-between align-center">
-          <v-btn @click="prevStep">← 이전단계</v-btn>
+          <v-btn variant="flat" color="gray" class="mr-2 force-white" @click="prevStep">← 이전단계</v-btn>
           <div>
-            <v-btn color="gray" class="mr-2">이전문제</v-btn>
-            <v-btn color="primary">다음문제</v-btn>
-            <v-btn color="primary" @click="nextStep">다음 단계</v-btn>
+            <v-btn variant="flat" color="gray" class="mr-2 force-white">이전문제</v-btn>
+            <v-btn variant="flat" color="gray" class="mr-2 force-white">다음문제</v-btn>
+            <v-btn variant="flat" color="primary" @click="nextStep">다음 단계</v-btn>
           </div>
         </v-col>
       </v-row>
@@ -153,5 +153,7 @@ function prevStep() {
 </script>
 
 <style scoped>
-
+.force-white {
+  color: white !important;
+}
 </style>
