@@ -1,27 +1,17 @@
 <template>
   <v-tabs v-model="activeTab">
-    <v-tab>프로젝트 메인</v-tab>
-    <v-tab>문서 관리</v-tab>
-    <v-tab>문제 관리</v-tab>
-    <v-tab>훈련생 관리</v-tab>
-    <v-tab>시험 관리</v-tab>
+    <v-tab :value="0">프로젝트 메인</v-tab>
+    <v-tab :value="1">문서 관리</v-tab>
+    <v-tab :value="2">문제 관리</v-tab>
+    <v-tab :value="3">훈련생 관리</v-tab>
+    <v-tab :value="4">시험 관리</v-tab>
   </v-tabs>
   <v-window v-model="activeTab">
-    <v-window-item>
-      <slot name="project-management"></slot>
-    </v-window-item>
-    <v-window-item>
-      <slot name="document-management"></slot>
-    </v-window-item>
-    <v-window-item>
-      <slot name="problem-management"></slot>
-    </v-window-item>
-    <v-window-item>
-      <slot name="trainee-management"></slot>
-    </v-window-item>
-    <v-window-item>
-      <slot name="exam-management"></slot>
-    </v-window-item>
+    <v-window-item :value="0"></v-window-item>
+    <v-window-item :value="1"></v-window-item>
+    <v-window-item :value="2"></v-window-item>
+    <v-window-item :value="3"></v-window-item>
+    <v-window-item :value="4"></v-window-item>
   </v-window>
 </template>
 

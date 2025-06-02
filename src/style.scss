@@ -4945,11 +4945,11 @@ html.v-overlay-scroll-blocked {
   letter-spacing: .0178571429em;
   opacity: var(--v-card-text-opacity, 1);
   padding: 1rem;
-  text-transform: none
+  text-transform: none;
 }
 
 .v-card .v-card-text {
-  line-height: 1.425
+  line-height: 1.425;
 }
 
 .v-card--density-comfortable .v-card-text {
@@ -27742,7 +27742,8 @@ body .Inter {
 
 .v-card {
   width: 100%;
-  overflow: visible
+  overflow: visible;
+  border-radius: 30px !important; //✅수정
 }
 
 .v-card-item {
