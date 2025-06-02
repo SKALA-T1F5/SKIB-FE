@@ -10,7 +10,6 @@ import TrainerMyPage from '@/components/Trainer/MyPage.vue'
 import Project from '@/components/Trainer/Project.vue'
 import DocumentManagement from '@/components/Trainer/DocumentManagement.vue'
 import ExamManagement from '@/components/Trainer/ExamManagement.vue'
-import ExamGenerate from '@/components/Trainer/ExamGenerate.vue'
 import ProblemManagement from '@/components/Trainer/ProblemManagement.vue'
 import TraineeManagement from '@/components/Trainer/TraineeManagement.vue'
 import ProjectDetail from '@/components/Trainer/ProjectDetail.vue'
@@ -45,7 +44,6 @@ const routes = [
       { path: 'project/:projectId/projectdetail', name: 'ProjectDetail', component: ProjectDetail },
       { path: 'project/:projectId/document', name: 'DocumentManagement', component: DocumentManagement },
       { path: 'project/:projectId/exam', name: 'ExamManagement', component: ExamManagement },
-      { path: 'project/:projectId/exam-generate', name: 'ExamGenerate', component: ExamGenerate },
       { path: 'project/:projectId/problem', name: 'ProblemManagement', component: ProblemManagement },
       { path: 'project/:projectId/trainees', name: 'TrainerTraineeManagement', component: TraineeManagement },
 

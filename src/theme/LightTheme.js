@@ -9,6 +9,7 @@ const PurpleTheme = {
     background: '#ffffff', // 여기서 전체 배경색 변경
     primary: '#191D5A',
     secondary: '#eef2f6',
+    gray:'#cdcdcdcd',
     info: '#03c9d7',
     success: '#00c853',
     accent: '#FFAB91',
