@@ -55,7 +55,7 @@ onMounted(async () => {
 });
 
 function goToProjectManagement(projectId) {
-  router.push(`/trainer/project/${projectId}/projectdetail`);
+  router.push(`/trainer/project/${projectId}`);
 }
 </script>
 

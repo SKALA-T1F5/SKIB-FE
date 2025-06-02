@@ -1,101 +1,91 @@
 <template>
   <v-container fluid>
-  <TabNavigation>
-    <!-- 프로젝트 개요 카드 섹션 -->
-    <v-row>
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="mx-auto" elevation="2">
-          <v-card-text class="text-center">
-            <div class="text-h4 font-weight-bold primary--text">{{ documentCount }}</div>
-            <div class="text-subtitle-1">문서</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="mx-auto" elevation="2">
-          <v-card-text class="text-center">
-            <div class="text-h4 font-weight-bold info--text">{{ testCount }}</div>
-            <div class="text-subtitle-1">테스트</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="mx-auto" elevation="2">
-          <v-card-text class="text-center">
-            <div class="text-h4 font-weight-bold success--text">{{ traineeCount }}</div>
-            <div class="text-subtitle-1">Trainee</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="mx-auto" elevation="2">
-          <v-card-text class="text-center">
-            <div class="text-h4 font-weight-bold error--text">{{ problemCount }}</div>
-            <div class="text-subtitle-1">문제</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
 
-    <!-- 프로젝트 통계 섹션 -->
-    <v-row class="mt-6">
-      <v-col cols="12" md="8">
-        <v-card>
-          <v-card-title>프로젝트 통계</v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col cols="12">
-                <div id="project-progress-chart" style="height: 300px;"></div>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="12" md="4">
-        <v-card>
-          <v-card-title>진행 상태</v-card-title>
-          <v-card-text>
-            <v-progress-circular
-              :rotate="-90"
-              :size="200"
-              :width="15"
-              :value="progressValue"
-              color="primary"
-            >
-              {{ progressValue }}%
-            </v-progress-circular>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
 
-    <!-- 최근 활동 섹션 -->
-    <v-row class="mt-6">
-      <v-col cols="12">
-        <v-card>
-          <v-card-title>최근 활동</v-card-title>
-          <v-card-text>
-            <v-timeline dense>
-              <v-timeline-item
-                v-for="activity in recentActivities"
-                :key="activity.id"
-                :color="activity.color"
-                small
-              >
-                <template v-slot:opposite>
-                  <span class="text-caption">{{ activity.time }}</span>
-                </template>
-                <div class="text-subtitle-2">{{ activity.title }}</div>
-                <div class="text-caption">{{ activity.description }}</div>
-              </v-timeline-item>
-            </v-timeline>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </TabNavigation>
+        <!-- 프로젝트 개요 카드 섹션 -->
+        <v-row>
+          <v-col cols="12" sm="6" md="3">
+            <v-card class="mx-auto" elevation="2">
+              <v-card-text class="text-center">
+                <div class="text-h4 font-weight-bold primary--text">{{ documentCount }}</div>
+                <div class="text-subtitle-1">문서</div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <v-card class="mx-auto" elevation="2">
+              <v-card-text class="text-center">
+                <div class="text-h4 font-weight-bold info--text">{{ testCount }}</div>
+                <div class="text-subtitle-1">테스트</div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <v-card class="mx-auto" elevation="2">
+              <v-card-text class="text-center">
+                <div class="text-h4 font-weight-bold success--text">{{ traineeCount }}</div>
+                <div class="text-subtitle-1">Trainee</div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <v-card class="mx-auto" elevation="2">
+              <v-card-text class="text-center">
+                <div class="text-h4 font-weight-bold error--text">{{ problemCount }}</div>
+                <div class="text-subtitle-1">문제</div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <!-- 프로젝트 통계 섹션 -->
+        <v-row class="mt-6">
+          <v-col cols="12" md="8">
+            <v-card>
+              <v-card-title>프로젝트 통계</v-card-title>
+              <v-card-text>
+                <v-row>
+                  <v-col cols="12">
+                    <div id="project-progress-chart" style="height: 300px;"></div>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-card>
+              <v-card-title>진행 상태</v-card-title>
+              <v-card-text>
+                <v-progress-circular :rotate="-90" :size="200" :width="15" :value="progressValue" color="primary">
+                  {{ progressValue }}%
+                </v-progress-circular>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <!-- 최근 활동 섹션 -->
+        <v-row class="mt-6">
+          <v-col cols="12">
+            <v-card>
+              <v-card-title>최근 활동</v-card-title>
+              <v-card-text>
+                <v-timeline dense>
+                  <v-timeline-item v-for="activity in recentActivities" :key="activity.id" :color="activity.color"
+                    small>
+                    <template v-slot:opposite>
+                      <span class="text-caption">{{ activity.time }}</span>
+                    </template>
+                    <div class="text-subtitle-2">{{ activity.title }}</div>
+                    <div class="text-caption">{{ activity.description }}</div>
+                  </v-timeline-item>
+                </v-timeline>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+
   </v-container>
-
 </template>
 
 <script>
@@ -159,7 +149,7 @@ export default {
 
     onMounted(async () => {
       await loadProjectData();
-      
+
       const ctx = document.getElementById('project-progress-chart');
       if (ctx) {
         new Chart(ctx, {

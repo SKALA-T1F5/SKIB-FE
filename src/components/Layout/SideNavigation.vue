@@ -3,6 +3,7 @@
   <v-navigation-drawer
     app
     v-model="drawer"
+    :permanent="true"
     :mini-variant="mini"
     @update:mini-variant="mini = $event"
     :width="250"
@@ -11,35 +12,44 @@
   >
     <!-- 프로젝트 목록 -->
     <v-list nav dense class="mt-2">
-      <v-subheader v-if="!mini" class="text-caption text-uppercase">Projects</v-subheader>
-      <v-list-item-group>
-        <v-list-item v-for="project in projects" :key="project.id" link class="mb-1" @click="goToProjectManagement(project.id)">
-          <v-list-item-content v-if="!mini">
-            <v-list-item-title>{{ project.name }}</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-      </v-list-item-group>
+      <v-list-item
+        v-for="project in projects"
+        :key="project.id"
+        link
+        class="mb-1"
+        @click="goToProjectManagement(project.id)"
+      >
+        <!-- 🔽 펼쳤을 때: 프로젝트 이름 표시 / 🔼 접었을 때: 숨김 -->
+        <v-list-item-title v-if="!mini">{{ project.name }}</v-list-item-title>
+      </v-list-item>
     </v-list>
 
     <!-- 하단 프로필 영역 -->
     <template v-slot:append>
       <div class="profile-container" :class="{ 'mini-profile': mini }">
+        <!-- 🔽 펼쳤을 때: 이름 + 역할 표시 / 🔼 접었을 때: 아무것도 없음 -->
         <div v-if="!mini" class="profile-info ml-2">
           <div class="profile-name">Nicola</div>
           <div class="profile-role text-caption">Mobile Web Design</div>
         </div>
+
         <v-spacer></v-spacer>
-        <v-btn v-if="!mini" icon small>
-        </v-btn>
+
+        <!-- 🔽 펼쳤을 때만 보이는 버튼 -->
+        <v-btn v-if="!mini" icon small />
       </div>
-      <!-- 토글 버튼 -->
+
+      <!-- 토글 버튼: 접기/펼치기 -->
       <div class="toggle-container">
         <v-btn icon small @click="toggleDrawer" class="toggle-btn">
+          <!-- 🔽 펼쳤을 때: ← / 🔼 접었을 때: → -->
+          <v-icon>{{ mini ? 'mdi-chevron-right' : 'mdi-chevron-left' }}</v-icon>
         </v-btn>
       </div>
     </template>
   </v-navigation-drawer>
 </template>
+
 
 <script setup>
 import { ref } from 'vue'

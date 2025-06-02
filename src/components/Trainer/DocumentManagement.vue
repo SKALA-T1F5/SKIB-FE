@@ -1,8 +1,5 @@
 <template>
   <v-container fluid class="py-6">
-    <!-- TabNavigation 컴포넌트: 화면 전환을 위한 탭 네비게이션 -->
-    <TabNavigation>
-      <template #document-management>
         <!-- 문서 업로드 카드 -->
         <v-card>
           <v-card-title>
@@ -44,8 +41,6 @@
 
         <!-- 미리보기 다이얼로그 -->
         <DocumentPreviewDialog v-model="previewDialog" :selected-document="selectedDocument" />
-      </template>
-    </TabNavigation>
   </v-container>
 </template>
 
@@ -56,6 +51,7 @@ import DocumentFilters from './DocumentFilters.vue';
 import DocumentList from './DocumentList.vue';
 import DocumentPreviewDialog from './DocumentPreviewDialog.vue';
 import TabNavigation from '../Layout/TabNavigation.vue';
+import ExamManagement from './ExamManagement.vue';
 
 // 문서 데이터 상태 관리
 const documents = ref([]);
