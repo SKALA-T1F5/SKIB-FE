@@ -1,11 +1,11 @@
 <template>
-    <div class="tab-navigation-wrapper">
+    <div class="tab-navigation-wrapper" style="width: 80%;">
     <!-- 상단 ← Main 버튼 -->
     <div class="main-button" @click="goToMain">
       <v-icon size="x-small" class="mr-1" color="grey lighten-1">mdi-arrow-left</v-icon>
       <span style="font-size: 0.75rem; color: #bdbdbd;">Main</span>
     </div>
-    <br>
+    <div style="height: 5px"></div>
   <v-sheet class="tab-bar"  color="secondary" height="44px">
     <v-tabs
       v-model="activeTab"
@@ -26,7 +26,7 @@
       </v-tab>
     </v-tabs>
   </v-sheet>
-  <br>
+  <div style="height: 12px"></div>
 </div>
 </template>
 
