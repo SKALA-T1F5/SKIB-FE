@@ -1,82 +1,88 @@
 <template>
   <v-container>
-      <v-row>
-        <v-col cols="12">
-          <div class="d-flex align-end mb-4">
-            <h2 class="text-h5 font-weight-bold mr-2">테스트 생성</h2>
-            <p class="text-body-2 text-medium-emphasis">Step 2 of 3 : AI가 만든 문제를 확인하고 재생성할 수 있습니다. 완료 후 테스트를 생성하세요.</p>
-          </div>
-          <v-progress-linear :model-value="66" height="10" color="primary" bg-color="primary"
-            rounded></v-progress-linear>
-        </v-col>
-      </v-row>
-      <v-row>
-        <!-- 테스트 문항 목록 섹션 -->
-        <v-col cols="12" sm="3">
-          <v-card elevation="0" style="height:100%">
-            <v-card-text>
-              <div class="d-flex align-center">
-                <h4 class="text-h8 mt-1">테스트 문항 목록</h4>
-              </div>
-              <div class="mt-4">
-                <PerfectScrollbar style="height: 400px;">
-                  <v-list lines="two" class="py-0">
-                    <v-list-item v-for="(item, i) in testItems" :key="i" :value="item" color="secondary" rounded="sm">
-                      <div class="d-flex align-center w-100">
-                        <v-checkbox v-model="item.selected" class="mr-2" density="compact" hide-details
-                          color="grey"></v-checkbox>
-                        <h6 class="text-body-2 text-medium-emphasis font-weight-bold">
-                          {{ item.name }}
-                        </h6>
-                      </div>
-                    </v-list-item>
-                  </v-list>
-                </PerfectScrollbar>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
+    <v-row>
+      <v-col cols="12">
+        <div class="d-flex align-end mb-4">
+          <h2 class="text-h5 font-weight-bold mr-2">테스트 생성</h2>
+          <p class="text-body-2 text-medium-emphasis">Step 2 of 3 : AI가 만든 문제를 확인하고 재생성할 수 있습니다. 완료 후 테스트를 생성하세요.</p>
 
-        <!-- 문제 및 정답/풀이 섹션 -->
-        <v-col cols="12" sm="9">
-          <v-card elevation="0" style="height:50%">
-            <v-card-text>
-              <div class="d-flex align-center">
-                <h4 class="text-h8 mt-1">문제</h4> &nbsp&nbsp&nbsp 
-                <h4 class="text-h8 mt-1" style="color:grey">{{ selectedDocument.originalDocumentName }} | {{ selectedDocument.difficulty }}</h4>
-              </div>
-              <p class="mt-4">{{ currentQuestion }}</p>
-            </v-card-text>
-          </v-card>
-          <div class="d-flex align-end mb-4" style="height:1%"></div>
-          <v-card elevation="0" style="height:45.5%">
-            <v-card-text>
-              <div class="d-flex align-center">
-                <h4 class="text-h8 mt-1">정답 및 풀이</h4>
-              </div>
-              <p class="mt-4">{{ currentAnswer }}</p>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
+        </div>
+        <v-progress-linear :model-value="66" height="10" color="primary" bg-color="primary" rounded></v-progress-linear>
+      </v-col>
+    </v-row>
+    <v-row>
+      <!-- 테스트 문항 목록 섹션 -->
+      <v-col cols="12" sm="3">
+        <v-card elevation="0" style="height:100%">
+          <v-card-text>
+            <div class="d-flex align-center">
+              <h4 class="text-h8 mt-1">테스트 문항 목록</h4>
+            </div>
+            <div class="mt-4">
+              <PerfectScrollbar style="height: 400px;">
+                <v-list lines="two" class="py-0">
+                  <v-list-item v-for="(item, i) in testItems" :key="i" :value="item" color="secondary" rounded="sm"
+                    @click="selectQuestion(i)">
+                    <div class="d-flex align-center w-100">
+                      <v-checkbox v-model="item.selected" class="mr-2" density="compact" hide-details
+                        color="grey"></v-checkbox>
+                      <h6 class="text-body-2 text-medium-emphasis font-weight-bold">
+                        {{ item.name }} ({{ item.type }})
+                      </h6>
+                    </div>
+                  </v-list-item>
+                </v-list>
+              </PerfectScrollbar>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
 
-      <!-- 하단 버튼 섹션 -->
-      <v-row class="mt-4">
-        <v-col cols="12" class="d-flex justify-space-between align-center">
-          <v-btn variant="flat" color="gray" class="mr-2 force-white" @click="prevStep">← 이전단계</v-btn>
-          <div>
-            <v-btn variant="flat" color="gray" class="mr-2 force-white">이전문제</v-btn>
-            <v-btn variant="flat" color="gray" class="mr-2 force-white">다음문제</v-btn>
-            <v-btn variant="flat" color="primary" @click="nextStep">다음 단계</v-btn>
-          </div>
-        </v-col>
-      </v-row>
+      <!-- 문제 및 정답/풀이 섹션 -->
+      <v-col cols="12" sm="9">
+        <v-card elevation="0" style="height:50%">
+          <v-card-text>
+            <div class="d-flex align-center">
+              <h4 class="text-h8 mt-1">{{ testItems[selectedQuestionIndex]?.name }}</h4> &nbsp&nbsp&nbsp
+              <h4 class="text-h8 mt-1" style="color:grey">{{ selectedDocument.originalDocumentName }} | {{
+                selectedDocument.difficulty }}</h4>
+                <v-spacer></v-spacer>
+              <v-btn icon variant="flat" size="x-small" class="ml-2" color="primary" @click="toggleTranslation">
+                <v-icon style="color:white">mdi-web</v-icon>
+              </v-btn>
+            </div>
+            <p class="mt-4">{{ currentQuestion }}</p>
+          </v-card-text>
+        </v-card>
+        <div class="d-flex align-end mb-4" style="height:1%"></div>
+        <v-card elevation="0" style="height:45.5%">
+          <v-card-text>
+            <div class="d-flex align-center">
+              <h4 class="text-h8 mt-1">정답 및 풀이</h4>
+            </div>
+            <p class="mt-4">{{ currentAnswer }}</p>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
 
-      <!-- 저장되지 않은 변경사항 확인 모달 -->
-      <Modal ref="unsavedChangesModal" title="저장되지 않은 변경사항" content="페이지를 벗어나면 저장되지 않은 변경사항이 유실됩니다. 계속하시겠습니까?"
-        @confirm="handleConfirmLeave" @cancel="handleCancelLeave" />
+    <!-- 하단 버튼 섹션 -->
+    <v-row class="mt-4">
+      <v-col cols="12" class="d-flex justify-space-between align-center">
+        <v-btn variant="flat" color="gray" class="mr-2 force-white" @click="prevStep">← 이전단계</v-btn>
+        <div>
+          <v-btn variant="flat" color="gray" class="mr-2 force-white">이전문제</v-btn>
+          <v-btn variant="flat" color="gray" class="mr-2 force-white">다음문제</v-btn>
+          <v-btn variant="flat" color="primary" @click="nextStep">다음 단계</v-btn>
+        </div>
+      </v-col>
+    </v-row>
 
-    </v-container>
+    <!-- 저장되지 않은 변경사항 확인 모달 -->
+    <Modal ref="unsavedChangesModal" title="저장되지 않은 변경사항" content="페이지를 벗어나면 저장되지 않은 변경사항이 유실됩니다. 계속하시겠습니까?"
+      @confirm="handleConfirmLeave" @cancel="handleCancelLeave" />
+
+  </v-container>
 </template>
 
 <script setup>
@@ -101,6 +107,7 @@ const testItems = ref([]);
 const selectedQuestionIndex = ref(0);
 const currentQuestion = ref('');
 const currentAnswer = ref('');
+const isTranslated = ref(false); // 번역 여부 상태 추가
 
 // 문제 선택 핸들러
 const selectQuestion = (index) => {
@@ -112,18 +119,48 @@ const selectQuestion = (index) => {
 // 백엔드에서 데이터를 받아오는 예시 함수 (실제 구현 필요)
 const fetchTestItems = async () => {
   // 실제 백엔드 API 호출 로직
-  // 예시 데이터
+  // 예시 데이터 (백엔드에서 받아올 데이터 구조를 가정)
   const fetchedData = Array.from({ length: 20 }, (_, i) => ({
     id: i + 1,
-    name: `Q${String(i + 1).padStart(2, '0')} (객관식)`,
+    name: `Q${String(i + 1).padStart(2, '0')}`, // 문제 번호만 표시
+    type: (i % 2 === 0) ? '객관식' : '주관식', // 객관식/주관식 예시
     selected: false,
-    question: `이것은 Q${String(i + 1).padStart(2, '0')}의 문제입니다. (백엔드 데이터)`, 
-    answer: `이것은 Q${String(i + 1).padStart(2, '0')}의 정답 및 풀이입니다. (백엔드 데이터)`, 
+    question: `이것은 Q${String(i + 1).padStart(2, '0')}의 문제입니다. (예시)`,
+    answer: `이것은 Q${String(i + 1).padStart(2, '0')}의 정답 및 풀이입니다. (예시)`,
   }));
   testItems.value = fetchedData;
   if (testItems.value.length > 0) {
     selectQuestion(0);
   }
+};
+
+// 번역된 내용을 가져오는 함수 (백엔드에서 가져왔다고 가정)
+const fetchTranslatedContent = async (questionId) => {
+  // 실제 백엔드 API 호출 로직
+  // 예시 데이터
+  return {
+    translatedQuestion: `This is the translated question Q${String(questionId).padStart(2, '0')}. (Backend Translated Data)`,
+    translatedAnswer: `This is the translated answer Q${String(questionId).padStart(2, '0')}. (Backend Translated Data)`
+  };
+};
+
+// 번역 토글 함수
+const toggleTranslation = async () => {
+  if (testItems.value.length === 0) return;
+
+  const currentItem = testItems.value[selectedQuestionIndex.value];
+
+  if (!isTranslated.value) {
+    // 번역된 내용 가져오기
+    const translatedData = await fetchTranslatedContent(currentItem.id);
+    currentQuestion.value = translatedData.translatedQuestion;
+    currentAnswer.value = translatedData.translatedAnswer;
+  } else {
+    // 원본 내용으로 되돌리기
+    currentQuestion.value = currentItem.question;
+    currentAnswer.value = currentItem.answer;
+  }
+  isTranslated.value = !isTranslated.value;
 };
 
 // 컴포넌트 마운트 시 데이터 로드
