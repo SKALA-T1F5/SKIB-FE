@@ -42,7 +42,8 @@
           <v-card elevation="0" style="height:50%">
             <v-card-text>
               <div class="d-flex align-center">
-                <h4 class="text-h8 mt-1">문제</h4>
+                <h4 class="text-h8 mt-1">문제</h4> &nbsp&nbsp&nbsp 
+                <h4 class="text-h8 mt-1" style="color:grey">{{ selectedDocument.originalDocumentName }} | {{ selectedDocument.difficulty }}</h4>
               </div>
               <p class="mt-4">{{ currentQuestion }}</p>
             </v-card-text>
@@ -111,6 +112,17 @@ const testItems = ref([
 // 현재 문제 및 정답 데이터
 const currentQuestion = ref('다음 중 AGS 인력이 ServiceFlow를 통해 직접 요청할 수 있는 사항으로 옳지 않은 것은 무엇인가요?');
 const currentAnswer = ref('정답은 1번 입니다.');
+
+// 선택된 문서 정보 (새로 추가)
+const selectedDocument = ref({
+  title: '',
+  examTime: null,
+  difficulty: '',
+  passScore: null,
+  retakeAllowed: false,
+  originalDocumentName: '기본 문서', // 🎨 원본 문서명 추가
+  difficulty: '⭐⭐⭐', // 🎨 난이도 추가
+});
 
 // 저장되지 않은 변경사항 관련 상태
 const hasUnsavedChanges = ref(true);
