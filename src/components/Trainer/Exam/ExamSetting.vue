@@ -87,6 +87,8 @@
             <v-form class="mt-4">
               <v-text-field v-model="selectedDocument.title" label="테스트이름" variant="outlined"
                 rounded="lg"></v-text-field>
+                <v-select v-model="selectedDocument.translationLanguage" :items="['없음', '영어', '베트남어']" label="외국어 번역"
+                variant="outlined" rounded="lg"></v-select>
               <v-text-field v-model="selectedDocument.examTime" label="시험 시간 (분)" type="number" variant="outlined"
                 rounded="lg"></v-text-field>
               <v-select v-model="selectedDocument.difficulty" :items="['⭐', '⭐⭐', '⭐⭐⭐', '⭐⭐⭐⭐', '⭐⭐⭐⭐⭐']" label="난이도"
@@ -174,7 +176,8 @@ const selectedDocument = ref({
   examTime: 60,
   difficulty: '⭐⭐⭐',
   passScore: 70, // 기본값 설정
-  retakeAllowed: false // 기본값 설정
+  retakeAllowed: false, // 기본값 설정
+  translationLanguage: '없음', // 🎨 번역 언어 기본값 추가
 });
 
 // 선택된 문서들을 추적하는 computed 속성

@@ -2,7 +2,10 @@
   <v-container>
     <v-row>
       <v-col cols="12">
-        <h2 class="text-h5 mb-4">테스트 목록</h2>
+        <div class="d-flex align-end mb-4">
+          <h2 class="text-h5 font-weight-bold mr-2">테스트 관리</h2>
+          <p class="text-body-2 text-medium-emphasis">관리 중인 테스트 목록을 확인합니다.</p>
+        </div>
         <v-btn color="primary" @click="addExam">테스트 추가</v-btn>
       </v-col>
       <v-col
@@ -19,7 +22,7 @@
             난이도: {{ exam.difficulty }} | 제한 시간: {{ exam.timeLimit }}분
           </v-card-subtitle>
           <v-card-text>
-            <div>합격 점수: {{ exam.passingScore }}점</div>
+            <div>PASS 점수: {{ exam.passingScore }}점</div>
             <div>마지막 수정일: {{ exam.lastModified }}</div>
             <div>재응시 여부: {{ exam.retakeable ? '가능' : '불가능' }}</div>
             <br>
