@@ -18,9 +18,9 @@
       <v-tab
         v-for="(tab, index) in tabs"
         :key="index"
-        :value="index.toString()"
+        :value="index"
         class="custom-tab"
-        :class="{ 'active-tab': activeTab === index.toString() }"
+        :class="{ 'active-tab': activeTab === index }"
       >
         {{ tab }}
       </v-tab>
@@ -40,7 +40,7 @@
      required: true,
    },
    modelValue: {
-     type: String,
+     type: Number,
      required: true,
    },
  })

@@ -93,25 +93,44 @@ const route = useRoute();
 // 컴포넌트에서 발생시킬 이벤트 정의
 const emit = defineEmits(['next-step', 'prev-step']);
 
-// 테스트 문항 데이터
-const testItems = ref([
-  { name: '문제1 (객관식)', selected: true },
-  { name: '문제1 (객관식)', selected: false },
-  { name: '문제1 (객관식)', selected: true },
-  { name: '문제1 (객관식)', selected: true },
-  { name: '문제1 (객관식)', selected: false },
-  { name: '문제1 (객관식)', selected: false },
-  { name: '문제1 (객관식)', selected: false },
-  { name: '문제1 (객관식)', selected: false },
-  { name: '문제1 (객관식)', selected: false },
-  { name: '문제1 (객관식)', selected: false },
-  { name: '문제1 (객관식)', selected: false },
-  { name: '문제1 (객관식)', selected: false },
-]);
+// 테스트 문항 데이터 (백엔드에서 받아올 예정)
+// 테스트 문항 데이터 (백엔드에서 받아올 예정)
+const testItems = ref([]);
 
-// 현재 문제 및 정답 데이터
-const currentQuestion = ref('다음 중 AGS 인력이 ServiceFlow를 통해 직접 요청할 수 있는 사항으로 옳지 않은 것은 무엇인가요?');
-const currentAnswer = ref('정답은 1번 입니다.');
+// 초기 선택된 문제 설정
+const selectedQuestionIndex = ref(0);
+const currentQuestion = ref('');
+const currentAnswer = ref('');
+
+// 문제 선택 핸들러
+const selectQuestion = (index) => {
+  selectedQuestionIndex.value = index;
+  currentQuestion.value = testItems.value[index].question;
+  currentAnswer.value = testItems.value[index].answer;
+};
+
+// 백엔드에서 데이터를 받아오는 예시 함수 (실제 구현 필요)
+const fetchTestItems = async () => {
+  // 실제 백엔드 API 호출 로직
+  // 예시 데이터
+  const fetchedData = Array.from({ length: 20 }, (_, i) => ({
+    id: i + 1,
+    name: `Q${String(i + 1).padStart(2, '0')} (객관식)`,
+    selected: false,
+    question: `이것은 Q${String(i + 1).padStart(2, '0')}의 문제입니다. (백엔드 데이터)`, 
+    answer: `이것은 Q${String(i + 1).padStart(2, '0')}의 정답 및 풀이입니다. (백엔드 데이터)`, 
+  }));
+  testItems.value = fetchedData;
+  if (testItems.value.length > 0) {
+    selectQuestion(0);
+  }
+};
+
+// 컴포넌트 마운트 시 데이터 로드
+import { onMounted } from 'vue';
+onMounted(() => {
+  fetchTestItems();
+});
 
 // 선택된 문서 정보 (새로 추가)
 const selectedDocument = ref({
