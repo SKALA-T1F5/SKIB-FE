@@ -62,10 +62,12 @@
       </v-col>
     </v-row>
 
-    <v-col cols="12" class="d-flex justify-end">
+    <v-row>
+    <v-col cols="12" class="d-flex justify-space-between">
+      <v-btn variant="flat" color="gray" class="mr-2 force-white" @click="prevStep">← 이전단계</v-btn>
       <v-btn color="primary" @click="goToProblemCheck">다음 단계</v-btn>
     </v-col>
-
+  </v-row>
   </v-container>
 
 </template>
@@ -144,6 +146,10 @@ function goToProblemList(item) {
   emit('go-to-problem-list', item.name);
 }
 
+function prevStep() {
+  emit('prev-step');
+}
+
 function goToProblemCheck() {
   console.log('생성할 문제 수:', revenues.value.map(item => ({ name: item.name, mcSet: item.mcSet, sqSet: item.sqSet })));
   // TODO: 여기에 백엔드로 데이터를 전송하는 로직 추가
@@ -153,6 +159,10 @@ function goToProblemCheck() {
 </script>
 
 <style lang="scss" scoped>
+.force-white {
+  color: white !important;
+}
+
 .elevation-1 {
   box-shadow: none !important;
 }

@@ -2,7 +2,7 @@
 
     <v-container fluid class="problem-management">
       <keep-alive>
-        <component :is="currentComponent" @next-step="handleNextStep" @prev-step="handlePrevStep" @reset-step="handleResetStep" @go-to-problem-list="handleGoToProblemList" @go-to-problem-check="handleGoToProblemCheck" />
+        <component :is="currentComponent" @next-step="handleNextStep" @prev-step="handlePrevStep" @reset-step="handleResetStep" @go-to-problem-list="handleGoToProblemList" @go-to-problem-check="handleGoToProblemCheck" @go-to-problem-generate="handleGoToProblemGenerate" />
       </keep-alive>
     </v-container>
 
@@ -37,6 +37,13 @@ function handleGoToProblemCheck() {
   const problemCheckIndex = components.findIndex(comp => comp.name === 'ProblemCheck');
   if (problemCheckIndex !== -1) {
     currentStep.value = problemCheckIndex;
+  }
+}
+
+function handleGoToProblemGenerate() {
+  const problemGenerateIndex = components.findIndex(comp => comp.name === 'ProblemGenerate');
+  if (problemGenerateIndex !== -1) {
+    currentStep.value = problemGenerateIndex;
   }
 }
 
