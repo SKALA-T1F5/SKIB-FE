@@ -45,13 +45,11 @@
               </template>
               <template v-slot:item.sqSet="{ item }">
                 <v-text-field v-model.number="item.sqSet" type="number" variant="outlined"
-                  density="compact" hide-details style="width: 70px;"
-                  :disabled="!item.selected"></v-text-field>
+                  density="compact" hide-details style="width: 70px;"></v-text-field>
               </template>
               <template v-slot:item.mcSet="{ item }">
                 <v-text-field v-model.number="item.mcSet" type="number" variant="outlined"
-                  density="compact" hide-details style="width: 70px;"
-                  :disabled="!item.selected"></v-text-field>
+                  density="compact" hide-details style="width: 70px;"></v-text-field>
               </template>
             </v-data-table>
           </v-card-text>
@@ -102,12 +100,12 @@ import { ref, computed, watch } from 'vue';
 // import 'vue3-perfect-scrollbar/style.css';
 
 const headers = [
-  // { title: '선택', key: 'selected', sortable: false, width: '50px' },
+
   { title: '문서명', key: 'name', sortable: false, width: '40%' },
   { title: '보유객관식', key: 'mcCount', sortable: false, align: 'center', width: '15%' },
   { title: '보유주관식', key: 'sqCount', sortable: false, align: 'center', width: '15%' },
-  { title: '객관식', key: 'sqSet', sortable: false, align: 'center', width: '15%' },
-  { title: '주관식', key: 'mcSet', sortable: false, align: 'center', width: '15%' },
+  { title: '객관식', key: 'mcSet', sortable: false, align: 'center', width: '15%' },
+  { title: '주관식', key: 'sqSet', sortable: false, align: 'center', width: '15%' },
 ];
 
 const emit = defineEmits(['next-step']);
@@ -118,47 +116,41 @@ const revenues = ref([
     name: '문서1',
     mcCount: 20,
     sqCount: 10,
-    mcSet: 0,
-    sqSet: 0,
-    selected: false
+    mcSet: 3,
+    sqSet: 2,
   },
   {
     name: '문서2',
     mcCount: 20,
     sqCount: 10,
-    mcSet: 0,
-    sqSet: 0,
-    selected: false
+    mcSet: 3,
+    sqSet: 2,
   },
   {
     name: '문서3',
     mcCount: 20,
     sqCount: 10,
-    mcSet: 0,
-    sqSet: 0,
-    selected: false
+    mcSet: 3,
+    sqSet: 2,
   },
   {
     name: '문서4',
     mcCount: 0,
-    mcSet: 0,
-    sqSet: 0,
-    selected: false
+    mcSet: 3,
+    sqSet: 2,
   },
   {
     name: '문서5',
     mcCount: 0,
-    mcSet: 0,
-    sqSet: 0,
-    selected: false
+    mcSet: 3,
+    sqSet: 2,
   },
   {
     name: '문서6',
     mcCount: 15,
     sqCount: 5,
-    mcSet: 0,
-    sqSet: 0,
-    selected: false
+    mcSet: 3,
+    sqSet: 2,
   }
 ]);
 
@@ -172,25 +164,7 @@ const selectedDocument = ref({
   translationLanguage: '없음', // 🎨 번역 언어 기본값 추가
 });
 
-// 선택된 문서들을 추적하는 computed 속성
-const selectedRevenues = computed(() => revenues.value.filter(doc => doc.selected));
 
-// 선택된 문서 수 감시 및 제한 로직
-watch(selectedRevenues, (newSelectedRevenues) => {
-  if (newSelectedRevenues.length > 5) {
-    // 5개를 초과하면 마지막으로 선택된 것을 해제
-    const lastSelected = newSelectedRevenues[newSelectedRevenues.length - 1];
-    lastSelected.selected = false;
-    alert('최대 5개의 문서만 선택할 수 있습니다.');
-  }
-  // 선택되지 않은 문서의 mcSet과 sqSet을 0으로 설정
-  revenues.value.forEach(doc => {
-    if (!doc.selected) {
-      doc.mcSet = 0;
-      doc.sqSet = 0;
-    }
-  });
-}, { deep: true });
 
 // 총 객관식 문제 수 계산
 const totalMcqCount = computed(() => {
