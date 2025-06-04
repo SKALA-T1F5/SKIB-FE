@@ -45,7 +45,7 @@
             <div class="d-flex align-center">
               <h4 class="text-h8 mt-1">{{ testItems[selectedQuestionIndex]?.name }}</h4> &nbsp&nbsp&nbsp
               <h4 class="text-h8 mt-1" style="color:grey">{{ selectedDocument.originalDocumentName }} | {{
-                selectedDocument.tag }}| {{selectedDocument.difficulty }}</h4>
+                selectedDocument.tag }} | {{selectedDocument.difficulty }}</h4>
             </div>
             <v-textarea style="height:100px; font-size: 13.0rem;" 
               v-model="currentQuestion"

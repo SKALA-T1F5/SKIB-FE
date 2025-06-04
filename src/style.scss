@@ -2701,7 +2701,7 @@ html, body, #app {
   grid-template-columns: max-content 1fr auto;
   outline: none;
   max-width: 100%;
-  padding: 4px 16px;
+  padding: 1px 4px;
   position: relative;
   text-decoration: none
 }
@@ -3111,11 +3111,11 @@ html, body, #app {
 }
 
 .v-list-item--density-compact.v-list-item--one-line {
-  min-height: 40px
+  min-height: 10px
 }
 
 .v-list-item--density-compact.v-list-item--two-line {
-  min-height: 56px;
+  min-height: 26px !important;
   padding-top: 4px;
   padding-bottom: 4px
 }
@@ -3127,7 +3127,7 @@ html, body, #app {
 }
 
 .v-list-item--density-compact.v-list-item--three-line .v-list-item__prepend,.v-list-item--density-compact.v-list-item--three-line .v-list-item__append {
-  padding-top: 4px
+  padding-top: 0px
 }
 
 .v-list-item--density-compact:not(.v-list-item--nav).v-list-item--one-line {
