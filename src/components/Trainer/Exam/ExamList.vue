@@ -22,9 +22,9 @@
             <div>마지막 수정일: {{ exam.lastModified }}</div>
             <div>재응시 여부: {{ exam.retakeable ? '가능' : '불가능' }}</div>
             <br>
-            <div>합격자 수: {{ exam.passCount }}/{{ exam.totalApplicants }}명</div>
-            <div>평균 점수: {{ exam.averageScore }}점</div>
-            <ExamStatsChart :exams="exams" />
+            <!-- <div>합격자 수: {{ exam.passCount }}/{{ exam.totalApplicants }}명</div>
+            <div>평균 점수: {{ exam.averageScore }}점</div> -->
+            <ExamStatsChart :exam="exam" />
           </v-card-text>
         </v-card>
       </v-col>
@@ -44,6 +44,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import ExamStatsChart from '../../chart/ExamStatsChart.vue';
 
 const emit = defineEmits(['next-step']);
 
@@ -52,6 +53,10 @@ const router = useRouter();
 const addExam = () => {
   emit('next-step');
 };
+
+const props = defineProps({
+  exams: Array
+})
 
 const exams = ref([
   {
@@ -74,9 +79,9 @@ const exams = ref([
     passingScore: 80,
     lastModified: '2023-10-25',
     retakeable: false,
-    passCount: 8,
+    passCount: 2,
     totalApplicants: 10,
-    averageScore: 85,
+    averageScore: 45,
   },
   {
     id: 3,
