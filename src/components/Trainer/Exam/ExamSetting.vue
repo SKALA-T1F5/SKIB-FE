@@ -95,7 +95,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 // import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 // import 'vue3-perfect-scrollbar/style.css';
 
@@ -111,48 +111,57 @@ const headers = [
 const emit = defineEmits(['next-step']);
 
 // 문서 데이터 정의
-const revenues = ref([
-  {
-    name: '문서1',
-    mcCount: 20,
-    sqCount: 10,
-    mcSet: 3,
-    sqSet: 2,
-  },
-  {
-    name: '문서2',
-    mcCount: 20,
-    sqCount: 10,
-    mcSet: 3,
-    sqSet: 2,
-  },
-  {
-    name: '문서3',
-    mcCount: 20,
-    sqCount: 10,
-    mcSet: 3,
-    sqSet: 2,
-  },
-  {
-    name: '문서4',
-    mcCount: 0,
-    mcSet: 3,
-    sqSet: 2,
-  },
-  {
-    name: '문서5',
-    mcCount: 0,
-    mcSet: 3,
-    sqSet: 2,
-  },
-  {
-    name: '문서6',
-    mcCount: 15,
-    sqCount: 5,
-    mcSet: 3,
-    sqSet: 2,
+const revenues = ref([]);
+
+// 백엔드에서 데이터를 가져오는 함수 (시뮬레이션)
+const fetchRevenues = async () => {
+  // 실제 백엔드 API 호출 로직이 들어갈 자리
+  // 여기서는 더미 데이터를 반환합니다.
+  return [
+    { name: '문서1', mcCount: 25, sqCount: 12 },
+    { name: '문서2', mcCount: 18, sqCount: 8 },
+    { name: '문서3', mcCount: 30, sqCount: 15 },
+  ];
+};
+
+onMounted(async () => {
+  try {
+    const fetchedData = await fetchRevenues();
+    if (fetchedData && fetchedData.length > 0) {
+      revenues.value = fetchedData.map(doc => ({
+        ...doc,
+        mcSet: doc.mcSet !== undefined ? doc.mcSet : 3, // 백엔드에서 mcSet이 오지 않으면 기본값 3
+        sqSet: doc.sqSet !== undefined ? doc.sqSet : 2, // 백엔드에서 sqSet이 오지 않으면 기본값 2
+      }));
+    } else {
+      // 백엔드 데이터가 없거나 실패 시 기본값 사용
+      console.error('Failed to fetch revenues:', error);
+      revenues.value = [
+        {
+          name: '에러문서1',
+          mcCount: 20,
+          sqCount: 10,
+          mcSet: 3,
+          sqSet: 2,
+        },
+        
+      ];
+    }
+  } catch (error) {
+    console.error('Failed to fetch revenues:', error);
+    // 에러 발생 시 기본값 사용
+    revenues.value = [
+      {
+        name: '에러문서2',
+        mcCount: 20,
+        sqCount: 10,
+        mcSet: 3,
+        sqSet: 2,
+      },
+     
+    ];
   }
-]);
+});
 
 // 선택된 문서 설정 데이터
 const selectedDocument = ref({
