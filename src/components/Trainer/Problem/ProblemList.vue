@@ -5,9 +5,7 @@
         <div class="d-flex align-end mb-4">
           <h2 class="text-h5 font-weight-bold mr-2">문제 확인 및 수정</h2>
           <p class="text-body-2 text-medium-emphasis">보유한 문제를 확인하고 수정할 수 있습니다.</p>
-
         </div>
-        <v-progress-linear :model-value="66" height="10" color="primary" bg-color="primary" rounded></v-progress-linear>
       </v-col>
     </v-row>
     <v-row>
@@ -37,7 +35,7 @@
               </v-expansion-panel>
               <v-expansion-panel elevation="0">
                 <v-expansion-panel-title>
-                  <h4 class="text-h8 mt-1">테스트 문항 목록</h4>
+                  <h4 class="text-h8 mt-1">문항 목록</h4>
                 </v-expansion-panel-title>
                 <v-expansion-panel-text>
                   <div>
