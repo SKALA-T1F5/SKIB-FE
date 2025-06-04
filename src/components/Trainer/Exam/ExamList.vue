@@ -3,20 +3,16 @@
     <v-row>
       <v-col cols="12">
         <div class="d-flex align-end mb-4">
-          <h2 class="text-h5 font-weight-bold mr-2">테스트 관리</h2>
-          <p class="text-body-2 text-medium-emphasis">관리 중인 테스트 목록을 확인합니다.</p>
+          <h2 class="text-h5 font-weight-bold mr-2">시험 관리</h2>
+          <p class="text-body-2 text-medium-emphasis">관리 중인 시험 목록을 확인합니다.</p>
         </div>
-        <v-btn color="primary" @click="addExam">테스트 추가</v-btn>
       </v-col>
-      <v-col
-        v-for="exam in exams"
-        :key="exam.id"
-        cols="12"
-        sm="6"
-        md="4"
-        lg="3"
-      >
-        <v-card class="mx-auto" max-width="344">
+
+    </v-row>
+
+    <v-row :class="exams.length + 1 <= 4 ? 'd-flex flex-row flex-nowrap' : ''">
+      <v-col v-for="exam in exams" :key="exam.id" cols="12" sm="6" md="4" lg="3" class="d-flex">
+        <v-card elevation="0" class="mx-auto h-100 d-flex flex-column" max-width="344">
           <v-card-title class="text-h6">{{ exam.name }}</v-card-title>
           <v-card-subtitle>
             난이도: {{ exam.difficulty }} | 제한 시간: {{ exam.timeLimit }}분
@@ -29,10 +25,15 @@
             <div>합격자 수: {{ exam.passCount }}/{{ exam.totalApplicants }}명</div>
             <div>평균 점수: {{ exam.averageScore }}점</div>
           </v-card-text>
-          <v-card-actions>
-            <v-btn text color="primary">상세 보기</v-btn>
-            <v-btn text color="secondary">수정</v-btn>
-          </v-card-actions>
+        </v-card>
+      </v-col>
+      <v-col cols="12" sm="6" md="4" lg="3" class="d-flex">
+        <v-card elevation="0" class="mx-auto h-100 d-flex flex-column align-center justify-center"
+          style="border: 2px dashed #ccc; cursor: pointer;" @click="addExam">
+          <div class="text-center">
+            <v-icon size="48" color="grey-lighten-1">mdi-plus</v-icon>
+            <div class="text-subtitle-1 text-grey-lighten-1 mt-2">새로운 시험 추가</div>
+          </div>
         </v-card>
       </v-col>
     </v-row>
@@ -41,12 +42,15 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const emit = defineEmits(['next-step']);
 
-function addExam() {
+const router = useRouter();
+
+const addExam = () => {
   emit('next-step');
-}
+};
 
 const exams = ref([
   {
@@ -75,6 +79,18 @@ const exams = ref([
   },
   {
     id: 3,
+    name: 'CSS 고급 레이아웃',
+    difficulty: '상',
+    timeLimit: 45,
+    passingScore: 75,
+    lastModified: '2023-10-24',
+    retakeable: true,
+    passCount: 12,
+    totalApplicants: 15,
+    averageScore: 78,
+  },
+  {
+    id: 4,
     name: 'CSS 고급 레이아웃',
     difficulty: '상',
     timeLimit: 45,

@@ -4,7 +4,6 @@
       <v-col cols="12">
         <div class="d-flex align-end mb-4">
           <h2 class="text-h5 font-weight-bold mr-2">테스트 생성</h2>
-          <pre>  </pre>
           <p class="text-body-2 text-medium-emphasis">Step 3 of 3 : 테스트가 생성이 완료되었습니다. 학습자에게 링크를 공유하고, 테스트 목록에서 현황을
             확인하세요. </p>
         </div>

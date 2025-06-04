@@ -46,10 +46,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import DocumentUpload from './DocumentUpload.vue';
-import DocumentFilters from './DocumentFilters.vue';
-import DocumentList from './DocumentList.vue';
-import DocumentPreviewDialog from './DocumentPreviewDialog.vue';
+import DocumentUpload from './Document/DocumentUpload.vue';
+import DocumentFilters from './Document/DocumentFilters.vue';
+import DocumentList from './Document/DocumentList.vue';
+import DocumentPreviewDialog from './Document/DocumentPreviewDialog.vue';
 import TabNavigation from '../Layout/TabNavigation.vue';
 import ExamManagement from './ExamManagement.vue';
 
