@@ -24,6 +24,7 @@
             <br>
             <div>합격자 수: {{ exam.passCount }}/{{ exam.totalApplicants }}명</div>
             <div>평균 점수: {{ exam.averageScore }}점</div>
+            <ExamStatsChart :exams="exams" />
           </v-card-text>
         </v-card>
       </v-col>

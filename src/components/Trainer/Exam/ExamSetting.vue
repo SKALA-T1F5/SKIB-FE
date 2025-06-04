@@ -20,57 +20,40 @@
             <div class="d-flex align-center">
               <h4 class="text-h8 mt-1">Document List</h4>
             </div>
-            <!-- 문서 목록 테이블 헤더 및 스크롤 가능한 문서 목록 영역을 감싸는 div 추가 -->
-            <div class="table-like-content">
-              <div class="d-flex align-center justify-content-space-between w-20 mt-4 px-4">
-                <div class="text-body-2 font-weight-bold" style="width: 30px;">선택</div>
-                <div class="text-body-2 font-weight-bold" style="width: 100px;">문서명</div>
-                <div class="d-flex align-center" style="width: 360px; justify-content: space-between;">
-                  <div class="text-body-2 font-weight-bold" style="width: 80px; text-align: center;">보유객관식</div>
-                  <div class="text-body-2 font-weight-bold" style="width: 80px; text-align: center;">보유주관식</div>
-                  <div class="text-body-2 font-weight-bold" style="width: 80px; text-align: center;">객관식</div>
-                  <div class="text-body-2 font-weight-bold" style="width: 80px; text-align: center;">주관식</div>
-                </div>
-              </div>
-              <!-- 스크롤 가능한 문서 목록 영역 -->
-              <div class="mt-4" style="height:100%">
-                <perfect-scrollbar style="height: 100%">
-                  <v-list lines="two" class="py-0">
-                    <!-- 각 문서 아이템 반복 -->
-                    <v-list-item v-for="(revenue, i) in revenues" :key="i" :value="revenue" color="secondary"
-                      rounded="sm">
-                      <div class="d-flex align-center justify-content-space-between w-1">
-                        <!-- 라디오 버튼 추가 -->
-                        <v-checkbox v-model="revenue.selected" class="mr-2" density="compact" hide-details
-                          style="width: 50px;" color="grey"></v-checkbox>
-                        <!-- 문서명 -->
-                        <div class="mr-4" style="width: 100px;">
-                          <h6 class="text-body-2 text-medium-emphasis font-weight-bold">
-                            {{ revenue.name }}
-                          </h6>
-                        </div>
-                        <!-- 현재 문제수 표기 -->
-                        <div class="d-flex align-center" style="width: 160px ; justify-content: space-between;">
-                          <h6 class="text-body-2 font-weight-bold" style="width: 80px; text-align: center;">{{ revenue.mcCount
-                            }}</h6>
-                          <h6 class="text-body-2 font-weight-bold" style="width: 80px; text-align: center;">{{ revenue.sqCount
-                            }}</h6>
-                        </div>
-                        <!-- 주관식, 객관식 입력 필드 -->
-                        <div class="d-flex align-center" style="width: 160px; justify-content: space-between;">
-                          <v-text-field v-model.number="revenue.sqSet" type="number" variant="outlined"
-                            density="compact" hide-details class="mr-2" style="width: 70px;"
-                            :disabled="!revenue.selected"></v-text-field>
-                          <v-text-field v-model.number="revenue.mcSet" type="number" variant="outlined"
-                            density="compact" hide-details style="width: 70px;"
-                            :disabled="!revenue.selected"></v-text-field>
-                        </div>
-                      </div>
-                    </v-list-item>
-                  </v-list>
-                </perfect-scrollbar>
-              </div>
-            </div>
+            <!-- 문서 목록 테이블 -->
+            <v-data-table
+              :headers="headers"
+              :items="revenues"
+              item-value="name"
+              class="elevation-0"
+              hide-default-footer
+              disable-pagination
+            >
+              <template v-slot:item.selected="{ item }">
+                <v-checkbox v-model="item.selected" density="compact" hide-details color="grey"></v-checkbox>
+              </template>
+              <template v-slot:item.name="{ item }">
+                <h6 class="text-body-2 text-medium-emphasis font-weight-bold">
+                  {{ item.name }}
+                </h6>
+              </template>
+              <template v-slot:item.mcCount="{ item }">
+                <h6 class="text-body-2 font-weight-bold" style="text-align: center;">{{ item.mcCount }}</h6>
+              </template>
+              <template v-slot:item.sqCount="{ item }">
+                <h6 class="text-body-2 font-weight-bold" style="text-align: center;">{{ item.sqCount }}</h6>
+              </template>
+              <template v-slot:item.sqSet="{ item }">
+                <v-text-field v-model.number="item.sqSet" type="number" variant="outlined"
+                  density="compact" hide-details style="width: 70px;"
+                  :disabled="!item.selected"></v-text-field>
+              </template>
+              <template v-slot:item.mcSet="{ item }">
+                <v-text-field v-model.number="item.mcSet" type="number" variant="outlined"
+                  density="compact" hide-details style="width: 70px;"
+                  :disabled="!item.selected"></v-text-field>
+              </template>
+            </v-data-table>
           </v-card-text>
         </v-card>
       </v-col>
@@ -115,8 +98,17 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-import 'vue3-perfect-scrollbar/style.css';
+// import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
+// import 'vue3-perfect-scrollbar/style.css';
+
+const headers = [
+  // { title: '선택', key: 'selected', sortable: false, width: '50px' },
+  { title: '문서명', key: 'name', sortable: false, width: '40%' },
+  { title: '보유객관식', key: 'mcCount', sortable: false, align: 'center', width: '15%' },
+  { title: '보유주관식', key: 'sqCount', sortable: false, align: 'center', width: '15%' },
+  { title: '객관식', key: 'sqSet', sortable: false, align: 'center', width: '15%' },
+  { title: '주관식', key: 'mcSet', sortable: false, align: 'center', width: '15%' },
+];
 
 const emit = defineEmits(['next-step']);
 
