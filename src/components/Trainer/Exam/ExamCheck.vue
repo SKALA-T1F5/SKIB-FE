@@ -4,7 +4,7 @@
       <v-col cols="12">
         <div class="d-flex align-end mb-4">
           <h2 class="text-h5 font-weight-bold mr-2">테스트 생성</h2>
-          <p class="text-body-2 text-medium-emphasis">Step 2 of 3 : AI가 만든 문제를 확인하고 재생성할 수 있습니다. 완료 후 테스트를 생성하세요.</p>
+          <p class="text-body-2 text-medium-emphasis">Step 2 of 3 : AI가 만든 문제를 확인할 수 있습니다. 완료 후 다음 단계로 이동하세요.</p>
 
         </div>
         <v-progress-linear :model-value="66" height="10" color="primary" bg-color="primary" rounded></v-progress-linear>

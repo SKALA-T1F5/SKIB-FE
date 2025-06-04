@@ -72,7 +72,7 @@
 .custom-tab {
   text-transform: none;
   font-weight: 500;
-  color: #555;
+  color: #b8b8b8;
   border-radius: 999px;
   transition: background-color 0.2s ease;
   height: 44px;
@@ -85,4 +85,5 @@
   color: rgb(255, 255, 255) !important;
   border-radius: 99px !important;
 }
+
 </style>
