@@ -312,7 +312,7 @@ html, body, #app {
 
 .v-btn {
   align-items: center;
-  border-radius: 45px;
+  border-radius: 10px !important;
   display: inline-grid;
   grid-template-areas: "prepend content append";
   grid-template-columns: max-content auto max-content;
@@ -348,7 +348,8 @@ html, body, #app {
   --v-btn-height: 28px;
   font-size: var(--v-btn-size);
   min-width: 50px;
-  padding: 0 12px
+  padding: 0 12px;
+  border-radius: 85px;
 }
 
 .v-btn--size-default {

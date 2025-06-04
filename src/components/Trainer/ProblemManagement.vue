@@ -1,11 +1,11 @@
 <template>
-  <v-container>
+
     <v-container fluid class="problem-management">
       <keep-alive>
         <component :is="currentComponent" @next-step="handleNextStep" @prev-step="handlePrevStep" @reset-step="handleResetStep" @go-to-problem-list="handleGoToProblemList" @go-to-problem-check="handleGoToProblemCheck" />
       </keep-alive>
     </v-container>
-  </v-container>
+
 </template>
 
 <script setup>
@@ -14,6 +14,7 @@ import { useRouter, useRoute } from 'vue-router';
 
 import ProblemCheck from './Problem/ProblemCheck.vue';
 import ProblemComplete from './Problem/ProblemComplete.vue';
+import ProblemDocument from './Problem/ProblemDocument.vue';
 import ProblemGenerate from './Problem/ProblemGenerate.vue';
 import ProblemList from './Problem/ProblemList.vue';
 
@@ -39,9 +40,13 @@ function handleGoToProblemCheck() {
   }
 }
 
-const currentStep = ref(0);
+const currentStep = ref(0); // ProblemDocument가 첫 화면이 되도록 0으로 설정
 
 const components = [
+  {
+    name: 'ProblemDocument',
+    component: ProblemDocument,
+  },
   {
     name: 'ProblemGenerate',
     component: ProblemGenerate,

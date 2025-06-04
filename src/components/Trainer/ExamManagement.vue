@@ -1,11 +1,9 @@
 <template>
-  <v-container>
     <v-container fluid class="exam-management">
       <keep-alive>
         <component :is="currentComponent" @next-step="handleNextStep" @prev-step="handlePrevStep" @reset-step="handleResetStep" />
       </keep-alive>
     </v-container>
-  </v-container>
 </template>
 
 <script setup>
