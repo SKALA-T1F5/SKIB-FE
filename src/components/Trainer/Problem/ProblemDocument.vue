@@ -43,11 +43,11 @@
         </v-col>
 
       </v-row>
-  
+      <v-row>
       <v-col cols="12" class="d-flex justify-end">
         <v-btn color="primary" @click="goToProblemGenerate">+ 문제 추가 생성</v-btn>
       </v-col>
-  
+    </v-row>
     </v-container>
   
   </template>

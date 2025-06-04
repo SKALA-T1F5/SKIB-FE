@@ -45,7 +45,7 @@
             <div class="d-flex align-center">
               <h4 class="text-h8 mt-1">{{ testItems[selectedQuestionIndex]?.name }}</h4> &nbsp&nbsp&nbsp
               <h4 class="text-h8 mt-1" style="color:grey">{{ selectedDocument.originalDocumentName }} | {{
-                selectedDocument.difficulty }}</h4>
+                selectedDocument.tag }}| {{selectedDocument.difficulty }}</h4>
             </div>
             <v-textarea style="height:100px; font-size: 13.0rem;" 
               v-model="currentQuestion"
@@ -244,7 +244,8 @@ const selectedDocument = ref({
   difficulty: '',
   passScore: null,
   retakeAllowed: false,
-  originalDocumentName: '기본 문서', // 예시 데이터
+  originalDocumentName: '기본 문서명 AAA', // 예시 데이터
+  tag: '논리력',
   difficulty: '⭐⭐⭐', // 예시 데이터
 });
 

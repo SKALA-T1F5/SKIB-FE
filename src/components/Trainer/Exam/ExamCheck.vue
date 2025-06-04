@@ -45,7 +45,7 @@
             <div class="d-flex align-center">
               <h4 class="text-h8 mt-1">{{ testItems[selectedQuestionIndex]?.name }}</h4> &nbsp&nbsp&nbsp
               <h4 class="text-h8 mt-1" style="color:grey">{{ selectedDocument.originalDocumentName }} | {{
-                selectedDocument.difficulty }}</h4>
+                selectedDocument.tag }} | {{selectedDocument.difficulty }}</h4>
                 <v-spacer></v-spacer>
               <v-btn icon variant="flat" size="x-small" class="ml-2" color="primary" @click="toggleTranslation">
                 <v-icon style="color:white">mdi-web</v-icon>
@@ -176,7 +176,8 @@ const selectedDocument = ref({
   difficulty: '',
   passScore: null,
   retakeAllowed: false,
-  originalDocumentName: '기본 문서', // 🎨 원본 문서명 추가
+  originalDocumentName: '문서명AAA', // 🎨 원본 문서명 추가
+  tag: '논리력', // 🎨 원본 문서명 추가
   difficulty: '⭐⭐⭐', // 🎨 난이도 추가
 });
 
