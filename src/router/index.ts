@@ -1,22 +1,36 @@
-// import { createRouter, createWebHistory } from 'vue-router'
+// src/router/index.ts
+import { createRouter, createWebHistory } from 'vue-router'
+import Login from '@/pages/general/Login.vue'
+import TrainerMain from '@/pages/trainer/TrainerMain.vue'
+import TraineeMain from '@/pages/trainee/TraineeMain.vue'
 
-// const router = createRouter({
-//   history: createWebHistory(import.meta.env.BASE_URL),
-//   routes: [
-//     {
-//       path: '/',
-//       name: 'home',
-//       component: HomeView,
-//     },
-//     {
-//       path: '/about',
-//       name: 'about',
-//       // route level code-splitting
-//       // this generates a separate chunk (About.[hash].js) for this route
-//       // which is lazy-loaded when the route is visited.
-//       component: () => import('../views/AboutView.vue'),
-//     },
-//   ],
-// })
+const routes = [
+  { path: '/', name: 'Login', component: Login },
+  { path: '/trainer/main', name: 'TrainerMain', component: TrainerMain },
+  { path: '/trainee/main', name: 'TraineeMain', component: TraineeMain },
+]
 
-// export default router
+const router = createRouter({
+  history: createWebHistory(),
+  routes,
+})
+
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+
+  // ✅ 사용자가 수동으로 로그인 페이지로 접근하면 로그아웃 처리
+  if (to.name === 'Login') {
+    localStorage.removeItem('token')
+    localStorage.removeItem('role')
+  }
+
+  // ✅ 로그인 아닌 페이지에 접근할 때 토큰이 없으면 로그인으로 이동
+  if (to.name !== 'Login' && !token) {
+    alert('로그인이 필요합니다.')
+    next({ name: 'Login' })
+  } else {
+    next()
+  }
+})
+
+export default router

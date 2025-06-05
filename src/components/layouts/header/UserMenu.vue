@@ -13,19 +13,23 @@
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiAccount, mdiMenuDown } from '@mdi/js'
 
-const props = defineProps({
-  name: String,
-  role: String,
-})
-
 const router = useRouter()
 const showUserMenu = ref(false)
+
+// ✅ 사용자 정보 가져오기
+const name = ref('')
+const role = ref('')
+
+onMounted(() => {
+  name.value = localStorage.getItem('name') || '사용자'
+  role.value = localStorage.getItem('role') || ''
+})
 
 const toggleUserMenu = () => {
   showUserMenu.value = !showUserMenu.value
@@ -38,6 +42,7 @@ const goToMyPage = () => {
 const logout = () => {
   localStorage.removeItem('token')
   localStorage.removeItem('role')
+  localStorage.removeItem('name')
   router.push('/login')
 }
 </script>
