@@ -48,7 +48,8 @@ const handleLogin = async () => {
     })
 
     const token = response.data.resultData?.token
-    const role = response.data.resultData?.role // 서버 응답에 role 포함된다고 가정
+    const name = response.data.resultData?.name
+    const role = response.data.resultData?.role
 
     if (!token || !role) {
       alert('로그인 실패: 서버에서 토큰 또는 역할을 받지 못했습니다.')
@@ -56,12 +57,12 @@ const handleLogin = async () => {
     }
 
     localStorage.setItem('token', token)
-    localStorage.setItem('name', response.data.resultData.name)
+    localStorage.setItem('name', name)
     localStorage.setItem('role', role)
 
-    if (role === 'Trainer') {
+    if (role === 'TRAINER') {
       router.push('/trainer/main')
-    } else if (role === 'Trainee') {
+    } else if (role === 'TRAINEE') {
       router.push('/trainee/main')
     } else {
       alert('알 수 없는 역할입니다.')
