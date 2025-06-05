@@ -15,7 +15,7 @@ import LangSwitcher from './header/LangSwitcher.vue'
 import UserMenu from './header/UserMenu.vue'
 
 const props = defineProps({
-  name: { type: String, default: '닉네임' },
+  name: { type: String, default: 'Nickname' },
   role: { type: String, default: 'Trainee' },
 })
 </script>
@@ -23,7 +23,7 @@ const props = defineProps({
 <style scoped>
 /* 기존 header 스타일 그대로 유지 */
 .header {
-  height: 80px;
+  height: 60px;
   width: 100%;
   background-color: white;
   display: flex;
@@ -34,15 +34,18 @@ const props = defineProps({
   box-sizing: border-box;
   position: relative;
 }
+
 .header-right {
   display: flex;
   align-items: center;
   gap: 20px;
   position: relative;
 }
+
 .vertical-divider {
   width: 1px;
   height: 28px;
   background-color: #acacac;
+  margin-top: 15px;
 }
 </style>

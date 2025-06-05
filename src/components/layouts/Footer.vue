@@ -5,11 +5,12 @@
 <style scoped>
 .footer {
   width: 100%;
-  height: 60px;
+  height: 40px;
   background-color: #f0f0f0;
-  text-align: center;
-  line-height: 60px;
-  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
   color: #666;
 }
 </style>

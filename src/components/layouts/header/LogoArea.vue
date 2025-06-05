@@ -20,7 +20,7 @@ const goToMain = () => {
   align-items: center;
 }
 .logo-image {
-  height: 70px;
+  height: 60px;
   object-fit: contain;
   cursor: pointer;
 }

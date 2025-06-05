@@ -46,33 +46,52 @@ const logout = () => {
 .user-info {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   cursor: pointer;
   position: relative;
+  padding: 3px 10px 5px 6px;
+  transition: background-color 0.25s ease;
+  margin-left: -12px;
+  margin-top: 15px;
 }
+
+.user-info:hover {
+  background-color: #d6d6d6;
+}
+
+.user-icon {
+  height: 30px;
+  width: 30px;
+  color: #000;
+}
+
 .user-text {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   text-align: left;
+  line-height: 1.1;
+  margin-left: 1px;
 }
+
 .nickname {
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: 600;
   color: #000;
 }
+
 .role {
-  font-size: 12px;
+  font-size: 10px;
   color: #868686;
-  line-height: 1;
 }
-.user-icon {
-  height: 40px;
-  width: 40px;
-}
+
 .user-menu {
-  height: 30px;
-  width: 30px;
+  height: 16px;
+  width: 16px;
+  color: #000;
+  margin-left: 2px;
 }
+
 .dropdown {
   position: absolute;
   top: 110%;
@@ -83,14 +102,16 @@ const logout = () => {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   z-index: 999;
   padding: 4px 0;
-  min-width: 120px;
+  min-width: 100px;
   text-align: left;
 }
+
 .dropdown div {
-  padding: 0.6rem 1rem;
-  font-size: 14px;
+  padding: 0.3rem 1rem;
+  font-size: 12px;
   cursor: pointer;
 }
+
 .dropdown div:hover {
   background-color: #f5f5f5;
 }
