@@ -1,25 +1,28 @@
 <template>
-  <v-app>
-    <AppHeader />
-    <SideNavigation />
-    <v-main>
-      <!-- 여기에 라우터 뷰 또는 페이지 컴포넌트가 표시됩니다 -->
-      <router-view />
-    </v-main>
-    <Footer />
-  </v-app>
+  <div id="app">
+    <ProjectList />
+  </div>
 </template>
 
-<script setup>
-import AppHeader from '@/components/Layout/AppHeader.vue';
-import SideNavigation from '@/components/Layout/SideNavigation.vue';
-import Footer from '@/components/Layout/Footer.vue';
+<script>
+import ProjectList from './components/Admin/ProjectList.vue';
 
-// 특별히 글로벌 컴포넌트를 불러올 필요 없으면 비워도 됩니다
+export default {
+  name: 'App',
+  components: {
+    ProjectList,
+  },
+};
 </script>
 
-<style scoped>
-/* 필요하다면 전역 스타일 작성 */
+<style>
+/* Global styles can go here */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 </style>
 
 
