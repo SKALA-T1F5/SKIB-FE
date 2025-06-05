@@ -57,8 +57,12 @@ const handleLogin = async () => {
     }
 
     localStorage.setItem('token', token)
+    localStorage.setItem('userId', userId)
     localStorage.setItem('name', name)
     localStorage.setItem('role', role)
+    localStorage.setItem('firstLogin', 'true')
+
+    router.push('/mypage')
 
     if (role === 'TRAINER') {
       router.push('/trainer/main')

@@ -1,10 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '@/pages/general/Login.vue'
+import MyPAge from '@/pages/general/MyPage.vue'
 import TrainerMain from '@/pages/trainer/TrainerMain.vue'
 import TraineeMain from '@/pages/trainee/TraineeMain.vue'
 
 const routes = [
   { path: '/login', name: 'Login', component: Login },
+  { path: '/mypage', name: 'MyPage', component: MyPAge },
   { path: '/trainer/main', name: 'TrainerMain', component: TrainerMain },
   { path: '/trainee/main', name: 'TraineeMain', component: TraineeMain },
   // 예외 처리를 위해 정의되지 않은 경로를 catch-all
@@ -35,16 +37,16 @@ router.beforeEach((to, from, next) => {
   }
 
   // 3. 로그인된 사용자가 자신의 Role이 아닌 경로 접근 시 → 본인 메인으로 리다이렉트
-  if (token && role) {
-    if (role === 'Trainer' && to.path.startsWith('/trainee')) {
-      alert('접근 권한이 없습니다. (Trainee 전용 영역)')
-      return next({ name: 'TrainerMain' })
-    }
-    if (role === 'Trainee' && to.path.startsWith('/trainer')) {
-      alert('접근 권한이 없습니다. (Trainer 전용 영역)')
-      return next({ name: 'TraineeMain' })
-    }
-  }
+  // if (token && role) {
+  //   if (role === 'Trainer' && to.path.startsWith('/trainee')) {
+  //     alert('접근 권한이 없습니다. (Trainee 전용 영역)')
+  //     return next({ name: 'TrainerMain' })
+  //   }
+  //   if (role === 'Trainee' && to.path.startsWith('/trainer')) {
+  //     alert('접근 권한이 없습니다. (Trainer 전용 영역)')
+  //     return next({ name: 'TraineeMain' })
+  //   }
+  // }
 
   // 4. 그 외 정상 라우팅
   next()
