@@ -58,7 +58,7 @@ import { useRouter } from 'vue-router';
 import api from '@/utils/axios';
 import Header from '@/components/layouts/Header.vue';
 import Footer from '@/components/layouts/Footer.vue';
-import TraineeMainSideBar from '@/components/layouts/sidebar/TraineeMainSideBar.vue';
+import TraineeMainSideBar from '@/components/trainee/main/TraineeMainSideBar.vue';
 import TraineeTestCard from '@/components/trainee/main/TraineeTestCard.vue'; // 경로 수정
 import AddTestModal from '@/components/trainee/main/AddTestModal.vue'; // 경로 수정
 
