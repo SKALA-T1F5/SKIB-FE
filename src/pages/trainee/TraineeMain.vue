@@ -439,22 +439,26 @@ onMounted(() => {
 
 .test-cards-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* 이전 요청의 minmax(350px, 1fr)로 복원 */
+  /* 변경: auto-fill을 사용하여 사용 가능한 공간을 채우고, 필요에 따라 열을 추가/제거 */
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 24px;
-  justify-content: flex-start;
+  /* 기존 유지: flex-start는 그리드 아이템이 시작부터 정렬되도록 합니다. */
+  justify-content: flex-start; 
   align-items: flex-start;
+  /* 추가: 행의 높이를 콘텐츠에 따라 자동으로 조절합니다. */
+  grid-auto-rows: minmax(auto, auto); /* 카드의 내용 길이에 따라 유연하게 높이 조절 */
 }
 
-/* 미디어 쿼리도 이전 요청의 350px 기준으로 재조정 */
+/* 미디어 쿼리는 그대로 유지하셔도 좋습니다. */
 @media (max-width: 1200px) {
   .test-cards-container {
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   }
 }
 
 @media (max-width: 900px) {
   .test-cards-container {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   }
 }
 
