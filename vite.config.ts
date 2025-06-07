@@ -15,7 +15,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://10.250.73.244:8080', // SpringBoot 서버 주소
+        target: 'https://skib-backend.skala25a.project.skala-ai.com', // SpringBoot 서버 주소
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },

@@ -2,7 +2,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'http://10.250.73.244:8080/api',
+  baseURL: 'https://skib-backend.skala25a.project.skala-ai.com/api',
   headers: {
     accept: 'application/json',
   },
