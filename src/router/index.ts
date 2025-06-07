@@ -3,14 +3,34 @@ import Login from '@/pages/general/Login.vue'
 import MyPage from '@/pages/general/MyPage.vue'
 import TrainerMain from '@/pages/trainer/TrainerMain.vue'
 import TraineeMain from '@/pages/trainee/TraineeMain.vue'
+import TraineeTestResult from '@/pages/trainee/TraineeTestResult.vue'
+import TraineeTestFeedback from '@/pages/trainee/TraineeTestFeedback.vue'
+import TraineeTest from '@/pages/trainee/TraineeTest.vue'
 
 const routes: RouteRecordRaw[] = [
   { path: '/login', name: 'Login', component: Login },
-  { path: '/mypage', name: 'MyPage', component: MyPage }, // 오타 수정 적용
+  { path: '/mypage', name: 'MyPage', component: MyPage },
   { path: '/trainer/main', name: 'TrainerMain', component: TrainerMain },
   { path: '/trainee/main', name: 'TraineeMain', component: TraineeMain },
-  // 예외 처리를 위해 정의되지 않은 경로를 catch-all
-  // Note: Vue Router 4에서는 pathMatch(.*)* 대신 :pathMatch(.*)로 변경되었습니다.
+  // 새로 추가될 라우트
+  {
+    path: '/trainee/test/result/:testId',
+    name: 'TraineeTestResult',
+    component: TraineeTestResult,
+    props: true // 파라미터를 props로 받으려면 필요
+  },
+  {
+    path: '/trainee/test/feedback/:testId',
+    name: 'TraineeTestFeedback',
+    component: TraineeTestFeedback,
+    props: true
+  },
+  {
+    path: '/trainee/test/attend/:testId', // 응시 페이지 경로
+    name: 'TraineeTest',
+    component: TraineeTest,
+    props: true
+  },
   { path: '/:pathMatch(.*)*', redirect: '/login' },
 ];
 

@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar">
     <div class="sidebar-content">
-      <!-- 추후 여기에 메뉴 컴포넌트가 들어갑니다 -->
+      <slot></slot>
     </div>
   </div>
 </template>
@@ -10,7 +10,7 @@
 
 <style scoped>
 .sidebar {
-  width: 150px;
+  width: 150px; /* 기본 너비 (TraineeSideBar에서 오버라이드 가능) */
   height: calc(100% - 60px);
   background-color: #1e2251;
   color: white;
