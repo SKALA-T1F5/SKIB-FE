@@ -59,8 +59,8 @@ import api from '@/utils/axios';
 import Header from '@/components/layouts/Header.vue';
 import Footer from '@/components/layouts/Footer.vue';
 import TraineeMainSideBar from '@/components/layouts/sidebar/TraineeMainSideBar.vue';
-import TraineeTestCard from '@/components/trainee/main/TraineeTestCard.vue';
-import AddTestModal from '@/components/trainee/main/AddTestModal.vue';
+import TraineeTestCard from '@/components/trainee/main/TraineeTestCard.vue'; // 경로 수정
+import AddTestModal from '@/components/trainee/main/AddTestModal.vue'; // 경로 수정
 
 const router = useRouter();
 
@@ -245,7 +245,26 @@ const addTestByLink = async (link: string) => {
     const response = await api.post('/trainee/join-test', { invitationLink: invitationLink.value });
     console.log('테스트 추가 성공:', response.data);
     alert('테스트에 성공적으로 참여했습니다!');
-    await fetchTests();
+    // 초대 링크로 시험에 참여했을 때도 안내 페이지로 리다이렉트
+    // 서버 응답에 시험 정보가 포함되어 있다고 가정합니다.
+    const joinedTestInfo = response.data.testDetails; // 예시: 서버 응답에 testDetails 객체가 있다고 가정
+    if (joinedTestInfo && joinedTestInfo.testId) {
+      router.push({
+        name: 'TraineeTestGuide',
+        params: { testId: joinedTestInfo.testId.toString() },
+        state: {
+          testName: joinedTestInfo.name,
+          projectId: joinedTestInfo.projectId,
+          limitedTimeM: joinedTestInfo.limitedTimeM,
+          passScore: joinedTestInfo.passScore,
+          difficultyLevel: joinedTestInfo.difficultyLevel,
+          isRetake: joinedTestInfo.isRetake,
+        }
+      });
+    } else {
+      // 시험 정보가 없으면 그냥 목록 새로고침
+      await fetchTests();
+    }
     hideAddTestModal();
   } catch (error: any) {
     console.error('테스트 추가 실패:', error);
@@ -266,6 +285,7 @@ const fetchTests = async () => {
         status: test.actualScore >= test.passScore ? 'PASS' : 'FAIL',
     }));
 
+    // 실제 API 호출 예시 (주석 처리됨)
     // const response = await api.get<Omit<Test, 'status'>[]>('/trainee/tests');
     // tests.value = response.data.map(test => {
     //   // 서버에서 받은 데이터에 실제 점수와 합격 점수가 있다고 가정하고 status 계산
@@ -309,16 +329,26 @@ const handleTestCardAction = (test: Test, actionType: 'result' | 'feedback' | 'a
       state: { testName: test.name, projectId: test.projectId, actualScore: test.actualScore, passScore: test.passScore }
     });
   } else if (actionType === 'attend') {
-    // 재응시 조건: 테스트 자체가 재응시 가능하고, 응시자가 실패했을 때만 재응시 버튼이 보입니다.
+    // 재응시 또는 초대 링크를 통한 응시 시작 전에 안내 페이지로 이동
+    // isRetake가 0 (재응시 불가) 이거나, status가 'PASS' 인 경우에도 안내 페이지로 보내는 것이 아니라
+    // 이 경우 "재응시 불가" 메시지를 띄우고 결과 페이지로 보내는 로직을 유지합니다.
     if (test.isRetake === 1 && test.status === 'FAIL') {
       router.push({
-        name: 'TraineeTest', // 실제 테스트 응시 페이지
+        name: 'TraineeTestGuide', // 안내 페이지 라우트 이름
         params: { testId: test.testId.toString() },
-        state: { testName: test.name, projectId: test.projectId, isRetake: test.isRetake }
+        state: { // 안내 페이지에 필요한 시험 정보 전달
+          testName: test.name,
+          projectId: test.projectId,
+          limitedTimeM: test.limitedTimeM,
+          passScore: test.passScore,
+          difficultyLevel: test.difficultyLevel,
+          isRetake: test.isRetake,
+        }
       });
     } else {
+      // 재응시가 불가하거나 (isRetake: 0) 이미 합격한 경우 (status: 'PASS')
       alert('이 테스트는 재응시할 수 없습니다.');
-      // 재응시 불가능한 경우 결과 페이지로 이동시키거나 다른 처리
+      // 재응시 불가능한 경우 결과 페이지로 이동 (기존 로직 유지)
       router.push({
         name: 'TraineeTestResult',
         params: { testId: test.testId.toString() },
@@ -400,7 +430,7 @@ onMounted(() => {
   background-color: #d0d0d0;
 }
 
-/* 본문 구분을 위한 선 추가 - 수정된 부분 */
+/* 본문 구분을 위한 선 추가 */
 .content-divider {
   border: 0;
   border-top: 1px solid black;
@@ -409,21 +439,22 @@ onMounted(() => {
 
 .test-cards-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* 최소 너비 320px */
-  gap: 24px; /* 카드 간 간격 조정 (기존 70px은 너무 넓을 수 있음) */
-  justify-content: start;
-  align-items: start;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* 이전 요청의 minmax(350px, 1fr)로 복원 */
+  gap: 24px;
+  justify-content: flex-start;
+  align-items: flex-start;
 }
 
+/* 미디어 쿼리도 이전 요청의 350px 기준으로 재조정 */
 @media (max-width: 1200px) {
   .test-cards-container {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   }
 }
 
 @media (max-width: 900px) {
   .test-cards-container {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   }
 }
 

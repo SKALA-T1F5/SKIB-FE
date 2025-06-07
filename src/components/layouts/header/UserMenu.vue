@@ -99,7 +99,7 @@ const logout = () => {
 
 .dropdown {
   position: absolute;
-  top: 110%;
+  top: 90%;
   right: 0;
   background: white;
   border: 1px solid #ccc;

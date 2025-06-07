@@ -178,7 +178,6 @@ onMounted(fetchUserInfo);
   background-color: #f9fafb; /* Light gray background */
   border-radius: 0.5rem; /* Rounded corners */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  space-y: 1rem; /* space-y-4 */
 }
 
 .info-item {

@@ -3,16 +3,29 @@ import Login from '@/pages/general/Login.vue'
 import MyPage from '@/pages/general/MyPage.vue'
 import TrainerMain from '@/pages/trainer/TrainerMain.vue'
 import TraineeMain from '@/pages/trainee/TraineeMain.vue'
+import TraineeTestGuide from '@/pages/trainee/TraineeTestGuide.vue';
+import TraineeTest from '@/pages/trainee/TraineeTest.vue'
 import TraineeTestResult from '@/pages/trainee/TraineeTestResult.vue'
 import TraineeTestFeedback from '@/pages/trainee/TraineeTestFeedback.vue'
-import TraineeTest from '@/pages/trainee/TraineeTest.vue'
 
 const routes: RouteRecordRaw[] = [
   { path: '/login', name: 'Login', component: Login },
   { path: '/mypage', name: 'MyPage', component: MyPage },
   { path: '/trainer/main', name: 'TrainerMain', component: TrainerMain },
   { path: '/trainee/main', name: 'TraineeMain', component: TraineeMain },
-  // 새로 추가될 라우트
+  {
+    path: '/test-guide/:testId', // testId를 파라미터로 받음
+    name: 'TraineeTestGuide',
+    component: TraineeTestGuide,
+    props: true, // 라우트 파라미터를 컴포넌트 prop으로 전달
+  },
+  {
+    path: '/trainee/test/attend/:testId', // 응시 페이지 경로
+    name: 'TraineeTest',
+    component: TraineeTest,
+    props: true
+  },
+  { path: '/:pathMatch(.*)*', redirect: '/login' },
   {
     path: '/trainee/test/result/:testId',
     name: 'TraineeTestResult',
@@ -25,13 +38,6 @@ const routes: RouteRecordRaw[] = [
     component: TraineeTestFeedback,
     props: true
   },
-  {
-    path: '/trainee/test/attend/:testId', // 응시 페이지 경로
-    name: 'TraineeTest',
-    component: TraineeTest,
-    props: true
-  },
-  { path: '/:pathMatch(.*)*', redirect: '/login' },
 ];
 
 const router = createRouter({
