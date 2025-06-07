@@ -1,17 +1,18 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Login from '@/pages/general/Login.vue'
-import MyPAge from '@/pages/general/MyPage.vue'
+import MyPage from '@/pages/general/MyPage.vue'
 import TrainerMain from '@/pages/trainer/TrainerMain.vue'
 import TraineeMain from '@/pages/trainee/TraineeMain.vue'
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   { path: '/login', name: 'Login', component: Login },
-  { path: '/mypage', name: 'MyPage', component: MyPAge },
+  { path: '/mypage', name: 'MyPage', component: MyPage }, // 오타 수정 적용
   { path: '/trainer/main', name: 'TrainerMain', component: TrainerMain },
   { path: '/trainee/main', name: 'TraineeMain', component: TraineeMain },
   // 예외 처리를 위해 정의되지 않은 경로를 catch-all
+  // Note: Vue Router 4에서는 pathMatch(.*)* 대신 :pathMatch(.*)로 변경되었습니다.
   { path: '/:pathMatch(.*)*', redirect: '/login' },
-]
+];
 
 const router = createRouter({
   history: createWebHistory(),

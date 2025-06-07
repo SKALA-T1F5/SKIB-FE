@@ -1,14 +1,20 @@
 {
-  "files": [],
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
+  "compilerOptions": {
+    // ...
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
     },
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.vitest.json"
-    }
+    "types": ["node", "vue"] // Node.js 및 Vue 타입이 필요한 경우
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "src/**/*.d.ts" // 이 줄이 중요합니다! shims-vue.d.ts를 포함
+    // "shims-vue.d.ts" // 또는 이렇게 직접 지정할 수도 있습니다.
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }
