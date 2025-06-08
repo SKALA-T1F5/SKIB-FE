@@ -1,5 +1,5 @@
 <template>
-  <SideBar>
+  <SideBar class="trainee-main-specific-sidebar">
     <div class="trainee-sidebar-inner-content">
       <div class="search-container">
         <svg-icon type="mdi" :path="mdiMagnify" class="search-icon" />
@@ -39,7 +39,6 @@ import SideBar from '@/components/layouts/SideBar.vue';
 // Props 정의: TraineeMain.vue로부터 값을 받음
 const props = defineProps<{
   searchQuery: string;
-  // statusFilters에 'retry' 다시 추가
   statusFilters: { done: boolean; retry: boolean };
   resultFilters: { pass: boolean; fail: boolean };
 }>();
@@ -47,7 +46,6 @@ const props = defineProps<{
 // Emits 정의: TraineeMain.vue로 변경 사항을 알림
 const emit = defineEmits<{
   (e: 'update:searchQuery', value: string): void;
-  // update:statusFilters에 'retry' 다시 추가
   (e: 'update:statusFilters', value: { done: boolean; retry: boolean }): void;
   (e: 'update:resultFilters', value: { pass: boolean; fail: boolean }): void;
   (e: 'reset-filters'): void; // 필터 초기화 이벤트
@@ -59,7 +57,7 @@ const updateSearchQuery = (event: Event) => {
 };
 
 // 응시 여부 필터 업데이트
-const updateStatusFilter = (key: 'done' | 'retry', event: Event) => { // key 타입 다시 명확화
+const updateStatusFilter = (key: 'done' | 'retry', event: Event) => {
   const newStatusFilters = { ...props.statusFilters, [key]: (event.target as HTMLInputElement).checked };
   emit('update:statusFilters', newStatusFilters);
 };
@@ -80,30 +78,25 @@ const resetFilters = () => {
 /*
   SideBar.vue에서 기본 레이아웃 스타일을 제공하므로,
   여기서는 TraineeMainSideBar 고유의 스타일만 정의합니다.
-  너비와 패딩 등 SideBar.vue의 기본값을 오버라이드할 수 있습니다.
+  SideBar 컴포넌트 자체의 스타일을 오버라이드하지 않고,
+  이 컴포넌트가 렌더링될 때 적용될 스타일을 정의합니다.
 */
 
-/* SideBar.vue의 .sidebar 스타일을 오버라이드하는 경우 */
-/* 이 부분은 SideBar.vue의 구현에 따라 필요할 수도 아닐 수도 있습니다.
-    만약 TraineeMainSideBar의 너비를 이 컴포넌트에서 강제한다면 유용합니다. */
-.sidebar {
-  width: 180px; /* TraineeMainSideBar에 필요한 너비로 오버라이드 */
-  padding: 16px; /* TraineeMainSideBar에 필요한 패딩으로 오버라이드 */
+/* SideBar 컴포넌트에 직접 적용되는 클래스 */
+.trainee-main-specific-sidebar {
+  /* TraineeMainSideBar에 필요한 너비와 패딩을 여기에 정의합니다. */
+  /* SideBar 컴포넌트의 props나 슬롯을 통해 스타일을 제어하는 것이 더 좋습니다. */
+  /* 예: <SideBar :width="180px" :padding="16px"> */
+  width: 180px; /* TraineeMainSideBar에 필요한 너비 */
+  padding: 16px; /* TraineeMainSideBar에 필요한 패딩 */
   border-top-right-radius: 40px; /* 사이드바 상단 오른쪽 둥근 모서리 */
   min-width: 140px; /* 최소 너비 */
   min-height: calc(100vh - 60px); /* 최소 높이 */
-}
-
-/* SideBar.vue의 .sidebar-content 스타일을 오버라이드하는 경우 */
-/* 이 부분도 SideBar.vue의 구현에 따라 달라질 수 있습니다. */
-.sidebar-content {
-  font-size: 13px; /* TraineeMainSideBar에 필요한 글꼴 크기 */
-  /* 필요에 따라 추가적인 오버라이드 스타일 */
+  font-size: 14px; /* TraineeMainSideBar에 필요한 글꼴 크기 */
 }
 
 /* 기존 TraineeSideBar 고유의 스타일은 유지 */
 .trainee-sidebar-inner-content {
-  /* SideBar 컴포넌트의 슬롯으로 들어가는 컨텐츠의 자체적인 여백 조절이 필요한 경우 여기에 추가 */
   width: 100%;
 }
 
@@ -111,20 +104,20 @@ const resetFilters = () => {
   position: relative;
   display: flex;
   align-items: center;
-  margin-bottom: 12px; /* 이전 12px에서 늘림 */
+  margin-bottom: 12px;
   margin-top: 8px;
-  padding: 8px; /* 내부 여백 추가 */
-  width: 80%; /* 너비를 약간 줄여 좌우 여백 확보 */
+  padding: 8px;
+  width: 80%;
   height: 6%;
   margin-left: 2px;
   margin-right: auto;
   border-radius: 4px;
-  background-color: #ffffff; /* 배경색 유지 */
+  background-color: #ffffff;
 }
 
 .search-icon {
   position: absolute;
-  left: 5px; /* 왼쪽 여백 증가 */
+  left: 5px;
   color: #888;
   height: 18px;
   z-index: 2;
@@ -132,7 +125,7 @@ const resetFilters = () => {
 
 .refresh-icon {
   position: absolute;
-  right: 10px; /* 오른쪽 여백 증가 */
+  right: 10px;
   color: #ccc;
   height: 18px;
   cursor: pointer;
@@ -145,34 +138,33 @@ const resetFilters = () => {
 }
 
 .search-input {
-  width: 100%; /* 부모 컨테이너에 꽉 채우도록 설정 */
-  padding: 5px 25px; /* 좌우 패딩 증가시켜 아이콘과 텍스트 간 간격 확보 */
+  width: 100%;
+  padding: 5px 25px;
   border: none;
   outline: none;
-  font-size: 14px; /* 폰트 크기 약간 증가 */
-  background-color: transparent; /* search-container 배경색 사용 */
+  font-size: 14px;
+  background-color: transparent;
 }
 
 .divider {
   border: 0;
   border-top: 1px solid #aaa;
-  margin: 15px 0; /* 위아래 간격 늘림 */
+  margin: 15px 0;
 }
 
 .filter-section {
-  margin-top: 15px; /* 위 간격 늘림 */
+  margin-top: 15px;
   display: flex;
   flex-direction: column;
-  gap: 8px; /* 내부 요소 간 간격 늘림 */
+  gap: 8px;
 }
 
 .filter-title {
   font-weight: bold;
-  font-size: 16px; /* 폰트 크기 약간 증가 */
-  margin-bottom: 6px; /* 아래 간격 늘림 */
+  font-size: 16px;
+  margin-bottom: 6px;
 }
 
-/* 체크박스 스타일 */
 .filter-section label {
   display: flex;
   align-items: center;
@@ -183,27 +175,26 @@ const resetFilters = () => {
 }
 
 .filter-section input[type="checkbox"] {
-  /* 기본 체크박스 숨기기 또는 스타일 초기화 */
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
   width: 16px;
   height: 16px;
-  border: 1px solid #bbb; /* 테두리 색상 */
+  border: 1px solid #bbb;
   border-radius: 3px;
-  background-color: #f0f0f0; /* 배경색 */
+  background-color: #f0f0f0;
   cursor: pointer;
   position: relative;
   outline: none;
 }
 
 .filter-section input[type="checkbox"]:checked {
-  background-color: #007bff; /* 체크 시 파란색 배경 */
+  background-color: #007bff;
   border-color: #007bff;
 }
 
 .filter-section input[type="checkbox"]:checked::after {
-  content: '✔'; /* 체크 표시 */
+  content: '✔';
   position: absolute;
   top: 50%;
   left: 50%;

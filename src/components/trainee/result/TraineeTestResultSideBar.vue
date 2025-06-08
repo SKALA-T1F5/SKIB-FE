@@ -1,151 +1,154 @@
-<!-- <template>
-  <SideBar class="trainee-test-result-sidebar-wrapper">
-    <div class="sidebar-header">
-      <div class="sidebar-title">문제</div>
-    </div>
+<template>
+  <SideBar class="trainee-test-sidebar">
+    <div class="trainee-sidebar-inner-content">
+      <div class="sidebar-header">
+        <h3 class="sidebar-title">문제</h3>
+      </div>
 
-    <ul class="question-list">
-      <li
-        v-for="(item, idx) in questions"
-        :key="idx"
-        class="question-item"
-        :class="{ active: idx === currentIndex }"
-        @click="goTo(idx)"
-      >
-        <span class="question-label">Q{{ String(idx + 1).padStart(2, '0') }}</span>
-        <span class="status" :class="item.correct ? 'correct' : 'wrong'">
-          {{ item.correct ? 'O' : 'X' }}
-        </span>
-      </li>
-    </ul>
+      <hr class="divider" />
+
+      <div class="question-list-wrapper">
+        <div
+          v-for="question in questions"
+          :key="question.id"
+          :class="['question-item-sidebar', { 'active': question.id === currentQuestionId }]"
+          @click="selectQuestion(question.id)"
+        >
+          <span class="question-id">{{ question.id }}</span>
+          <span
+            :class="['status-indicator', { 'correct': question.isCorrect, 'wrong': !question.isCorrect && question.userAnswer !== '' }]"
+          >
+            {{ question.isCorrect ? 'O' : 'X' }}
+          </span>
+        </div>
+      </div>
+    </div>
   </SideBar>
 </template>
 
-<script setup>
-import SideBar from '@/components/layouts/SideBar.vue'; // 가정: SideBar.vue 경로
+<script setup lang="ts">
+import { defineProps, defineEmits } from 'vue';
+// SvgIcon과 mdiMenu는 Figma 이미지에 현재 필요하지 않으므로 주석 처리합니다.
+// import SvgIcon from '@jamescoyle/vue-icon';
+// import { mdiMenu } from '@mdi/js';
+import SideBar from '@/components/layouts/SideBar.vue';
+import type { QuestionData } from '@/pages/trainee/TraineeTestResult.vue';
 
-const props = defineProps({
-  questions: Array,
-  currentIndex: Number,
-});
+const props = defineProps<{
+  questions: QuestionData[];
+  currentQuestionId: string | null;
+}>();
 
-const emit = defineEmits(['select']);
+const emit = defineEmits(['selectQuestion']);
 
-const goTo = (index) => {
-  emit('select', index);
+const selectQuestion = (questionId: string) => {
+  emit('selectQuestion', questionId);
 };
 </script>
 
 <style scoped>
-/* 이 컴포넌트에서 사용되는 SideBar 인스턴스에만 적용될 스타일 */
-.trainee-test-result-sidebar-wrapper {
-  width: 250px;
-  min-width: 140px;
-  min-height: calc(100vh - 60px); /* 헤더 높이 등을 고려한 최소 높이 */
-  padding: 0; /* 내부 패딩은 하위 요소에서 관리 */
+/* SideBar 컴포넌트에 직접 적용되는 클래스 */
+.trainee-test-sidebar {
+  width: 180px;
+  padding: 16px;
   border-top-right-radius: 40px;
-  background-color: #1e2251; /* 진한 남색 배경 */
-  color: white;
-  box-sizing: border-box; /* 패딩, 보더 포함 너비 계산 */
-  display: flex; /* 내부 콘텐츠 정렬을 위해 추가 */
-  flex-direction: column; /* 내부 콘텐츠 세로 정렬 */
-  overflow-y: auto; /* 내용이 넘칠 경우 스크롤 */
+  min-width: 140px;
+  min-height: calc(100vh - 60px);
+  font-size: 14px;
+  color: #f8f9fa; /* 텍스트 색상을 밝게 설정 */
 }
 
-/* SideBar 컴포넌트의 내부 콘텐츠 슬롯에 직접 적용될 스타일 (필요시) */
-.trainee-test-result-sidebar-wrapper :deep(.sidebar-content) {
-  font-size: 13px;
-  padding: 0; /* SideBar 내부 콘텐츠의 기본 패딩 재정의 */
-  flex: 1; /* 남은 공간 차지 */
-  display: flex;
-  flex-direction: column;
-}
-
-/* 사이드바 헤더 */
-.sidebar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 48px;
-  padding: 10px 4px 10px 8px;
-  background-color: #1e2251;
-  color: white;
-  font-weight: bold;
-  font-size: 24px;
-  position: sticky; /* 스크롤 시 상단 고정 */
-  top: 0;
-  z-index: 10;
-  border-bottom: none; /* 하단 라인 제거 */
-}
-
-.sidebar-header::after {
-  content: '';
-  position: absolute;
-  bottom: -7px; /* 실제 위치 조정 */
-  left: 0;
-  right: 0;
-  height: 1px;
-  background-color: rgba(255, 255, 255, 0.2); /* 구분선 */
-}
-
-.sidebar-title {
-  padding-left: 8px;
-}
-
-/* 문제 목록 */
-.question-list {
-  flex: 1; /* 남은 공간 차지 */
-  overflow-y: auto; /* 목록 내용이 넘칠 경우 스크롤 */
-  padding: 8px 0;
-  margin: 0;
-  list-style: none; /* 기본 리스트 스타일 제거 */
+/* 기존 TraineeSideBar 고유의 스타일은 유지 */
+.trainee-sidebar-inner-content {
   width: 100%;
 }
 
-.question-item {
+.sidebar-header {
+  position: relative;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  font-size: 14px;
-  border-radius: 8px;
-  margin: 4px 8px;
+  /* 상하 패딩을 더 줄이거나 없앱니다. */
+  padding-top: 5px; /* 조정: 0px보다는 약간의 여백이 자연스러울 수 있음 */
+  padding-bottom: 0px; /* 조정 */
+  margin-left: 15px;
+  margin-right: auto;
+}
+
+.sidebar-title {
+  width: 100%;
+  /* padding을 제거하여 h3 자체의 상하 여백을 줄임 */
+  padding: 0;
+  border: none;
+  outline: none;
+  font-size: 18px;
+  background-color: transparent;
+  color: #f8f9fa; /* 제목 색상도 밝게 설정 */
+  margin: 0; /* h3 기본 margin 제거 */
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid #aaa;
+  margin: 15px 0;
+}
+
+.question-list-wrapper {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.question-item-sidebar {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px; /* 항목별 패딩 조정 */
+  border-radius: 6px; /* 모서리 둥글게 */
   cursor: pointer;
-  color: white;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.2s;
+  color: #dee2e6; /* 기본 텍스트 색상 */
 }
 
-.question-item.active {
-  background-color: rgba(255, 255, 255, 0.15); /* 선택된 항목 배경색 */
+.question-item-sidebar:hover {
+  background-color: #707ada36; /* 호버 시 배경색 */
+  color: #fff;
 }
 
-.question-item:hover {
-  background-color: rgba(255, 255, 255, 0.1); /* 호버 시 배경색 */
+.question-item-sidebar.active {
+  background-color: #707ada36; /* 활성 항목 배경색 (더 진한 색) */
+  color: #fff;
+  font-weight: 600;
+  border-left: 3px solid #3b82f6; /* 활성 항목 좌측 강조선 */
+  padding-left: 9px; /* 강조선 추가로 인한 패딩 조정 */
 }
 
-.status {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
-  border-radius: 50%;
+.question-id {
+  flex-grow: 1;
+  margin-right: 10px;
+}
+
+.status-indicator {
   font-weight: bold;
-  line-height: 1;
+  font-size: 12px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: white;
+
+  /* === 여기에 추가 또는 수정 === */
+  line-height: 1; /* 텍스트 줄 높이를 요소 높이에 맞춰서 수직 중앙 정렬 효과 개선 */
+  transform: translateY(-1px); /* 필요시 미세 조정을 위해 주석으로 남겨둡니다. */
 }
 
-.correct {
-  background-color: #8aff8a; /* 초록색 */
-  color: #000;
+.status-indicator.correct {
+  background-color: #2db84e;
 }
 
-.wrong {
-  background-color: #ff8a8a; /* 빨간색 */
-  color: #000;
+.status-indicator.wrong {
+  background-color: #cc3d4b;
 }
-
-.question-label {
-  flex: 1; /* 텍스트가 남은 공간을 차지 */
-}
-</style> -->
+</style>

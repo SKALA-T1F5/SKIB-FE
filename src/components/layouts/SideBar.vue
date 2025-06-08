@@ -11,7 +11,7 @@
 <style scoped>
 .sidebar {
   width: 150px; /* 기본 너비 (TraineeSideBar에서 오버라이드 가능) */
-  height: calc(100% - 60px);
+  height: 100%;
   background-color: #1e2251;
   color: white;
   padding: 20px;
@@ -29,7 +29,7 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: stretch;
-  overflow-y: auto;
+  overflow-y: none;
   flex: 1;
   width: 100%;
 }
