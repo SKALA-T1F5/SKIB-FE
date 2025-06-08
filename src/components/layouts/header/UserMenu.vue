@@ -5,8 +5,10 @@
       <span class="nickname">{{ name }}</span>
       <span class="role">{{ role }}</span>
     </div>
-    <svg-icon type="mdi" :path="mdiMenuDown" class="user-menu" />
-    <div v-if="showUserMenu" class="dropdown user-dropdown">
+    <svg-icon v-if="!isExamActive" type="mdi" :path="mdiMenuDown" class="user-menu" />
+    <svg-icon v-else type="mdi" :path="mdiLock" class="user-menu locked-icon" />
+
+    <div v-if="showUserMenu && !isExamActive" class="dropdown user-dropdown">
       <div @click="goToMyPage">마이페이지</div>
       <div @click="logout">로그아웃</div>
     </div>
@@ -14,37 +16,57 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import SvgIcon from '@jamescoyle/vue-icon'
-import { mdiAccount, mdiMenuDown } from '@mdi/js'
+import { ref, onMounted, defineProps } from 'vue';
+import { useRouter } from 'vue-router';
+import SvgIcon from '@jamescoyle/vue-icon';
+import { mdiAccount, mdiMenuDown, mdiLock } from '@mdi/js'; // mdiLock 아이콘 추가
 
-const router = useRouter()
-const showUserMenu = ref(false)
+const router = useRouter();
+const showUserMenu = ref(false);
+
+// Header.vue로부터 isExamActive prop을 받습니다.
+const props = defineProps<{
+  isExamActive?: boolean; // 시험 활성 상태를 나타내는 prop
+}>();
 
 // ✅ 사용자 정보 가져오기
-const name = ref('')
-const role = ref('')
+const name = ref('');
+const role = ref('');
 
 onMounted(() => {
-  name.value = localStorage.getItem('name') || '사용자'
-  role.value = localStorage.getItem('role') || ''
-})
+  name.value = localStorage.getItem('name') || '사용자';
+  role.value = localStorage.getItem('role') || '';
+
+  // 드롭다운 외부 클릭 시 닫기 (시험 중이 아닐 때만)
+  document.addEventListener('click', (event) => {
+    if (showUserMenu.value && !props.isExamActive) {
+      const userInfoElement = document.querySelector('.user-info');
+      if (userInfoElement && !userInfoElement.contains(event.target as Node)) {
+        showUserMenu.value = false;
+      }
+    }
+  });
+});
 
 const toggleUserMenu = () => {
-  showUserMenu.value = !showUserMenu.value
-}
+  // 시험 중이 아닐 때만 메뉴를 토글합니다.
+  if (!props.isExamActive) {
+    showUserMenu.value = !showUserMenu.value;
+  }
+};
 
 const goToMyPage = () => {
-  router.push('/mypage')
-}
+  showUserMenu.value = false; // 메뉴 닫기
+  router.push('/mypage');
+};
 
 const logout = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('role')
-  localStorage.removeItem('name')
-  router.push('/login')
-}
+  showUserMenu.value = false; // 메뉴 닫기
+  localStorage.removeItem('token');
+  localStorage.removeItem('role');
+  localStorage.removeItem('name');
+  router.push('/login');
+};
 </script>
 
 <style scoped>
@@ -95,6 +117,13 @@ const logout = () => {
   width: 16px;
   color: #000;
   margin-left: 2px;
+  transition: color 0.25s ease; /* 색상 전환 효과 추가 */
+}
+
+/* 시험 중일 때 잠금 아이콘 색상 변경 */
+.user-menu.locked-icon {
+  color: #868686; /* 회색으로 변경하여 비활성화 느낌 */
+  cursor: not-allowed; /* 커서 변경 */
 }
 
 .dropdown {

@@ -1,56 +1,42 @@
 <template>
-  <div id="test-exam-page-layout">
-    <Header :isExamActive="examStore.isExamActive" />
+  <div id="test-result-page-layout">
+    <Header />
 
     <div class="page-content-wrapper" :class="{ 'has-sidebar': allQuestions.length > 0 }">
-      <TraineeTestSideBar
+      <TraineeTestResultSideBar
         :questions="allQuestions"
         :currentQuestionId="currentQuestionId"
         @selectQuestion="handleQuestionSelectFromSidebar"
         v-if="allQuestions.length > 0"
-        :traineeName="traineeName"
       />
 
-      <TestExamMainContent
+      <TestResultMainContent
         :currentQuestion="currentQuestion"
         :hasPreviousQuestion="hasPreviousQuestion"
         :hasNextQuestion="hasNextQuestion"
         @goToPreviousQuestion="goToPreviousQuestion"
         @goToNextQuestion="goToNextQuestion"
-        @submitTest="submitTest"
+        @exitTestResult="exitTestResult"
         :getOptionLabel="getOptionLabel"
-        :isExamMode="true"
-        @update:userAnswer="updateUserAnswer"
-        @selectOption="selectOption"
-        :isExamActive="examStore.isExamActive"
+        :isExamMode="false"
       />
-    </div>
 
+      <ChatbotSection />
+    </div>
     <Footer />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-// --- IMPORTANT CHANGE HERE: Import useExamStore from its dedicated file ---
-import { useExamStore } from '@/stores/test.ts'; // This path should match where you saved src/stores/exam.ts
-
 import Header from '@/components/layouts/Header.vue';
 import Footer from '@/components/layouts/Footer.vue';
-import TraineeTestSideBar from '@/components/trainee/test/TraineeTestSideBar.vue';
-// Note: The original error message showed '@/components/trainee/test/TestMainContent.vue'
-// but your latest code uses '@/components/trainee/exam/TestExamMainContent.vue'.
-// Please ensure the import path for your main content component is correct for your project structure.
-import TestExamMainContent from '@/components/trainee/test/TestMainContent.vue';
+import TraineeTestResultSideBar from '@/components/trainee/result/TraineeTestResultSideBar.vue';
+import TestResultMainContent from '@/components/trainee/result/TestResultMainContent.vue';
+import ChatbotSection from '@/components/trainee/result/ChatbotSection.vue';
 
-
-// Pinia 스토어 인스턴스 사용
-const examStore = useExamStore(); // <--- This line is correct.
-
-const router = useRouter();
-
-// --- 타입 정의 ---
+// --- 문제 데이터 타입 정의 (기존과 동일) ---
 interface GradingCriterion {
   score: number;
   criteria: string;
@@ -81,17 +67,16 @@ export interface QuestionData {
   gradingCriteria: GradingCriterion[] | null;
   document_id: number;
   tags: string[];
-  userAnswer: string;
-  isAnswered: boolean;
-  isCorrect: boolean;
+  userAnswer: string; // 사용자 답변 (응시 화면에서는 v-model로 바인딩, 결과 화면에서는 표시)
+  isCorrect: boolean; // 정답 여부 (결과 화면에서 사용)
 }
-// --- 타입 정의 끝 ---
+// --- 문제 데이터 타입 정의 끝 ---
+
+const router = useRouter();
 
 const allQuestions = ref<QuestionData[]>([]);
 const currentQuestionId = ref<string | null>(null);
-const traineeName = ref<string>('홍길동'); // 응시자 이름 (예시 값)
 
-// 현재 문제 객체를 계산합니다.
 const currentQuestion = computed(() => {
   if (!currentQuestionId.value || allQuestions.value.length === 0) {
     return null;
@@ -99,20 +84,16 @@ const currentQuestion = computed(() => {
   return allQuestions.value.find(q => q.id === currentQuestionId.value);
 });
 
-// 현재 문제의 인덱스를 계산합니다.
 const currentQuestionIndex = computed(() => {
   if (!currentQuestion.value) return -1;
   return allQuestions.value.findIndex(q => q.id === currentQuestion.value?.id);
 });
 
-// 이전 문제 존재 여부를 판단합니다.
 const hasPreviousQuestion = computed(() => currentQuestionIndex.value > 0);
-
-// 다음 문제 존재 여부를 판단합니다.
 const hasNextQuestion = computed(() => currentQuestionIndex.value < allQuestions.value.length - 1);
 
 // UI 확인을 위한 Sample Data (Hardcoded)
-const sampleExamData: RawQuestion[] = [
+const sampleApiData: RawQuestion[] = [
   {
     "type": "OBJECTIVE",
     "difficulty_level": "NORMAL",
@@ -140,7 +121,7 @@ const sampleExamData: RawQuestion[] = [
     "difficulty_level": "NORMAL",
     "question": "PC.10.02 프로세스에서 정발행/역발행 건의 결재 요청 및 승인 절차를 설명하세요. 이 문제는 지문이 다소 길어질 수 있으므로, 보기가 스크롤될 수 있도록 충분한 높이를 확보해야 합니다. 이는 사용자가 문제의 모든 보기를 한눈에 볼 수 있도록 하면서도, 전체 레이아웃의 균형을 유지하는 데 중요합니다. 이 문제는 지문이 다소 길어질 수 있으므로, 보기가 스크롤될 수 있도록 충분한 높이를 확보해야 합니다. 이는 사용자가 문제의 모든 보기를 한눈에 볼 수 있도록 하면서도, 전체 레이아웃의 균형을 유지하는 데 중요합니다. 이 문제는 지문이 다소 길어질 수 있으므로, 보기가 스크롤될 수 있도록 충분한 높이를 확보해야 합니다. 이는 사용자가 문제의 모든 보기를 한눈에 볼 수 있도록 하면서도, 전체 레이아웃의 균형을 유지하는 데 중요합니다.",
     "options": null,
-    "answer": "검수/출장비 기반으로 발생한 정발행/역발행 건을 결재 요청하고, 결재 승인하는 절차입니다.",
+    "answer": "검수/출장비 기반으로 발생한 정발행/역발행 건을 결재 요청하고, 결재 승인하는 절차입니다. 이 예시 답안은 실제 답변의 길이와 복잡성을 반영하며, 사용자가 작성한 답변과 비교될 수 있도록 충분한 정보를 포함합니다. 이 예시 답안은 실제 답변의 길이와 복잡성을 반영하며, 사용자가 작성한 답변과 비교될 수 있도록 충분한 정보를 포함합니다. 이 예시 답안은 실제 답변의 길이와 복잡성을 반영하며, 사용자가 작성한 답변과 비교될 수 있도록 충분한 정보를 포함합니다. 이 예시 답안은 실제 답변의 길이와 복잡성을 반영하며, 사용자가 작성한 답변과 비교될 수 있도록 충분한 정보를 포함합니다.",
     "explanation": "PC.10.02 프로세스는 검수/출장비를 기반으로 정발행/역발행 건을 결재 요청하고 승인하는 절차를 포함합니다.",
     "grading_criteria": [
       { "score": 5, "criteria": "정확하게 결재 요청 및 승인 절차를 설명하고, 관련 프로세스를 언급함.", "example": "검수/출장비 기반으로 발생한 정발행/역발행 건을 결재 요청하고, 결재 승인하는 절차입니다.", "note": "정확한 프로세스 명칭과 절차를 포함해야 합니다." },
@@ -192,14 +173,41 @@ const sampleExamData: RawQuestion[] = [
   }
 ];
 
-// 시험 문제 데이터를 가져오는 함수 (실제 API 호출로 대체될 수 있습니다.)
-const fetchExamQuestions = async () => {
+
+const fetchTestQuestions = async () => {
   try {
-    const fetchedData = sampleExamData; // 샘플 데이터를 직접 사용
+    const fetchedData = sampleApiData;
 
     if (Array.isArray(fetchedData)) {
       allQuestions.value = fetchedData.map((rawQ: RawQuestion, index: number) => {
         const generatedId = `Q${(index + 1).toString().padStart(2, '0')}`;
+        let userAnswer = '';
+        let isCorrect = false;
+
+        if (rawQ.type === 'OBJECTIVE') {
+          // Figma 이미지에 맞춰 Q01은 정답, Q02는 오답 (첫번째 보기 선택), Q05는 정답으로 설정
+          if (generatedId === 'Q01') {
+            userAnswer = rawQ.answer; // 정답으로 설정
+          } else if (generatedId === 'Q02') {
+            userAnswer = rawQ.options && rawQ.options.length > 0 ? rawQ.options[0] : ''; // 오답으로 설정
+          } else if (generatedId === 'Q05') {
+            userAnswer = rawQ.answer; // 정답으로 설정
+          }
+          isCorrect = (userAnswer === rawQ.answer);
+        } else { // SUBJECTIVE (주관식)
+          // Q03과 Q04는 임의로 정답 처리, Q06은 오답 처리
+          if (generatedId === 'Q03') {
+            userAnswer = "검수/출장비 기반으로 정발행/역발행 건을 결재 요청하고 승인하는 절차입니다. 저의 답변은 좀 더 자세한 내용을 포함합니다. 이 답변은 예시 답안과 비교하여 채점될 수 있습니다.";
+            isCorrect = true; // Figma 이미지처럼 'O' 표시를 위해 true
+          } else if (generatedId === 'Q04') {
+            userAnswer = "수기전표는 조회하고 추가 등록하여 결재 상신하는 과정으로 관리됩니다. 이 과정은 전표의 정확성을 보장하고 승인을 위한 중요한 단계입니다.";
+            isCorrect = true; // Figma 이미지처럼 'O' 표시를 위해 true
+          } else if (generatedId === 'Q06') {
+            userAnswer = "반응형 데이터 바인딩입니다."; // 부분 답변으로 오답 처리
+            isCorrect = false; // Figma 이미지처럼 'X' 표시를 위해 false
+          }
+        }
+
         return {
           id: generatedId,
           type: rawQ.type,
@@ -211,32 +219,29 @@ const fetchExamQuestions = async () => {
           gradingCriteria: rawQ.grading_criteria,
           document_id: rawQ.document_id,
           tags: rawQ.tags,
-          userAnswer: '', // 사용자 답변 초기화
-          isAnswered: false, // 답변 여부 초기화
-          isCorrect: false, // 정답 여부 초기화
+          userAnswer: userAnswer,
+          isCorrect: isCorrect,
         };
       });
 
       if (allQuestions.value.length > 0) {
-        currentQuestionId.value = allQuestions.value[0].id; // 첫 번째 문제로 설정
-        examStore.setExamActive(true); // 시험 시작 시 스토어 상태를 true로 업데이트
+        currentQuestionId.value = allQuestions.value[0].id;
       }
     } else {
       console.warn('샘플 데이터가 예상된 문제 배열 형태가 아닙니다.', fetchedData);
       allQuestions.value = [];
     }
+
   } catch (error) {
-    console.error('시험 문제를 로드하는 데 실패했습니다:', error);
-    alert('시험 문제를 불러오는 데 실패했습니다. 콘솔을 확인해주세요.');
+    console.error('샘플 데이터를 로드하는 데 실패했습니다:', error);
+    alert('UI 데이터를 불러오는 데 실패했습니다. 콘솔을 확인해주세요.');
   }
 };
 
-// 사이드바에서 문제 선택 시 호출되는 핸들러
 const handleQuestionSelectFromSidebar = (questionId: string) => {
   currentQuestionId.value = questionId;
 };
 
-// 이전 문제로 이동하는 함수
 const goToPreviousQuestion = () => {
   const currentIndex = allQuestions.value.findIndex(q => q.id === currentQuestionId.value);
   if (currentIndex > 0) {
@@ -244,7 +249,6 @@ const goToPreviousQuestion = () => {
   }
 };
 
-// 다음 문제로 이동하는 함수
 const goToNextQuestion = () => {
   const currentIndex = allQuestions.value.findIndex(q => q.id === currentQuestionId.value);
   if (currentIndex < allQuestions.value.length - 1) {
@@ -252,85 +256,54 @@ const goToNextQuestion = () => {
   }
 };
 
-// 주관식 문제 답변 업데이트 함수
-const updateUserAnswer = (newValue: string) => {
-  const q = currentQuestion.value;
-  if (q) {
-    q.userAnswer = newValue;
-    q.isAnswered = newValue.trim() !== ''; // 답변 내용이 있으면 '답변 완료'로 처리
-  }
-};
-
-// 객관식 문제 옵션 선택 함수
-const selectOption = (selectedOption: string) => {
-  const q = currentQuestion.value;
-  if (q && q.type === 'OBJECTIVE') {
-    q.userAnswer = selectedOption;
-    q.isAnswered = true; // 옵션 선택 시 '답변 완료'로 처리
-  }
-};
-
-// 객관식 보기 라벨 (A, B, C...)을 생성하는 함수
 const getOptionLabel = (index: number): string => {
   return String.fromCharCode(65 + index) + ')';
 };
 
-// 시험 제출 함수
-const submitTest = () => {
-  if (confirm('시험을 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.')) {
-    console.log('시험 제출 완료!', allQuestions.value);
-    examStore.setExamActive(false); // 시험 종료 시 스토어 상태를 false로 업데이트
-    router.push({ name: 'TraineeTestResult' }); // 결과 페이지로 이동
+const exitTestResult = () => {
+  if (confirm('테스트 결과 화면을 종료하시겠습니까?')) {
+    console.log('테스트 결과 화면 종료 (실제 앱에서는 메인 페이지로 이동)');
+    router.push({ name: 'TraineeMain' });
   }
 };
 
-// 컴포넌트 마운트 시 시험 문제 로드
 onMounted(() => {
-  fetchExamQuestions();
-});
-
-// 컴포넌트 언마운트 시 추가 로직이 필요하다면 여기에 추가 (예: 시험 상태 초기화)
-// 현재는 라우터 가드에서 이동을 막고 있으므로 필수적이지 않습니다.
-onUnmounted(() => {
-  // 예: examStore.setExamActive(false); // 컴포넌트가 파괴될 때 시험 상태를 명시적으로 비활성화
+  fetchTestQuestions();
 });
 </script>
 
 <style scoped>
-#test-exam-page-layout {
+/*
+  전체 레이아웃 스타일
+  Header, Footer가 fixed이므로, main content는 margin/padding으로 공간 확보
+*/
+#test-result-page-layout {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* 전체 화면 높이 사용 */
-  background-color: #f8f8f8; /* 배경색 설정 */
-  font-family: 'Noto Sans KR', sans-serif; /* 폰트 설정 */
-  overflow: hidden; /* 오버플로우 숨김 */
-  /* 복사/붙여넣기 방지 (전체 페이지) - 라우터 가드와 함께 사용 시 더욱 강력 */
-  user-select: none; /* 표준 */
-  -webkit-user-select: none; /* Safari */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* IE/Edge */
+  height: 100vh; /* 뷰포트 전체 높이를 사용 */
+  background-color: #f8f8f8; /* Figma 이미지의 배경색에 더 가깝게 조정 */
+  font-family: 'Noto Sans KR', sans-serif;
+  overflow: hidden; /* 전체 페이지 스크롤을 막고 내부 요소만 스크롤하게 할 때 사용합니다. */
 }
 
 .page-content-wrapper {
   display: grid;
-  /* 사이드바가 있을 때와 없을 때의 그리드 템플릿 컬럼 설정 */
-  grid-template-columns: var(--sidebar-width, 0px) 1fr;
-  height: calc(100vh - 70px - 60px); /* 헤더(70px)와 푸터(60px) 높이를 제외한 영역 */
-  grid-template-rows: 1fr;
-  grid-template-areas: "sidebar main-content"; /* 그리드 영역 이름 정의 */
-  flex: 1; /* 남은 공간을 모두 차지하도록 설정 */
+  /* 챗봇 영역 너비 320px -> 380px으로 변경 */
+  grid-template-columns: var(--sidebar-width, 0px) 1fr 380px;
+  height: calc(100vh - 70px - 60px); /* 예시: Header 70px, Footer 60px 가정 */
+  grid-template-rows: 1fr; /* 높이는 자동으로 채움 */
+  grid-template-areas: "sidebar main-content chatbot";
+  flex: 1; /* 부모 flex-direction: column; 일 때 남은 공간 차지 */
   position: relative;
-  overflow: hidden;
-  justify-content: center; /* 수평 중앙 정렬 */
-  align-items: center; /* 수직 중앙 정렬 */
+  overflow: hidden; /* 내부 그리드 아이템들이 각자 스크롤되도록 설정 */
 }
 
-.page-content-wrapper .trainee-test-sidebar {
-  grid-area: sidebar; /* 사이드바 영역 지정 */
+.page-content-wrapper .trainee-test-result-sidebar {
+  grid-area: sidebar;
+  overflow-y: auto;
 }
 
-/* 사이드바가 있을 때만 너비 설정 */
 .page-content-wrapper.has-sidebar {
-  --sidebar-width: 180px; /* 사이드바 너비를 180px로 조정 */
+  --sidebar-width: 250px;
 }
 </style>

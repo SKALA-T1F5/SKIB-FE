@@ -45,6 +45,12 @@ const router = createRouter({
   routes,
 })
 
+export const isExamActive = ref(false);
+
+export function setExamActive(status: boolean) {
+  isExamActive.value = status;
+}
+
 // router.beforeEach((to, from, next) => {
 //   const token = localStorage.getItem('token')
 //   const role = localStorage.getItem('role') // Trainer | Trainee
