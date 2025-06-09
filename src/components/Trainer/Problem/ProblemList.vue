@@ -91,7 +91,7 @@
             <div class="d-flex align-center">
               <h4 class="text-h8 mt-1">정답 및 풀이</h4>
             </div>
-            <v-textarea style="height:100px;"
+            <v-textarea
               v-model="currentAnswer"
               :variant="isEditingAnswer ? 'outlined' : 'plain'"
               rows="5"
@@ -99,13 +99,9 @@
               :readonly="!isEditingAnswer"
               class="mt-0 custom-textarea" 
             ></v-textarea>
-            <div class="d-flex justify-end mt-2">
-              <v-btn v-if="!isEditingAnswer" small color="primary" @click="editAnswer">수정하기</v-btn>
-              <template v-else>
-                <v-btn small color="grey" class="mr-2" @click="cancelEditAnswer">수정 취소</v-btn>
-                <v-btn small color="primary" @click="saveAnswer">수정완료</v-btn>
-              </template>
-            </div>
+            <v-textarea
+
+            ></v-textarea>
           </v-card-text>
         </v-card>
       </v-col>

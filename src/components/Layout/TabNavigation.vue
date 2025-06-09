@@ -5,8 +5,8 @@
       <v-icon size="x-small" class="mr-1" color="grey lighten-1">mdi-arrow-left</v-icon>
       <span style="font-size: 0.75rem; color: #bdbdbd;">Main</span>
     </div>
-    <div style="height: 5px"></div>
-  <v-sheet class="tab-bar"  color="secondary" height="44px">
+    <div style="height: 9px"></div>
+  <v-sheet class="tab-bar"  color="secondary" height="44px" width="733px">
     <v-tabs
       v-model="activeTab"
       hide-slider
