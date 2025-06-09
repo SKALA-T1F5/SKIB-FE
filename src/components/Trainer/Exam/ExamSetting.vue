@@ -5,9 +5,9 @@
         <div class="d-flex align-end mb-4">
           <h2 class="text-h5 font-weight-bold mr-2">테스트 생성</h2>
           
-          <p class="text-body-2 text-medium-emphasis">Step 1 of 3 : 테스트를 구성할 문제와 조건을 선택하고 다음 단계로 이동하세요.</p>
+          <p class="text-body-2 text-medium-emphasis">Step 2 of 4 : 테스트를 구성할 문제와 조건을 선택하고 다음 단계로 이동하세요.</p>
         </div>
-        <v-progress-linear :model-value="33" height="10" color="primary" bg-color="primary"
+        <v-progress-linear :model-value="50" height="10" color="primary" bg-color="primary"
           rounded></v-progress-linear>
       </v-col>
     </v-row>

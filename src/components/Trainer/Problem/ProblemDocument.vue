@@ -53,7 +53,7 @@
   </template>
   
   <script setup>
-  import { ref, defineEmits } from 'vue';
+  import { ref } from 'vue';
   
   // 테이블 헤더 정의
   const headers1 = [

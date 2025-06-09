@@ -11,6 +11,7 @@ import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 
 import ExamList from './Exam/ExamList.vue';
+import ExamPrompt from './Exam/ExamPrompt.vue';
 import ExamSetting from './Exam/ExamSetting.vue';
 import ExamCheck from './Exam/ExamCheck.vue';
 import ExamComplete from './Exam/ExamComplete.vue';
@@ -24,9 +25,14 @@ const emit = defineEmits(['next-step', 'prev-step']);
 const currentStep = ref(0);
 
 const components = [
+
   {
     name: 'ExamList',
     component: ExamList,
+  },
+  {
+    name: 'ExamPrompt',
+    component: ExamPrompt,
   },
   {
     name: 'ExamSetting',

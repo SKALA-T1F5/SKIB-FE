@@ -46,22 +46,6 @@
 
         </v-card>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
       </v-col>
       <v-col cols="12" sm="6" md="4" lg="3" class="d-flex">
         <v-card elevation="0" class="mx-auto h-100 d-flex flex-column align-center justify-center"
