@@ -1,5 +1,5 @@
 <template>
-    <v-container>
+  <v-container class="d-flex flex-column" style="height: 650px;">
         <v-row>
             <v-col cols="12">
                 <div class="d-flex align-end mb-4">
@@ -15,9 +15,9 @@
 
             <!-- 입력 -->
             <v-col cols="12">
-                <h2 class=" tracking-light text-[28px] font-bold leading-tight px-4 text-center pb-3 pt-5">
+                <h1 class="text-primary text-center pb-3">
                     어떤 테스트를 생성할까요?
-                </h2>
+                </h1>
                 <v-card elevation="0">
                     <v-card-text style="height: 200px;">
                         <v-textarea v-model="examPrompt"
@@ -49,7 +49,7 @@
         </v-row>
 
         <!-- 하단 버튼 섹션 -->
-        <v-row class="mt-4">
+        <v-row class="mt-auto">
             <v-col cols="12" class="d-flex justify-space-between align-center">
                 <v-btn variant="flat" color="grey" class="mr-2 force-white" @click="prevStep">← 이전단계</v-btn>
                 <div>
@@ -57,6 +57,7 @@
                 </div>
             </v-col>
         </v-row>
+
     </v-container>
 </template>
 

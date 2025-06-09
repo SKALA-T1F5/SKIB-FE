@@ -1,14 +1,13 @@
 <template>
-  <v-container>
+  <v-container class="d-flex flex-column" style="height: 650px;">
     <v-row>
       <v-col cols="12">
         <div class="d-flex align-end mb-4">
           <h2 class="text-h5 font-weight-bold mr-2">테스트 생성</h2>
-          
+
           <p class="text-body-2 text-medium-emphasis">Step 2 of 4 : 테스트를 구성할 문제와 조건을 선택하고 다음 단계로 이동하세요.</p>
         </div>
-        <v-progress-linear :model-value="40" height="10" color="primary" bg-color="primary"
-          rounded></v-progress-linear>
+        <v-progress-linear :model-value="40" height="10" color="primary" bg-color="primary" rounded></v-progress-linear>
       </v-col>
     </v-row>
     <v-row>
@@ -21,14 +20,8 @@
               <h4 class="text-h8 mt-1">Document List</h4>
             </div>
             <!-- 문서 목록 테이블 -->
-            <v-data-table
-              :headers="headers"
-              :items="revenues"
-              item-value="name"
-              class="elevation-0"
-              hide-default-footer
-              disable-pagination
-            >
+            <v-data-table :headers="headers" :items="revenues" item-value="name" class="elevation-0" hide-default-footer
+              disable-pagination>
               <template v-slot:item.selected="{ item }">
                 <v-checkbox v-model="item.selected" density="compact" hide-details color="grey"></v-checkbox>
               </template>
@@ -44,12 +37,12 @@
                 <h6 class="text-body-2 font-weight-bold" style="text-align: center;">{{ item.sqCount }}</h6>
               </template>
               <template v-slot:item.sqSet="{ item }">
-                <v-text-field v-model.number="item.sqSet" type="number" variant="outlined"
-                  density="compact" hide-details style="width: 70px;"></v-text-field>
+                <v-text-field v-model.number="item.sqSet" type="number" variant="outlined" density="compact"
+                  hide-details style="width: 70px;"></v-text-field>
               </template>
               <template v-slot:item.mcSet="{ item }">
-                <v-text-field v-model.number="item.mcSet" type="number" variant="outlined"
-                  density="compact" hide-details style="width: 70px;"></v-text-field>
+                <v-text-field v-model.number="item.mcSet" type="number" variant="outlined" density="compact"
+                  hide-details style="width: 70px;"></v-text-field>
               </template>
             </v-data-table>
           </v-card-text>
@@ -68,18 +61,20 @@
             <v-form class="mt-4">
               <v-text-field v-model="selectedDocument.title" label="테스트이름" variant="outlined"
                 rounded="lg"></v-text-field>
-                <v-select v-model="selectedDocument.translationLanguage" :items="['없음', '영어', '베트남어']" label="외국어 번역"
-                variant="outlined" rounded="lg"></v-select>
+              <!-- <v-select v-model="selectedDocument.translationLanguage" :items="['없음', '영어', '베트남어']" label="외국어 번역"
+                variant="outlined" rounded="lg"></v-select> -->
               <v-text-field v-model="selectedDocument.examTime" label="시험 시간 (분)" type="number" variant="outlined"
                 rounded="lg"></v-text-field>
               <v-select v-model="selectedDocument.difficulty" :items="['⭐', '⭐⭐', '⭐⭐⭐', '⭐⭐⭐⭐', '⭐⭐⭐⭐⭐']" label="난이도"
                 variant="outlined" rounded="lg"></v-select>
-              <v-text-field v-model.number="selectedDocument.passScore" label="PASS 기준 점수" type="number"
-                variant="outlined" rounded="lg"></v-text-field>
-              <!-- 재응시 여부 토글 버튼 -->
-              <v-select v-model="selectedDocument.retakeAllowed"
-                :items="[{ text: '재응시 허용', value: true }, { text: '재응시 불허', value: false }]" label="재응시 여부"
-                variant="outlined" rounded="lg" class="mb-4" item-title="text"></v-select>
+              <div class="d-flex align-center mb-4">
+                <v-text-field v-model.number="selectedDocument.passScore" label="PASS 기준 점수" type="number"
+                  variant="outlined" rounded="lg" class="mr-2" style="width: 150px;"></v-text-field>
+                <!-- 재응시 여부 토글 버튼 -->
+                <v-select v-model="selectedDocument.retakeAllowed"
+                  :items="[{ text: '재응시 허용', value: true }, { text: '재응시 불허', value: false }]" label="재응시 여부"
+                  variant="outlined" rounded="lg" class="flex-grow-1" item-title="text"></v-select>
+              </div>
               <!-- 총 객관식/주관식 수 표시 -->
               <div class="total-questions mt-4 mb-4" style="text-align: center;">
                 객관식:&nbsp;{{ totalMcqCount }}&nbsp;&nbsp;|&nbsp;&nbsp;주관식:&nbsp;{{ totalSaqCount
@@ -90,16 +85,16 @@
         </v-card>
       </v-col>
     </v-row>
-
-            <!-- 하단 버튼 섹션 -->
-            <v-row class="mt-4">
-            <v-col cols="12" class="d-flex justify-space-between align-center">
-                <v-btn variant="flat" color="grey" class="mr-2 force-white" @click="prevStep">← 이전단계</v-btn>
-                <div>
-                    <v-btn variant="flat" color="primary" @click="nextStep">다음 단계</v-btn>
-                </div>
-            </v-col>
-        </v-row>
+    <v-spacer />
+    <!-- 하단 버튼 섹션 -->
+    <v-row class="mt-auto">
+      <v-col cols="12" class="d-flex justify-space-between align-center">
+        <v-btn variant="flat" color="grey" class="mr-2 force-white" @click="prevStep">← 이전단계</v-btn>
+        <div>
+          <v-btn variant="flat" color="primary" @click="nextStep">다음 단계</v-btn>
+        </div>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
@@ -163,7 +158,7 @@ onMounted(async () => {
           mcSet: 3,
           sqSet: 2,
         },
-        
+
       ];
     }
   } catch (error) {
@@ -177,7 +172,7 @@ onMounted(async () => {
         mcSet: 3,
         sqSet: 2,
       },
-     
+
     ];
   }
 });
@@ -206,8 +201,6 @@ const totalSaqCount = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-
-
 .table-like-content {
   border-radius: 8px;
   padding: 16px;

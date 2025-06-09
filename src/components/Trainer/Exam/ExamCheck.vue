@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container class="d-flex flex-column" style="height: 650px;">
     <v-row>
       <v-col cols="12">
         <div class="d-flex align-end mb-4">
@@ -67,7 +67,7 @@
     </v-row>
 
     <!-- 하단 버튼 섹션 -->
-    <v-row class="mt-4">
+    <v-row class="mt-auto">
       <v-col cols="12" class="d-flex justify-space-between align-center">
         <v-btn variant="flat" color="gray" class="mr-2 force-white" @click="prevStep">← 이전단계</v-btn>
         <div>

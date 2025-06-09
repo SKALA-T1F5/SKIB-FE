@@ -3,7 +3,7 @@
     <!-- 탭 전환 UI -->
     <TabNavigation v-model="activeTab" :tabs="tabLabels" />
    
-    <v-card color="secondary" elevation="0">
+    <v-card color="secondary" elevation="0" style="height: 680px;">
     <v-window v-model="activeTab">
       <v-window-item :value="0">
         <ProjectDetail />
