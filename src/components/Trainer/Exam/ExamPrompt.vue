@@ -1,5 +1,5 @@
 <template>
-  <v-container class="d-flex flex-column" style="height: 650px;">
+  <v-container style="height: 650px;position: relative;">
         <v-row>
             <v-col cols="12">
                 <div class="d-flex align-end mb-4">
@@ -22,7 +22,7 @@
                     <v-card-text style="height: 200px;">
                         <v-textarea v-model="examPrompt"
                             placeholder="ex) 문서의 핵심 내용에 대한 이해도 확인을 목표로, 중간 난이도의 테스트를 생성하세요." variant="outlined" rows="4"
-                            auto-grow clearable  hide-details class="h-100"></v-textarea>
+                            auto-grow clearable hide-details class="h-100"></v-textarea>
                     </v-card-text>
                 </v-card>
             </v-col>
@@ -49,10 +49,12 @@
         </v-row>
 
         <!-- 하단 버튼 섹션 -->
-        <v-row class="mt-auto">
+        <v-row style="position: absolute; top: 570px;width: 100%;">
             <v-col cols="12" class="d-flex justify-space-between align-center">
-                <v-btn variant="flat" color="grey" class="mr-2 force-white" @click="prevStep">← 이전단계</v-btn>
-                <div>
+                <v-btn variant="flat" color="gray" class="mr-2 force-white" @click="prevStep">← 이전단계</v-btn>
+                <div class="d-flex align-center mr-2" style="gap: 8px;">
+                    <v-btn variant="flat" color="gray" class="force-white">이전문제</v-btn>
+                    <v-btn variant="flat" color="gray" class="force-white">다음문제</v-btn>
                     <v-btn variant="flat" color="primary" @click="nextStep">다음 단계</v-btn>
                 </div>
             </v-col>

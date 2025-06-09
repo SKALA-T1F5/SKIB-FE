@@ -1,5 +1,5 @@
 <template>
-  <v-container class="d-flex flex-column" style="height: 650px;">
+  <v-container style="height: 650px;position: relative;">
     <v-row>
       <v-col cols="12">
         <div class="d-flex align-end mb-4">
@@ -13,8 +13,35 @@
     <v-row>
       <!-- 테스트 문항 목록 섹션 -->
       <v-col cols="12" sm="3">
+
         <v-card elevation="0" style="height:100%">
           <v-card-text>
+
+            <div class="d-flex align-center">
+              <v-expansion-panels>
+                <v-expansion-panel elevation="0">
+                  <v-expansion-panel-title>
+                    <h4 class="text-h8 mt-1">문서 목록</h4>
+                  </v-expansion-panel-title>
+                  <v-expansion-panel-text>
+                    <div>
+                      <PerfectScrollbar style="height: 130px;">
+                        <v-list lines="two" class="py-0">
+                          <v-list-item v-for="(doc, i) in documents" :key="i" :value="doc" color="secondary"
+                            rounded="sm" density="compact" @click="selectDocument(doc)">
+                            <h6 class="text-body-2 text-medium-emphasis font-weight-bold">
+                              {{ doc.name }}
+                            </h6>
+                          </v-list-item>
+                        </v-list>
+                      </PerfectScrollbar>
+                    </div>
+                  </v-expansion-panel-text>
+                </v-expansion-panel>
+              </v-expansion-panels>
+            </div>
+            
+
             <div class="d-flex align-center">
               <h4 class="text-h8 mt-1">테스트 문항 목록</h4>
             </div>
@@ -34,6 +61,9 @@
                 </v-list>
               </PerfectScrollbar>
             </div>
+
+
+
           </v-card-text>
         </v-card>
       </v-col>
@@ -45,8 +75,8 @@
             <div class="d-flex align-center">
               <h4 class="text-h8 mt-1">{{ testItems[selectedQuestionIndex]?.name }}</h4> &nbsp&nbsp&nbsp
               <h4 class="text-h8 mt-1" style="color:grey">{{ selectedDocument.originalDocumentName }} | {{
-                selectedDocument.tag }} | {{selectedDocument.difficulty }}</h4>
-                <v-spacer></v-spacer>
+                selectedDocument.tag }} | {{ selectedDocument.difficulty }}</h4>
+              <v-spacer></v-spacer>
               <v-btn icon variant="flat" size="x-small" class="ml-2" color="primary" @click="toggleTranslation">
                 <v-icon style="color:white">mdi-web</v-icon>
               </v-btn>
@@ -67,12 +97,12 @@
     </v-row>
 
     <!-- 하단 버튼 섹션 -->
-    <v-row class="mt-auto">
+    <v-row style="position: absolute; top: 570px;width: 100%;">
       <v-col cols="12" class="d-flex justify-space-between align-center">
         <v-btn variant="flat" color="gray" class="mr-2 force-white" @click="prevStep">← 이전단계</v-btn>
-        <div>
-          <v-btn variant="flat" color="gray" class="mr-2 force-white">이전문제</v-btn>
-          <v-btn variant="flat" color="gray" class="mr-2 force-white">다음문제</v-btn>
+        <div class="d-flex align-center mr-2" style="gap: 8px;">
+          <v-btn variant="flat" color="gray" class="force-white">이전문제</v-btn>
+          <v-btn variant="flat" color="gray" class="force-white">다음문제</v-btn>
           <v-btn variant="flat" color="primary" @click="nextStep">다음 단계</v-btn>
         </div>
       </v-col>

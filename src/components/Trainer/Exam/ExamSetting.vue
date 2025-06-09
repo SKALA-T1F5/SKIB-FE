@@ -1,5 +1,5 @@
 <template>
-  <v-container class="d-flex flex-column" style="height: 650px;">
+  <v-container style="height: 650px;position: relative;">
     <v-row>
       <v-col cols="12">
         <div class="d-flex align-end mb-4">
@@ -96,12 +96,13 @@
         </v-card>
       </v-col>
     </v-row>
-    <v-spacer />
     <!-- 하단 버튼 섹션 -->
-    <v-row class="mt-auto">
+    <v-row style="position: absolute; top: 570px;width: 100%;">
       <v-col cols="12" class="d-flex justify-space-between align-center">
-        <v-btn variant="flat" color="grey" class="mr-2 force-white" @click="prevStep">← 이전단계</v-btn>
-        <div>
+        <v-btn variant="flat" color="gray" class="mr-2 force-white" @click="prevStep">← 이전단계</v-btn>
+        <div class="d-flex align-center mr-2" style="gap: 8px;">
+          <v-btn variant="flat" color="gray" class="force-white">이전문제</v-btn>
+          <v-btn variant="flat" color="gray" class="force-white">다음문제</v-btn>
           <v-btn variant="flat" color="primary" @click="nextStep">다음 단계</v-btn>
         </div>
       </v-col>
@@ -260,6 +261,9 @@ const totalSaqCount = computed(() => {
 </script>
 
 <style lang="scss" scoped>
+.force-white {
+    color: white !important;
+}
 .table-like-content {
   border-radius: 8px;
   padding: 16px;
