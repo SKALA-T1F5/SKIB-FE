@@ -107,7 +107,7 @@ const testItems = ref([]);
 const selectedQuestionIndex = ref(0);
 const currentQuestion = ref('');
 const currentAnswer = ref('');
-const isTranslated = ref(false); // 번역 여부 상태 추가
+
 
 // 문제 선택 핸들러
 const selectQuestion = (index) => {
@@ -134,34 +134,7 @@ const fetchTestItems = async () => {
   }
 };
 
-// 번역된 내용을 가져오는 함수 (백엔드에서 가져왔다고 가정)
-const fetchTranslatedContent = async (questionId) => {
-  // 실제 백엔드 API 호출 로직
-  // 예시 데이터
-  return {
-    translatedQuestion: `This is the translated question Q${String(questionId).padStart(2, '0')}. (Backend Translated Data)`,
-    translatedAnswer: `This is the translated answer Q${String(questionId).padStart(2, '0')}. (Backend Translated Data)`
-  };
-};
 
-// 번역 토글 함수
-const toggleTranslation = async () => {
-  if (testItems.value.length === 0) return;
-
-  const currentItem = testItems.value[selectedQuestionIndex.value];
-
-  if (!isTranslated.value) {
-    // 번역된 내용 가져오기
-    const translatedData = await fetchTranslatedContent(currentItem.id);
-    currentQuestion.value = translatedData.translatedQuestion;
-    currentAnswer.value = translatedData.translatedAnswer;
-  } else {
-    // 원본 내용으로 되돌리기
-    currentQuestion.value = currentItem.question;
-    currentAnswer.value = currentItem.answer;
-  }
-  isTranslated.value = !isTranslated.value;
-};
 
 // 컴포넌트 마운트 시 데이터 로드
 import { onMounted } from 'vue';
