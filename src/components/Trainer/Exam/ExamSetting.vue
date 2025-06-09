@@ -7,7 +7,7 @@
           
           <p class="text-body-2 text-medium-emphasis">Step 2 of 4 : 테스트를 구성할 문제와 조건을 선택하고 다음 단계로 이동하세요.</p>
         </div>
-        <v-progress-linear :model-value="50" height="10" color="primary" bg-color="primary"
+        <v-progress-linear :model-value="40" height="10" color="primary" bg-color="primary"
           rounded></v-progress-linear>
       </v-col>
     </v-row>
@@ -85,12 +85,21 @@
                 객관식:&nbsp;{{ totalMcqCount }}&nbsp;&nbsp;|&nbsp;&nbsp;주관식:&nbsp;{{ totalSaqCount
                 }}&nbsp;&nbsp;|&nbsp;&nbsp;Total:&nbsp;{{ totalMcqCount + totalSaqCount }}
               </div>
-              <v-btn color="primary" @click="saveSettings" block>다음 단계</v-btn>
             </v-form>
           </v-card-text>
         </v-card>
       </v-col>
     </v-row>
+
+            <!-- 하단 버튼 섹션 -->
+            <v-row class="mt-4">
+            <v-col cols="12" class="d-flex justify-space-between align-center">
+                <v-btn variant="flat" color="grey" class="mr-2 force-white" @click="prevStep">← 이전단계</v-btn>
+                <div>
+                    <v-btn variant="flat" color="primary" @click="nextStep">다음 단계</v-btn>
+                </div>
+            </v-col>
+        </v-row>
   </v-container>
 </template>
 
@@ -108,7 +117,17 @@ const headers = [
   { title: '주관식', key: 'sqSet', sortable: false, align: 'center', width: '15%' },
 ];
 
-const emit = defineEmits(['next-step']);
+const emit = defineEmits(['next-step', 'prev-step']);
+
+// 다음 단계로 이동 함수
+function nextStep() {
+  emit('next-step');
+}
+
+// 이전 단계로 이동 함수
+function prevStep() {
+  emit('prev-step');
+}
 
 // 문서 데이터 정의
 const revenues = ref([]);
@@ -184,14 +203,6 @@ const totalMcqCount = computed(() => {
 const totalSaqCount = computed(() => {
   return revenues.value.reduce((sum, doc) => sum + (doc.mcSet || 0), 0);
 });
-
-// 설정 저장 함수
-function saveSettings() {
-  // 여기에 설정 저장 로직을 추가합니다.
-  console.log('설정 저장:', selectedDocument.value);
-  // 다음 단계로 이동
-  emit('next-step');
-}
 </script>
 
 <style lang="scss" scoped>

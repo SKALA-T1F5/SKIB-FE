@@ -7,7 +7,7 @@
           <p class="text-body-2 text-medium-emphasis">Step 2 of 3 : AI가 만든 문제를 확인할 수 있습니다. 완료 후 다음 단계로 이동하세요.</p>
 
         </div>
-        <v-progress-linear :model-value="75" height="10" color="primary" bg-color="primary" rounded></v-progress-linear>
+        <v-progress-linear :model-value="65" height="10" color="primary" bg-color="primary" rounded></v-progress-linear>
       </v-col>
     </v-row>
     <v-row>
