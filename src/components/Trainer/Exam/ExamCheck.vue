@@ -17,7 +17,7 @@
         <v-card elevation="0" style="height:100%">
           <v-card-text>
 
-            <div class="d-flex align-center">
+            <!-- <div class="d-flex align-center"> -->
               <v-expansion-panels>
                 <v-expansion-panel elevation="0">
                   <v-expansion-panel-title>
@@ -38,39 +38,37 @@
                     </div>
                   </v-expansion-panel-text>
                 </v-expansion-panel>
+                <v-expansion-panel elevation="0">
+                <v-expansion-panel-title>
+                  <h4 class="text-h8 mt-1">문항 목록</h4>
+                </v-expansion-panel-title>
+                <v-expansion-panel-text>
+                  <div>
+                    <PerfectScrollbar style="height: 200px;">
+                      <v-list lines="two" class="py-0">
+                        <v-list-item v-for="(item, i) in filteredTestItems" :key="i" :value="item" color="secondary" rounded="sm" density="compact"
+                          @click="selectQuestion(i)">
+                          <div class="d-flex align-center w-100">
+                            <h6 class="text-body-2 text-medium-emphasis font-weight-bold">
+                              {{ item.name }} ({{ item.type }})
+                            </h6>
+                          </div>
+                        </v-list-item>
+                      </v-list>
+                    </PerfectScrollbar>
+                  </div>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
               </v-expansion-panels>
-            </div>
+            <!-- </div> -->
             
-
-            <div class="d-flex align-center">
-              <h4 class="text-h8 mt-1">테스트 문항 목록</h4>
-            </div>
-            <div class="mt-4">
-              <PerfectScrollbar style="height: 400px;">
-                <v-list lines="two" class="py-0">
-                  <v-list-item v-for="(item, i) in testItems" :key="i" :value="item" color="secondary" rounded="sm"
-                    @click="selectQuestion(i)">
-                    <div class="d-flex align-center w-100">
-                      <v-checkbox v-model="item.selected" class="mr-2" density="compact" hide-details
-                        color="grey"></v-checkbox>
-                      <h6 class="text-body-2 text-medium-emphasis font-weight-bold">
-                        {{ item.name }} ({{ item.type }})
-                      </h6>
-                    </div>
-                  </v-list-item>
-                </v-list>
-              </PerfectScrollbar>
-            </div>
-
-
-
           </v-card-text>
         </v-card>
       </v-col>
 
       <!-- 문제 및 정답/풀이 섹션 -->
       <v-col cols="12" sm="9">
-        <v-card elevation="0" style="height:50%">
+        <v-card elevation="0" style="height:220px">
           <v-card-text>
             <div class="d-flex align-center">
               <h4 class="text-h8 mt-1">{{ testItems[selectedQuestionIndex]?.name }}</h4> &nbsp&nbsp&nbsp
@@ -85,7 +83,7 @@
           </v-card-text>
         </v-card>
         <div class="d-flex align-end mb-4" style="height:1%"></div>
-        <v-card elevation="0" style="height:45.5%">
+        <v-card elevation="0" style="height:230px">
           <v-card-text>
             <div class="d-flex align-center">
               <h4 class="text-h8 mt-1">정답 및 풀이</h4>

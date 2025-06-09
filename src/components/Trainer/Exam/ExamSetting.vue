@@ -41,11 +41,10 @@
                   {{ item.name }}
                 </h6>
               </template>
-              <template v-slot:item.mcCount="{ item }">
-                <h6 class="text-body-2 font-weight-bold" style="text-align: center;">{{ item.mcCount }}</h6>
-              </template>
-              <template v-slot:item.sqCount="{ item }">
-                <h6 class="text-body-2 font-weight-bold" style="text-align: center;">{{ item.sqCount }}</h6>
+              <template v-slot:item.tag="{ item }">
+                <h6 class="text-body-2 text-medium-emphasis font-weight-bold">
+                  {{ item.tag }}
+                </h6>
               </template>
               <template v-slot:item.sqSet="{ item }">
                 <v-text-field v-model.number="item.sqSet" type="number" variant="outlined" density="compact"
@@ -111,19 +110,55 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
-// import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-// import 'vue3-perfect-scrollbar/style.css';
+import { ref, computed, onMounted } from 'vue';
 
+// ***********************************************************************
+// * 데이터 정의
+// ***********************************************************************
+
+// 테이블 헤더 정의
 const headers = [
-
-  { title: '문서명', key: 'name', sortable: false, width: '40%' },
-  { title: '보유객관식', key: 'mcCount', sortable: false, align: 'center', width: '15%' },
-  { title: '보유주관식', key: 'sqCount', sortable: false, align: 'center', width: '15%' },
-  { title: '객관식', key: 'mcSet', sortable: false, align: 'center', width: '15%' },
-  { title: '주관식', key: 'sqSet', sortable: false, align: 'center', width: '15%' },
+  { title: '문서명', key: 'name', sortable: false, width: '45%' },
+  { title: 'Tag', key: 'tag', sortable: false, align: 'center', width: '35%' },
+  { title: '객관식', key: 'mcSet', sortable: false, align: 'center', width: '10%' },
+  { title: '주관식', key: 'sqSet', sortable: false, align: 'center', width: '10%' },
 ];
 
+// 문서 데이터 (반응형)
+const revenues = ref([]);
+
+// 시험 목표 (반응형)
+const examGoal = ref('');
+
+// 선택된 문서 설정 데이터 (반응형)
+const selectedDocument = ref({
+  title: '',
+  examTime: 60,
+  difficulty: '⭐⭐⭐',
+  passScore: 70, // 기본값 설정
+  retakeAllowed: false, // 기본값 설정
+  translationLanguage: '없음', // 번역 언어 기본값 추가
+});
+
+// ***********************************************************************
+// * Computed 속성
+// ***********************************************************************
+
+// 총 객관식 문제 수 계산
+const totalMcqCount = computed(() => {
+  return revenues.value.reduce((sum, doc) => sum + (doc.mcSet || 0), 0);
+});
+
+// 총 주관식 문제 수 계산
+const totalSaqCount = computed(() => {
+  return revenues.value.reduce((sum, doc) => sum + (doc.sqSet || 0), 0);
+});
+
+// ***********************************************************************
+// * 함수 정의
+// ***********************************************************************
+
+// 부모 컴포넌트로 이벤트를 발생시키기 위한 emit 정의
 const emit = defineEmits(['next-step', 'prev-step']);
 
 // 다음 단계로 이동 함수
@@ -136,127 +171,48 @@ function prevStep() {
   emit('prev-step');
 }
 
-// 문서 데이터 정의
-const revenues = ref([]);
-
-// 백엔드에서 데이터를 가져오는 함수 (시뮬레이션)
+// 백엔드에서 문서 데이터를 가져오는 함수 (시뮬레이션)
 const fetchRevenues = async () => {
   // 실제 백엔드 API 호출 로직이 들어갈 자리
   // 여기서는 더미 데이터를 반환합니다.
   return [
-    { name: '문서1', mcCount: 25, sqCount: 12 },
-    { name: '문서2', mcCount: 18, sqCount: 8 },
-    { name: '문서3', mcCount: 30, sqCount: 15 },
+    { name: '문서1', tag: '#Vue #JavaScript #Frontend' },
+    { name: '문서2', tag: '#Python #Backend #API' },
+    { name: '문서3', tag: '#Database #SQL #NoSQL' },
   ];
 };
 
-onMounted(async () => {
-  try {
-    const fetchedData = await fetchRevenues();
-    if (fetchedData && fetchedData.length > 0) {
-      revenues.value = fetchedData.map(doc => ({
-        ...doc,
-        mcSet: doc.mcSet !== undefined ? doc.mcSet : 3, // 백엔드에서 mcSet이 오지 않으면 기본값 3
-        sqSet: doc.sqSet !== undefined ? doc.sqSet : 2, // 백엔드에서 sqSet이 오지 않으면 기본값 2
-      }));
-    } else {
-      // 백엔드 데이터가 없거나 실패 시 기본값 사용
-      console.error('Failed to fetch revenues:', error);
-      revenues.value = [
-        {
-          name: '에러문서1',
-          mcCount: 20,
-          sqCount: 10,
-          mcSet: 3,
-          sqSet: 2,
-        },
-
-      ];
-    }
-  } catch (error) {
-    console.error('Failed to fetch revenues:', error);
-    // 에러 발생 시 기본값 사용
-    revenues.value = [
-      {
-        name: '에러문서2',
-        mcCount: 20,
-        sqCount: 10,
-        mcSet: 3,
-        sqSet: 2,
-      },
-
-    ];
-  }
-});
-
-// 선택된 문서 설정 데이터
-const selectedDocument = ref({
-  title: '',
-  examTime: 60,
-  difficulty: '⭐⭐⭐',
-  passScore: 70, // 기본값 설정
-  retakeAllowed: false, // 기본값 설정
-  translationLanguage: '없음', // 🎨 번역 언어 기본값 추가
-});
-
-const examGoal = ref('');
-
+// 백엔드에서 시험 목표를 가져오는 함수 (시뮬레이션)
 const fetchExamGoal = async () => {
   // 실제 백엔드 API 호출 로직이 들어갈 자리
   // 여기서는 더미 데이터를 반환합니다.
   return '시험의 목표 입니다.';
 };
 
+// ***********************************************************************
+// * 라이프사이클 훅
+// ***********************************************************************
+
 onMounted(async () => {
   try {
+    // 문서 데이터 가져오기
     const fetchedData = await fetchRevenues();
     if (fetchedData && fetchedData.length > 0) {
       revenues.value = fetchedData.map(doc => ({
         ...doc,
-        mcSet: doc.mcSet !== undefined ? doc.mcSet : 3, // 백엔드에서 mcSet이 오지 않으면 기본값 3
-        sqSet: doc.sqSet !== undefined ? doc.sqSet : 2, // 백엔드에서 sqSet이 오지 않으면 기본값 2
+        mcSet: doc.mcSet !== undefined ? doc.mcSet : 3, // 기본 객관식 문제 수
+        sqSet: doc.sqSet !== undefined ? doc.sqSet : 2, // 기본 주관식 문제 수
       }));
     } else {
-      // 백엔드 데이터가 없거나 실패 시 기본값 사용
-      console.error('Failed to fetch revenues:', error);
-      revenues.value = [
-        {
-          name: '에러문서1',
-          mcCount: 20,
-          sqCount: 10,
-          mcSet: 3,
-          sqSet: 2,
-        },
-
-      ];
+      revenues.value = [];
     }
+
+    // 시험 목표 가져오기
     examGoal.value = await fetchExamGoal();
   } catch (error) {
-    console.error('Failed to fetch revenues:', error);
-    // 에러 발생 시 기본값 사용
-    revenues.value = [
-      {
-        name: '에러문서2',
-        mcCount: 20,
-        sqCount: 10,
-        mcSet: 3,
-        sqSet: 2,
-      },
-
-    ];
+    console.error('Failed to fetch revenues:');
+    revenues.value = [];
   }
-});
-
-
-
-// 총 객관식 문제 수 계산
-const totalMcqCount = computed(() => {
-  return revenues.value.reduce((sum, doc) => sum + (doc.sqSet || 0), 0);
-});
-
-// 총 주관식 문제 수 계산
-const totalSaqCount = computed(() => {
-  return revenues.value.reduce((sum, doc) => sum + (doc.mcSet || 0), 0);
 });
 </script>
 
