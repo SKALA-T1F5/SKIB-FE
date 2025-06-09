@@ -13,7 +13,18 @@
     <v-row>
       <!-- 문서 목록 섹션 -->
       <v-col cols="12" sm="8">
-        <v-card elevation="0" height="100%">
+        <v-card elevation="0" height="25%">
+          <v-card-text>
+            <div class="d-flex align-center pb-2">
+              <h4 class="text-h8 mt-1">Exam Goal</h4>
+            </div>
+            <h>{{ examGoal }}</h>
+          </v-card-text>
+        </v-card height="5%">
+        <br>
+        <v-card>
+        </v-card>
+        <v-card elevation="0" height="70%">
           <v-card-text>
             <!-- 문서 목록 헤더 -->
             <div class="d-flex align-center">
@@ -185,6 +196,54 @@ const selectedDocument = ref({
   passScore: 70, // 기본값 설정
   retakeAllowed: false, // 기본값 설정
   translationLanguage: '없음', // 🎨 번역 언어 기본값 추가
+});
+
+const examGoal = ref('');
+
+const fetchExamGoal = async () => {
+  // 실제 백엔드 API 호출 로직이 들어갈 자리
+  // 여기서는 더미 데이터를 반환합니다.
+  return '시험의 목표 입니다.';
+};
+
+onMounted(async () => {
+  try {
+    const fetchedData = await fetchRevenues();
+    if (fetchedData && fetchedData.length > 0) {
+      revenues.value = fetchedData.map(doc => ({
+        ...doc,
+        mcSet: doc.mcSet !== undefined ? doc.mcSet : 3, // 백엔드에서 mcSet이 오지 않으면 기본값 3
+        sqSet: doc.sqSet !== undefined ? doc.sqSet : 2, // 백엔드에서 sqSet이 오지 않으면 기본값 2
+      }));
+    } else {
+      // 백엔드 데이터가 없거나 실패 시 기본값 사용
+      console.error('Failed to fetch revenues:', error);
+      revenues.value = [
+        {
+          name: '에러문서1',
+          mcCount: 20,
+          sqCount: 10,
+          mcSet: 3,
+          sqSet: 2,
+        },
+
+      ];
+    }
+    examGoal.value = await fetchExamGoal();
+  } catch (error) {
+    console.error('Failed to fetch revenues:', error);
+    // 에러 발생 시 기본값 사용
+    revenues.value = [
+      {
+        name: '에러문서2',
+        mcCount: 20,
+        sqCount: 10,
+        mcSet: 3,
+        sqSet: 2,
+      },
+
+    ];
+  }
 });
 
 
