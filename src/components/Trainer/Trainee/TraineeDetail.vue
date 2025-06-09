@@ -91,7 +91,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, defineEmits, defineProps } from 'vue';
+import { ref, onMounted, defineEmits } from 'vue';
 import TraineeDetailChart from '../../chart/TraineeDetailChart.vue';
 
 const props = defineProps({

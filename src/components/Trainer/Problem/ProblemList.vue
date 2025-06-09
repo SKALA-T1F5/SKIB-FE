@@ -333,8 +333,10 @@ function prevStep() {
 .force-white {
   color: white !important;
 }
-.custom-textarea::v-deep textarea {
-  font-size: 0.8rem !important;
+.custom-textarea {
+  :deep(textarea) {
+    font-size: 0.8rem !important;
+  }
 }
 
 </style>

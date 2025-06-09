@@ -12,12 +12,16 @@
 
     <v-row :class="exams.length + 1 <= 4 ? 'd-flex flex-row flex-nowrap' : ''">
       <v-col v-for="exam in exams" :key="exam.id" cols="12" sm="6" md="4" lg="3" class="d-flex">
+
+
+
+
         <v-card elevation="0" class="mx-auto h-100 d-flex flex-column" max-width="344">
           <v-card-title class="text-h6">{{ exam.name }}</v-card-title>
           <v-card-subtitle>
             난이도: {{ exam.difficulty }} | 제한 시간: {{ exam.timeLimit }}분
           </v-card-subtitle>
-          <v-card-text>
+          <v-card-text class="flex-grow-1">
             <div>PASS 점수: {{ exam.passingScore }}점</div>
             <div>마지막 수정일: {{ exam.lastModified }}</div>
             <div>재응시 여부: {{ exam.retakeable ? '가능' : '불가능' }}</div>
@@ -25,8 +29,39 @@
             <!-- <div>합격자 수: {{ exam.passCount }}/{{ exam.totalApplicants }}명</div>
             <div>평균 점수: {{ exam.averageScore }}점</div> -->
             <ExamStatsChart :exam="exam" />
+            <br>
+            <v-card-text class="d-flex align-center gap-2 pa-0">
+              <v-btn color="primary" variant="outlined" prepend-icon="mdi-format-list-bulleted" size="default"
+                @click="router.push('/exam/1')">
+                문제목록
+              </v-btn>
+              <v-spacer />
+              <v-btn color="primary" variant="outlined" prepend-icon="mdi-chart-line" size="default"
+                @click="router.push('/exam/1')">
+                응시현황
+              </v-btn>
+            </v-card-text>
           </v-card-text>
+
+
         </v-card>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       </v-col>
       <v-col cols="12" sm="6" md="4" lg="3" class="d-flex">
         <v-card elevation="0" class="mx-auto h-100 d-flex flex-column align-center justify-center"

@@ -11,13 +11,13 @@
       <v-window-item :value="1">
         <DocumentManagement />
       </v-window-item>
-      <v-window-item :value="2">
+      <!-- <v-window-item :value="2">
         <ProblemManagement />
-      </v-window-item>
-      <v-window-item :value="3">
+      </v-window-item> -->
+      <v-window-item :value="2">
         <ExamManagement />
       </v-window-item>
-      <v-window-item :value="4">
+      <v-window-item :value="3">
         <TraineeManagement />
       </v-window-item>
     </v-window>
@@ -32,7 +32,7 @@ import TabNavigation from '../Layout/TabNavigation.vue'
 
 import ProjectDetail from './ProjectDetail.vue'
 import DocumentManagement from './DocumentManagement.vue'
-import ProblemManagement from './ProblemManagement.vue'
+// import ProblemManagement from './ProblemManagement.vue'
 import TraineeManagement from './TraineeManagement.vue'
 import ExamManagement from './ExamManagement.vue'
 
@@ -41,7 +41,7 @@ const activeTab = ref(0)
 const tabLabels = [
   '프로젝트 메인',
   '문서 관리',
-  '문제 관리',
+  // '문제 관리',
   '시험 관리',
   '훈련생 관리',
 ]
