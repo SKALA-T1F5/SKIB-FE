@@ -1,76 +1,214 @@
 <template>
-  <v-app-bar app color="white" flat border>
-    <v-container class="fill-height d-flex align-center">
-      <!-- 로고 및 프로젝트 이름 -->
-      <v-btn variant="text" class="d-flex align-center mr-4" @click="navigateToProject">
-        <div class="logo-icon rounded-lg d-flex align-center justify-center mr-3">
-          <v-icon color="white">mdi-file-text</v-icon>
+  <header class="header">
+    <div class="logo-area" @click="goToMain">
+      <img class="logo-image" :src="logoImage" alt="logo" />
+    </div>
+
+    <div class="header-right">
+      <!-- 🌐 언어 전환 버튼 -->
+      <div class="language-switch" @click="toggleLangMenu">
+        <div class="lang-button">
+          <svg-icon type="mdi" :path="mdiWeb" class="lang-icon" />
+          <span class="lang-text">{{ currentLang === 'ko' ? 'KOR' : 'ENG' }}</span>
         </div>
-        <v-toolbar-title class="text-h6 font-weight-bold text-grey-darken-3">
-          SKIB demo
-        </v-toolbar-title>
-      </v-btn>
-
-      <v-spacer></v-spacer>
-
-      <!-- 사용자 아이콘 및 언어 설정 -->
-      <div class="d-flex align-center space-x-4">
-        <v-btn icon variant="text" color="grey-darken-1" @click="navigateToLanguageSettings">
-          <v-icon>mdi-earth</v-icon>
-        </v-btn>
-        <v-btn icon variant="text" color="grey-darken-1" @click="navigateToMyPage">
-          <div class="user-icon rounded-circle d-flex align-center justify-center">
-            <v-icon color="white">mdi-account</v-icon>
-          </div>
-        </v-btn>
+        <div v-if="showLangMenu" class="dropdown lang-dropdown">
+          <div @click="selectLang('ko')">한국어</div>
+          <div @click="selectLang('en')">English</div>
+        </div>
       </div>
-    </v-container>
-  </v-app-bar>
+
+      <div class="vertical-divider"></div>
+
+      <!-- 👤 사용자 정보 -->
+      <div class="user-info" @click="toggleUserMenu">
+        <svg-icon type="mdi" :path="mdiAccount" class="user-icon" />
+        <div class="user-text">
+          <span class="nickname">{{ name }}</span>
+          <span class="role">{{ role }}</span>
+        </div>
+        <svg-icon type="mdi" :path="mdiMenuDown" class="user-menu" />
+      </div>
+
+      <!-- 🔽 사용자 드롭다운 메뉴 -->
+      <div v-if="showUserMenu" class="dropdown user-dropdown">
+        <div @click="goToMyPage">마이페이지</div>
+        <div @click="logout">로그아웃</div>
+      </div>
+    </div>
+  </header>
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+// import logoImage from '@/assets/logo_semi.png'
+// import SvgIcon from '@jamescoyle/vue-icon'
+// import { mdiAccount, mdiWeb, mdiMenuDown } from '@mdi/js'
 
-const router = useRouter();
+const props = defineProps({
+  name: { type: String, default: '닉네임' },
+  role: { type: String, default: 'Trainee' },
+})
 
-function navigateToProject() {
-  router.push('/trainer/project');
+const router = useRouter()
+
+const showUserMenu = ref(false)
+const showLangMenu = ref(false)
+const currentLang = ref('ko')
+
+const toggleUserMenu = () => {
+  showUserMenu.value = !showUserMenu.value
+  showLangMenu.value = false
 }
 
-function navigateToMyPage() {
-  router.push('/trainer/mypage');
+const toggleLangMenu = () => {
+  showLangMenu.value = !showLangMenu.value
+  showUserMenu.value = false
 }
 
-function navigateToLanguageSettings() {
-  // 언어 설정 페이지로 이동하는 로직 추가
+const selectLang = (lang) => {
+  currentLang.value = lang
+  showLangMenu.value = false
+}
+
+const goToMyPage = () => {
+  router.push('/mypage')
+}
+
+const goToMain = () => {
+  router.push('/trainee/main')
+}
+
+const logout = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('role')
+  router.push('/login')
 }
 </script>
 
 <style scoped>
-.logo-icon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(to right, #000000, #00000075);
-  /* primary to orange-400 */
+.header {
+  height: 80px;
+  width: 100%;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #ddd;
+  padding: 0 20px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+}
+
+.logo-image {
+  height: 70px;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+}
+
+.language-switch {
+  position: relative;
+}
+
+.language-switch .lang-button {
+  background: #f0f0f0;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.lang-icon {
+  height: 24px;
+  margin-right: 6px;
+}
+
+.lang-text {
+  font-family: 'Inter';
+  font-weight: 700;
+  font-size: 16px;
+  color: #000;
+}
+
+.vertical-divider {
+  width: 1px;
+  height: 28px;
+  background-color: #acacac;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  position: relative;
+}
+
+.user-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.nickname {
+  font-family: 'Inter';
+  font-size: 14px;
+  color: #000;
+}
+
+.role {
+  font-family: 'Inter';
+  font-size: 12px;
+  color: #868686;
+  line-height: 1;
 }
 
 .user-icon {
-  width: 32px;
-  height: 32px;
-  background-color: #0000009a;
-  /* primary color */
+  height: 40px;
+  width: 40px;
 }
 
-.space-x-4>*:not(:last-child) {
-  margin-right: 16px;
+.user-menu {
+  height: 30px;
+  width: 30px;
 }
 
-.space-x-8>*:not(:last-child) {
-  margin-right: 32px;
+/* 공통 드롭다운 */
+.dropdown {
+  position: absolute;
+  top: 70px;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  padding: 4px 0;
+  min-width: 120px;
+  text-align: left;
 }
 
-/* Vuetify v-btn의 기본 패딩을 줄이기 위해 필요할 수 있습니다 */
-.v-btn.v-btn--text {
-  padding: 0 8px;
+.dropdown div {
+  padding: 0.6rem 1rem;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.dropdown div:hover {
+  background-color: #f5f5f5;
 }
 </style>

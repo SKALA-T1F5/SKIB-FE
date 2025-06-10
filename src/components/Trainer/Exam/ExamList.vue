@@ -70,6 +70,15 @@ import ExamStatsChart from '../../chart/ExamStatsChart.vue';
 import axios from 'axios';
 import { API_BASE_URL } from '@/config/api';
 
+
+// 임의의 테스트용 JWT 토큰 하드코딩 ✅로그인 구현 시 삭제 필요✅
+const token = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc0OTU0MzgyOCwiZXhwIjoxNzQ5NTQ3NDI4fQ.OJZ2cz2-W-CokE5D5JEqZTqZ8FQOf0nBSvmXYTz9alk';
+const projectId = 1;
+localStorage.setItem('token', token);
+localStorage.setItem('projectId', projectId);
+// console.log('token:', token);
+// console.log('projectId:', projectId);
+
 const emit = defineEmits(['next-step']);
 
 const router = useRouter();
@@ -81,6 +90,43 @@ const addExam = () => {
 const props = defineProps({
   exams: Array
 })
+
+// 시험 목록을 가져오는 함수
+const fetchExams = async () => {
+  try {
+    
+    // 로컬스토리지 값 가져오기
+    const token = localStorage.getItem('token');
+    const projectId = localStorage.getItem('projectId');
+
+    const response = await axios.get(`${API_BASE_URL}/test/getTests`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json'
+      },
+      params: {
+        projectId: projectId 
+      }
+    });
+
+    if (response.data.statusCode === 'OK') {
+      exams.value = response.data.resultData.projects.map(project => ({
+        id: project.testId,
+        name: project.name,
+        difficulty: '미정', // 백엔드 응답에 난이도 정보가 없으므로 임시로 '미정'으로 설정
+        timeLimit: project.limitedTime,
+        passingScore: 0, // 백엔드 응답에 PASS 점수 정보가 없으므로 임시로 0으로 설정
+        lastModified: new Date(project.createdAt).toLocaleDateString(),
+        retakeable: false, // 백엔드 응답에 재응시 여부 정보가 없으므로 임시로 false로 설정
+        passCount: 0,
+        totalApplicants: 0,
+        averageScore: 0,
+      }));
+    }
+  } catch (error) {
+    console.error('시험 목록 가져오기 실패:', error);
+  }
+};
 
 // 링크 복사 함수
 function copyLink() {
@@ -113,56 +159,12 @@ function copyLink() {
   }
 }
 
-const exams = ref([
-  {
-    id: 1,
-    name: 'Vue.js 기초 테스트',
-    difficulty: '하',
-    timeLimit: 30,
-    passingScore: 70,
-    lastModified: '2023-10-26',
-    retakeable: true,
-    passCount: 15,
-    totalApplicants: 20,
-    averageScore: 75,
-  },
-  {
-    id: 2,
-    name: 'JavaScript 심화 테스트',
-    difficulty: '중',
-    timeLimit: 60,
-    passingScore: 80,
-    lastModified: '2023-10-25',
-    retakeable: false,
-    passCount: 2,
-    totalApplicants: 10,
-    averageScore: 45,
-  },
-  {
-    id: 3,
-    name: 'CSS 고급 레이아웃',
-    difficulty: '상',
-    timeLimit: 45,
-    passingScore: 75,
-    lastModified: '2023-10-24',
-    retakeable: true,
-    passCount: 12,
-    totalApplicants: 15,
-    averageScore: 78,
-  },
-  {
-    id: 4,
-    name: 'CSS 고급 레이아웃',
-    difficulty: '상',
-    timeLimit: 45,
-    passingScore: 75,
-    lastModified: '2023-10-24',
-    retakeable: true,
-    passCount: 12,
-    totalApplicants: 15,
-    averageScore: 78,
-  },
-]);
+const exams = ref([]); // 기존 더미 데이터 제거
+
+onMounted(() => {
+  fetchExams();
+});
+
 </script>
 
 <style scoped>
