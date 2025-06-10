@@ -5078,6 +5078,14 @@ html.v-overlay-scroll-blocked {
   width: 50px
 }
 
+.trainer-container {
+  height: 650px !important;
+  max-width: 950px !important;
+  width: 100% !important;
+  position: relative !important;
+  margin: 0 auto !important;
+}
+
 .v-window {
   overflow: hidden
 }

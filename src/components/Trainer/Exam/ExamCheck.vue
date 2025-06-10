@@ -1,5 +1,5 @@
 <template>
-  <v-container style="height: 650px;position: relative;">
+  <v-container class="trainer-container">
     <v-row>
       <v-col cols="12">
         <div class="d-flex align-end mb-4">
@@ -86,10 +86,10 @@
               v-model="currentQuestionAndOptions"
               :readonly="!isEditing"
               :variant="isEditing ? 'outlined' : 'plain'"
-              rows="5"
+              rows="7"
               auto-grow
               hide-details
-              class="mt-0 custom-textarea"
+              class="ml-2 custom-textarea"
             ></v-textarea>
           </v-card-text>
           </v-card>
@@ -98,16 +98,16 @@
         <v-card elevation="0" style="height:230px">
           <v-card-text>
             <div class="d-flex align-center">
-              <h4 class="text-h8 mt-1">정답 및 풀이</h4>
+              <h4 class="text-h8 mt-1">정답 및 채점기준</h4>
             </div>
             <v-textarea
-              v-model="currentAnswer"
+              v-model="currentAnswerAndExplanation"
               :readonly="!isEditing"
               :variant="isEditing ? 'outlined' : 'plain'"
               rows="5"
               auto-grow
               hide-details
-              class="mt-4 custom-textarea"
+              class="m;-2 custom-textarea"
             ></v-textarea>
           </v-card-text>
         </v-card>
@@ -163,7 +163,7 @@ const testItems = ref([]);
 
 // 초기 선택된 문제 설정
 const selectedQuestionIndex = ref(0);
-const currentAnswer = ref('');
+const currentAnswerAndExplanation = ref('');
 const isEditing = ref(false);
 const currentQuestionAndOptions = ref('');
 
@@ -179,7 +179,7 @@ const selectQuestion = (index) => {
   selectedQuestionIndex.value = index;
   const question = testItems.value[index];
   currentQuestionAndOptions.value = question.question + '\n' + (question.options || []).map((option, idx) => `${idx + 1}. ${option}`).join('\n');
-  currentAnswer.value = question.answer;
+  currentAnswerAndExplanation.value = `[정답] ${question.answer}\n[해설] ${question.explanation || ''}\n[채점기준] ${question.gradingCriteria || ''}`;
   selectedDocument.value.name = documents.value.find(doc => doc.id === question.documentId)?.name || '';
   selectedDocument.value.tag = question.tags.join(', ');
   selectedDocument.value.difficultyLevel = question.difficultyLevel;
@@ -197,7 +197,9 @@ const saveChanges = async () => {
     const documentId = testItems.value[selectedQuestionIndex.value].documentId;
     const updatedQuestion = {
       question: currentQuestionAndOptions.value.split('\n')[0],
-      answer: currentAnswer.value,
+      answer: currentAnswerAndExplanation.value.split('정답: ')[1]?.split('\n')[0].trim() || '',
+      explanation: currentAnswerAndExplanation.value.split('설명: ')[1]?.split('\n')[0].trim() || '',
+      gradingCriteria: currentAnswerAndExplanation.value.split('채점 기준: ')[1]?.split('\n')[0].trim() || '',
       options: currentQuestionAndOptions.value.split('\n').slice(1).map(option => option.substring(option.indexOf('.') + 2)),
     };
     console.log(updatedQuestion)
@@ -227,8 +229,8 @@ const selectDocument = (doc) => {
   if (testItems.value.length > 0) {
     selectQuestion(0);
   } else {
-    currentQuestion.value = '';
-    currentAnswer.value = '';
+    currentQuestionAndOptions.value = '';
+    currentAnswerAndExplanation.value = '';
   }
 };
 
@@ -301,9 +303,8 @@ const handleCancelLeave = () => {
 .force-white {
   color: white !important;
 }
-.custom-textarea {
-  :deep(textarea) {
-    font-size: 0.8rem !important;
-  }
+.custom-textarea :deep(textarea) {
+  font-size: 0.2rem !important;
 }
+
 </style>
