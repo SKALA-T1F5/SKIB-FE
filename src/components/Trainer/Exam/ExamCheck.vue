@@ -86,7 +86,7 @@
               v-model="currentQuestionAndOptions"
               :readonly="!isEditing"
               :variant="isEditing ? 'outlined' : 'plain'"
-              rows="10"
+              rows="5"
               auto-grow
               hide-details
               class="mt-0 custom-textarea"
@@ -104,7 +104,7 @@
               v-model="currentAnswer"
               :readonly="!isEditing"
               :variant="isEditing ? 'outlined' : 'plain'"
-              rows="4"
+              rows="5"
               auto-grow
               hide-details
               class="mt-4 custom-textarea"
@@ -163,11 +163,9 @@ const testItems = ref([]);
 
 // 초기 선택된 문제 설정
 const selectedQuestionIndex = ref(0);
-const currentQuestion = ref('');
 const currentAnswer = ref('');
-const currentQuestionOptions = ref([]);
-const currentQuestionOptionsText = ref('');
 const isEditing = ref(false);
+const currentQuestionAndOptions = ref('');
 
 // 선택된 문서 정보
 const selectedDocument = ref({
@@ -180,10 +178,8 @@ const selectedDocument = ref({
 const selectQuestion = (index) => {
   selectedQuestionIndex.value = index;
   const question = testItems.value[index];
-  currentQuestion.value = question.question;
+  currentQuestionAndOptions.value = question.question + '\n' + (question.options || []).map((option, idx) => `${idx + 1}. ${option}`).join('\n');
   currentAnswer.value = question.answer;
-  currentQuestionOptions.value = question.options || [];
-  currentQuestionOptionsText.value = currentQuestionOptions.value.map((option, idx) => `${idx + 1}. ${option}`).join('\n');
   selectedDocument.value.name = documents.value.find(doc => doc.id === question.documentId)?.name || '';
   selectedDocument.value.tag = question.tags.join(', ');
   selectedDocument.value.difficultyLevel = question.difficultyLevel;
