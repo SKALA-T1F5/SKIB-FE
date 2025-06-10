@@ -13,14 +13,14 @@
     <v-row :class="exams.length + 1 <= 4 ? 'd-flex flex-row flex-nowrap' : ''">
       <v-col v-for="exam in exams" :key="exam.id" cols="12" sm="6" md="4" lg="3" class="d-flex">
 
-
-
-
         <v-card elevation="0" class="mx-auto h-100 d-flex flex-column" max-width="344">
-          <v-card-title class="text-h6">{{ exam.name }}</v-card-title>
-          <v-btn icon variant="flat" size="x-small" class="ml-2" color="primary" @click="copyLink">
-            <v-icon size="13">mdi-share-variant</v-icon>
-          </v-btn>
+          <v-card-title>
+            <div class="d-flex justify-space-between align-center w-100">
+              <span class="text-h6">{{ exam.name }}</span>
+              <v-icon size="15" color="primary" @click="copyLink">mdi-share-variant</v-icon>
+            </div>
+          </v-card-title>
+
           <v-card-subtitle>
             난이도: {{ exam.difficulty }} | 제한 시간: {{ exam.timeLimit }}분
           </v-card-subtitle>
@@ -79,6 +79,37 @@ const addExam = () => {
 const props = defineProps({
   exams: Array
 })
+
+// 링크 복사 함수
+function copyLink() {
+  const url = `https://www.example.com/${exams.value.id}`
+
+  // clipboard API 사용
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url)
+      .then(() => {
+        alert('링크가 복사되었습니다!');
+      })
+      .catch(err => {
+        console.error('복사 실패:', err);
+        alert('링크 복사에 실패했습니다.');
+      });
+  } else {
+    // fallback: execCommand (구형 브라우저 대응)
+    const textArea = document.createElement('textarea');
+    textArea.value = url;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      alert('링크가 복사되었습니다!');
+    } catch (err) {
+      console.error('Fallback 복사 실패:', err);
+      alert('링크 복사에 실패했습니다.');
+    }
+    document.body.removeChild(textArea);
+  }
+}
 
 const exams = ref([
   {
