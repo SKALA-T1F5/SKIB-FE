@@ -86,7 +86,7 @@
               v-model="currentQuestionAndOptions"
               :readonly="!isEditing"
               :variant="isEditing ? 'outlined' : 'plain'"
-              rows="7"
+              rows="6"
               auto-grow
               hide-details
               class="ml-2 custom-textarea"
@@ -104,10 +104,10 @@
               v-model="currentAnswerAndExplanation"
               :readonly="!isEditing"
               :variant="isEditing ? 'outlined' : 'plain'"
-              rows="5"
+              rows="6"
               auto-grow
               hide-details
-              class="m;-2 custom-textarea"
+              class="ml-2 custom-textarea"
             ></v-textarea>
           </v-card-text>
         </v-card>
@@ -121,7 +121,7 @@
         <div class="d-flex align-center mr-2" style="gap: 8px;">
           <v-btn variant="flat" color="gray" class="force-white">이전문제</v-btn>
           <v-btn variant="flat" color="gray" class="force-white">다음문제</v-btn>
-          <v-btn variant="flat" color="primary" @click="nextStep">다음 단계</v-btn>
+          <v-btn variant="flat" color="primary" @click="nextStep">검토완료</v-btn>
         </div>
       </v-col>
     </v-row>
@@ -304,7 +304,7 @@ const handleCancelLeave = () => {
   color: white !important;
 }
 .custom-textarea :deep(textarea) {
-  font-size: 0.2rem !important;
+  font-size: 0.8rem !important;
 }
 
 </style>
