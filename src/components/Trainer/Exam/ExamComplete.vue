@@ -25,7 +25,7 @@
             <!-- 링크 표시 박스 -->
             <v-col cols="12" md="5" class="text-md-right mt-2 mt-md-0">
               <div class="d-flex align-center rounded-pill"
-                style="background-color: #eef2f6; padding: 8px 16px; height: 40px;">
+                style="background-color: #eef2f6; padding-left: 18px; padding-right: 1px; height: 40px;">
                 <span class="font-weight-bold text-body-2 mr-2">https://www.testlink.com</span>
                 <v-spacer />
                 <v-btn icon variant="text" @click="copyLink">

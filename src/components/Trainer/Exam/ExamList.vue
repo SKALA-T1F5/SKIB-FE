@@ -18,6 +18,9 @@
 
         <v-card elevation="0" class="mx-auto h-100 d-flex flex-column" max-width="344">
           <v-card-title class="text-h6">{{ exam.name }}</v-card-title>
+          <v-btn icon variant="flat" size="x-small" class="ml-2" color="primary" @click="copyLink">
+            <v-icon size="13">mdi-share-variant</v-icon>
+          </v-btn>
           <v-card-subtitle>
             난이도: {{ exam.difficulty }} | 제한 시간: {{ exam.timeLimit }}분
           </v-card-subtitle>
@@ -31,12 +34,12 @@
             <ExamStatsChart :exam="exam" />
             <br>
             <v-card-text class="d-flex align-center gap-2 pa-0">
-              <v-btn color="primary" variant="outlined" prepend-icon="mdi-format-list-bulleted" size="default"
-                @click="router.push('/exam/1')">
+              <v-btn color="primary" style="width: 48%;" variant="outlined" prepend-icon="mdi-format-list-bulleted"
+                size="default" @click="router.push('/exam/1')">
                 문제목록
               </v-btn>
               <v-spacer />
-              <v-btn color="primary" variant="outlined" prepend-icon="mdi-chart-line" size="default"
+              <v-btn color="primary" style="width: 48%;" variant="outlined" prepend-icon="mdi-chart-line" size="default"
                 @click="router.push('/exam/1')">
                 응시현황
               </v-btn>
