@@ -1,9 +1,10 @@
 <template>
-    <v-container fluid class="trainee-management">
-      <keep-alive>
-        <component :is="currentComponent" @go-to-trainee-detail="handleGoToTraineeDetail" @add-trainee="handleAddTrainee" @go-back="handleGoBackToList" :traineeName="selectedTraineeName" />
-      </keep-alive>
-    </v-container>
+  <v-container fluid class="trainee-management">
+        <keep-alive>
+          <component :is="currentComponent" @go-to-trainee-detail="handleGoToTraineeDetail"
+            @add-trainee="handleAddTrainee" @go-back="handleGoBackToList" :traineeName="selectedTraineeName" />
+        </keep-alive>
+  </v-container>
 </template>
 
 <script setup>
@@ -12,6 +13,7 @@ import { useRouter, useRoute } from 'vue-router';
 
 import TraineeList from './Trainee/TraineeList.vue';
 import TraineeDetail from './Trainee/TraineeDetail.vue';
+import PerfectScrollbar from 'perfect-scrollbar';
 
 const router = useRouter();
 const route = useRoute();
@@ -61,4 +63,3 @@ function handleGoBackToList() {
   padding: 20px;
 }
 </style>
-

@@ -1,5 +1,5 @@
 <template>
-    <v-container>
+  <v-container class="trainer-container">
       <v-row>
         <v-col cols="12">
           <div class="d-flex align-end mb-4">
@@ -49,13 +49,13 @@
   // 테이블 헤더 정의
   const headers = [
     { title: 'No', key: 'no', sortable: false, width: '5%' },
-    { title: '이름', key: 'name', sortable: false, width: '25%' },
+    { title: '이름', key: 'name', sortable: false, width: '10%' },
     { title: '이메일', key: 'email', sortable: false, align: 'center', width: '20%' },
     { title: '부서명', key: 'department', sortable: false, align: 'center', width: '20%' },
-    { title: '응시시험수', key: 'takenExams', sortable: false, align: 'center', width: '15%' },
+    { title: '응시시험수', key: 'takenExams', sortable: false, align: 'center', width: '20%' },
     { title: '합격', key: 'passedExams', sortable: false, align: 'center', width: '10%' },
     { title: '불합격', key: 'failedExams', sortable: false, align: 'center', width: '10%' },
-    { title: '세부', key: 'action', sortable: false, align: 'center', width: '10%' },
+    { title: '세부', key: 'action', sortable: false, align: 'center', width: '30%' },
   ];
   
   

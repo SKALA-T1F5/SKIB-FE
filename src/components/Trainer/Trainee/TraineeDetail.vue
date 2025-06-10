@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container style="max-width: 1150px !important;">
     <v-row>
       <v-col cols="12">
         <div class="d-flex align-end mb-4">
@@ -87,12 +87,14 @@
         <v-btn color="primary" @click="goBack">목록으로 돌아가기</v-btn>
       </v-col>
     </v-row>
+
   </v-container>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import TraineeDetailChart from '../../chart/TraineeDetailChart.vue';
+import PerfectScrollbar from 'perfect-scrollbar';
 
 const props = defineProps({
   traineeName: {
