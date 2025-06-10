@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="trainee-management">
+  <v-container style="max-width: 1150px !important;">
         <keep-alive>
           <component :is="currentComponent" @go-to-trainee-detail="handleGoToTraineeDetail"
             @add-trainee="handleAddTrainee" @go-back="handleGoBackToList" :traineeName="selectedTraineeName" />

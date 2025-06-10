@@ -1,14 +1,19 @@
 <template>
-  <v-container fluid class="py-6">
+  <v-container>
+  <v-container style="max-width: 1150px !important;">
+
+    <v-row>
+      <v-col cols="12">
+        <div class="d-flex align-end mb-8">
+          <h2 class="text-h5 font-weight-bold mr-2">문서 관리</h2>
+          <p class="text-body-2 text-medium-emphasis">관리 중인 문서 목록을 확인하고 새로 업로드 합니다.</p>
+        </div>
+      </v-col>
+    </v-row>
+
         <!-- 문서 업로드 카드 -->
-        <v-card>
-          <v-card-title>
-            <div class="text-h6">문서 업로드</div>
-          </v-card-title>
-
-          <v-divider></v-divider>
-
-          <v-card-text>
+        <v-card elevation="0" class="pa-0 ma-0">
+          <v-card-text class="pa-0 ma-0">
             <!-- 문서 업로드 영역 -->
             <DocumentUpload @files-uploaded="fetchDocuments" />
           </v-card-text>
@@ -16,16 +21,14 @@
         <br>
 
         <!-- 문서 목록 카드 -->
-        <v-card>
-          <v-card-title>
-            <div class="text-h6">문서 목록</div>
-          </v-card-title>
-          <v-divider></v-divider>
+        <v-card elevation="0">
+          <v-card-text class="pa-6 pb-0">
+            <h4 class="text-h8 mt-1">문서 업로드</h4>
+          </v-card-text>  
           <v-card-text>
-
             <!-- 필터 & 뷰 전환 영역 -->
-            <DocumentFilters v-model:search-query="searchQuery" v-model:filter-type="filterType"
-              v-model:view-mode="viewMode" />
+            <!-- <DocumentFilters v-model:search-query="searchQuery" v-model:filter-type="filterType"
+              v-model:view-mode="viewMode" /> -->
 
             <!-- 문서 리스트 -->
             <DocumentList :documents="filteredDocuments" :view-mode="viewMode" :search-query="searchQuery"
@@ -42,6 +45,7 @@
         <!-- 미리보기 다이얼로그 -->
         <DocumentPreviewDialog v-model="previewDialog" :selected-document="selectedDocument" />
   </v-container>
+</v-container>
 </template>
 
 <script setup>
@@ -106,4 +110,35 @@ function preview(doc) {
 
 </script>
 
-<style scoped></style>
+<style lang="scss" scoped>
+
+.force-white {
+  color: white !important;
+}
+
+.table-like-content {
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.table-like-content .v-list-item {
+  border-bottom: 1px solid #eeeeee;
+}
+
+.table-like-content .v-list-item:last-child {
+  border-bottom: none;
+}
+
+.table-like-content .v-list-item>div {
+  padding: 8px 0;
+}
+
+.table-like-content .v-list-item h6 {
+  font-size: 0.875rem;
+}
+
+.table-like-content .v-text-field {
+  font-size: 0.875rem;
+}
+</style>

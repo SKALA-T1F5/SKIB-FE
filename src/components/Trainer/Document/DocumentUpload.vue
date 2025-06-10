@@ -1,16 +1,8 @@
 <template>
-  <v-card class="mb-8" flat outlined>
+  <v-card elevation="0" height="250px">
     <v-card-text class="pa-6">
+      <h4 class="text-h8 mt-1">문서 업로드</h4>
       <div class="d-flex align-center justify-space-between mb-6">
-        <h2 class="text-xl font-weight-semibold text-grey-darken-3">문서 업로드</h2>
-        <v-btn
-          class="primary"
-          @click="triggerFileInput"
-          :disabled="isUploading"
-        >
-          <v-icon left>mdi-plus</v-icon>
-          파일 선택
-        </v-btn>
         <input
           type="file"
           ref="fileInputRef"
@@ -27,19 +19,13 @@
         @dragover.prevent="handleDragOver"
         @dragleave.prevent="handleDragLeave"
         @drop.prevent="handleDrop"
+        @click="triggerFileInput"
       >
         <div class="d-flex flex-column align-center space-y-4">
-          <div class="upload-icon-wrapper rounded-circle d-flex align-center justify-center">
-            <v-icon color="white" size="large">mdi-cloud-upload</v-icon>
-          </div>
-          <div>
-            <p class="text-body-1 font-weight-medium text-grey-darken-3">
-              파일을 여기로 드래그하거나 클릭하여 업로드
-            </p>
+            <v-icon color="primary" size="large">mdi-cloud-upload</v-icon>
             <p class="text-caption text-grey mt-2">
-              PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, TXT, JPG, PNG 파일을 지원합니다 (최대 50MB)
+              파일을 여기로 드래그하거나 클릭하여 업로드 (최대 50MB PDF)
             </p>
-          </div>
         </div>
       </div>
 
@@ -51,9 +37,6 @@
         rounded
         class="mt-6"
       >
-        <template v-slot:default="{ value }">
-          <strong>{{ Math.round(value) }}%</strong>
-        </template>
       </v-progress-linear>
     </v-card-text>
   </v-card>
@@ -61,11 +44,6 @@
 
 <script setup>
 import { ref } from 'vue';
-
-// useToast는 프로젝트에 맞게 구현 또는 Vuetify 스낵바/토스트 사용
-// apiRequest는 프로젝트의 API 호출 함수 사용
-// useQueryClient, useMutation은 @tanstack/vue-query 또는 유사 라이브러리 사용 또는 직접 구현
-
 const emit = defineEmits(['files-uploaded']);
 
 const uploadProgress = ref(0);
@@ -188,7 +166,7 @@ const uploadFiles = async (files) => {
 }
 
 .drop-zone:hover {
-  border-color: #464646; /* primary color 예시 */
+  border-color: #a7a7c9; /* primary color 예시 */
 }
 
 .drop-zone-active {
