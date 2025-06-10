@@ -64,9 +64,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import ExamStatsChart from '../../chart/ExamStatsChart.vue';
+import axios from 'axios';
+import { API_BASE_URL } from '@/config/api';
 
 const emit = defineEmits(['next-step']);
 
