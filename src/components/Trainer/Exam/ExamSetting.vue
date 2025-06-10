@@ -42,15 +42,10 @@
                 </h6>
               </template>
               <template v-slot:item.keyword="{ item }">
-  <v-chip 
-    size="small" 
-    color="blue-grey" 
-    variant="tonal"
-    rounded="lg"
-  >
-    {{ item.keyword }}
-  </v-chip>
-</template>
+                <v-chip size="small" color="blue-grey" variant="tonal" rounded="lg">
+                  {{ item.keyword }}
+                </v-chip>
+              </template>
               <template v-slot:item.sqSet="{ item }">
                 <v-text-field v-model.number="item.sqSet" type="number" variant="outlined" density="compact"
                   hide-details style="width: 70px;"></v-text-field>
