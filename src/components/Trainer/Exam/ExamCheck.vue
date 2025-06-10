@@ -50,7 +50,7 @@
                           @click="selectQuestion(i)">
                           <div class="d-flex align-center w-100">
                             <h6 class="text-body-2 text-medium-emphasis font-weight-bold">
-                              Q{{ String(item.id).padStart(2, '0' ) }} ({{ item.type }})
+                              Q{{ String(item.id).padStart(2, '0' ) }} ({{ item.type === 'MCQ' ? '객관식' : '주관식' }})
                             </h6>
                           </div>
                         </v-list-item>
@@ -72,7 +72,7 @@
           <v-card-text>
             <div class="d-flex align-center">
               <h4 class="text-h8 mt-1"> Q{{ String(testItems[selectedQuestionIndex]?.id).padStart(2, '0') }}</h4> &nbsp&nbsp&nbsp
-              <h4 class="text-h8 mt-1" style="color:grey">{{ selectedDocument.name }} | {{ selectedDocument.tag }} | {{ selectedDocument.difficultyLevel }}</h4>
+              <h4 class="text-h8 mt-1" style="color:grey">{{ selectedDocument.name }} | {{ selectedDocument.tag }} | {{ difficultyStars }}</h4>
               <v-spacer></v-spacer>
               <v-btn v-if="!isEditing" icon variant="flat" size="x-small" class="ml-2" color="primary" @click="toggleEditMode">
                 <v-icon style="color:white">mdi-pencil</v-icon>
@@ -134,7 +134,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router';
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 import 'vue3-perfect-scrollbar/style.css';
@@ -174,6 +174,15 @@ const selectedDocument = ref({
   name: '',
   tag: '',
   difficultyLevel: '',
+});
+
+// 난이도 숫자를 별표 문자열로 변환하는 computed 속성
+const difficultyStars = computed(() => {
+  const level = selectedDocument.value.difficultyLevel;
+  if (typeof level === 'number' && level >= 1 && level <= 5) {
+    return '⭐'.repeat(level);
+  }
+  return '';
 });
 
 // 문제 선택 핸들러

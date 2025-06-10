@@ -42,10 +42,15 @@
                 </h6>
               </template>
               <template v-slot:item.keyword="{ item }">
-                <h6 class="text-body-2 text-medium-emphasis font-weight-bold">
-                  {{ item.keyword }}
-                </h6>
-              </template>
+  <v-chip 
+    size="small" 
+    color="blue-grey" 
+    variant="tonal"
+    rounded="lg"
+  >
+    {{ item.keyword }}
+  </v-chip>
+</template>
               <template v-slot:item.sqSet="{ item }">
                 <v-text-field v-model.number="item.sqSet" type="number" variant="outlined" density="compact"
                   hide-details style="width: 70px;"></v-text-field>
@@ -218,8 +223,9 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .force-white {
-    color: white !important;
+  color: white !important;
 }
+
 .table-like-content {
   border-radius: 8px;
   padding: 16px;
