@@ -41,9 +41,9 @@
                   {{ item.name }}
                 </h6>
               </template>
-              <template v-slot:item.tag="{ item }">
+              <template v-slot:item.keyword="{ item }">
                 <h6 class="text-body-2 text-medium-emphasis font-weight-bold">
-                  {{ item.tag }}
+                  {{ item.keyword }}
                 </h6>
               </template>
               <template v-slot:item.sqSet="{ item }">
@@ -119,7 +119,7 @@ import { ref, computed, onMounted } from 'vue';
 // 테이블 헤더 정의
 const headers = [
   { title: '문서명', key: 'name', sortable: false, width: '45%' },
-  { title: 'Tag', key: 'tag', sortable: false, align: 'center', width: '35%' },
+  { title: 'Keyword', key: 'keyword', sortable: false, align: 'center', width: '35%' },
   { title: '객관식', key: 'mcSet', sortable: false, align: 'center', width: '10%' },
   { title: '주관식', key: 'sqSet', sortable: false, align: 'center', width: '10%' },
 ];
@@ -176,9 +176,9 @@ const fetchRevenues = async () => {
   // 실제 백엔드 API 호출 로직이 들어갈 자리
   // 여기서는 더미 데이터를 반환합니다.
   return [
-    { name: '문서1', tag: '#Vue #JavaScript #Frontend' },
-    { name: '문서2', tag: '#Python #Backend #API' },
-    { name: '문서3', tag: '#Database #SQL #NoSQL' },
+    { name: '문서1', keyword: '#Vue #JavaScript #Frontend' },
+    { name: '문서2', keyword: '#Python #Backend #API' },
+    { name: '문서3', keyword: '#Database #SQL #NoSQL' },
   ];
 };
 
