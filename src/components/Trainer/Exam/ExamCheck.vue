@@ -83,20 +83,10 @@
               </div>
             </div>
             <v-textarea
-              v-model="currentQuestion"
+              v-model="currentQuestionAndOptions"
               :readonly="!isEditing"
               :variant="isEditing ? 'outlined' : 'plain'"
-              rows="2"
-              auto-grow
-              hide-details
-              class="mt-0 custom-textarea"
-            ></v-textarea>
-            <v-textarea
-              v-if="currentQuestionOptions.length > 0"
-              v-model="currentQuestionOptionsText"
-              :readonly="!isEditing"
-              :variant="isEditing ? 'outlined' : 'plain'"
-              rows="5"
+              rows="10"
               auto-grow
               hide-details
               class="mt-0 custom-textarea"
@@ -210,10 +200,11 @@ const saveChanges = async () => {
     const questionId = testItems.value[selectedQuestionIndex.value].id;
     const documentId = testItems.value[selectedQuestionIndex.value].documentId;
     const updatedQuestion = {
-      question: currentQuestion.value,
+      question: currentQuestionAndOptions.value.split('\n')[0],
       answer: currentAnswer.value,
-      options: currentQuestionOptionsText.value.split('\n').map(option => option.substring(option.indexOf('.') + 2)),
+      options: currentQuestionAndOptions.value.split('\n').slice(1).map(option => option.substring(option.indexOf('.') + 2)),
     };
+    console.log(updatedQuestion)
     // 백엔드 API 호출 (예시: PUT 요청)
     await axios.put(`/api/documents/${documentId}/questions/${questionId}`, updatedQuestion);
     console.log('변경 사항이 성공적으로 저장되었습니다.');

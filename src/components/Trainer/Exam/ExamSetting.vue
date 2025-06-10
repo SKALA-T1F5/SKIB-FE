@@ -18,7 +18,7 @@
             <div class="d-flex align-center pb-2">
               <h4 class="text-h8 mt-1">Exam Goal</h4>
             </div>
-            <h>{{ examGoal }}</h>
+            <p>{{ examGoal }}</p>
           </v-card-text>
         </v-card height="5%">
         <br>
@@ -190,7 +190,7 @@ const fetchExamGoal = async () => {
 };
 
 // ***********************************************************************
-// * 라이프사이클 훅
+// * 라이프사이크 훅
 // ***********************************************************************
 
 onMounted(async () => {

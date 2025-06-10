@@ -67,11 +67,35 @@ function goToList() {
   emit('reset-step');
 }
 
+// 링크 복사 함수
 function copyLink() {
-  const url = window.location.href
-  navigator.clipboard.writeText(url)
-    .then(() => alert('링크가 복사되었습니다!'))
-    .catch(err => console.error('복사 실패:', err))
+  const url = `https://www.example.com/${exams.value.id}`
+
+  // clipboard API 사용
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url)
+      .then(() => {
+        alert('링크가 복사되었습니다!');
+      })
+      .catch(err => {
+        console.error('복사 실패:', err);
+        alert('링크 복사에 실패했습니다.');
+      });
+  } else {
+    // fallback: execCommand (구형 브라우저 대응)
+    const textArea = document.createElement('textarea');
+    textArea.value = url;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      alert('링크가 복사되었습니다!');
+    } catch (err) {
+      console.error('Fallback 복사 실패:', err);
+      alert('링크 복사에 실패했습니다.');
+    }
+    document.body.removeChild(textArea);
+  }
 }
 
 </script>
