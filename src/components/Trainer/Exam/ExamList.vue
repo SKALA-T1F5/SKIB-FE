@@ -17,7 +17,7 @@
           <v-card-title>
             <div class="d-flex justify-space-between align-center w-100">
               <span class="text-h6">{{ exam.name }}</span>
-              <v-icon size="15" color="primary" @click="copyLink">mdi-share-variant</v-icon>
+              <v-icon size="15" color="primary" @click="copyLink">	mdi-link-variant</v-icon>
             </div>
           </v-card-title>
 
