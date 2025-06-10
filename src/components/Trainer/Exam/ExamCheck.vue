@@ -160,6 +160,7 @@ const documents = ref([]);
 
 // 테스트 문항 데이터
 const testItems = ref([]);
+const allTestItems = ref([]); // 모든 문항을 저장할 새로운 변수 추가
 
 // 초기 선택된 문제 설정
 const selectedQuestionIndex = ref(0);
@@ -169,6 +170,7 @@ const currentQuestionAndOptions = ref('');
 
 // 선택된 문서 정보
 const selectedDocument = ref({
+  id: null, // 전체 문서를 구분하기 위한 id 추가
   name: '',
   tag: '',
   difficultyLevel: '',
@@ -177,12 +179,24 @@ const selectedDocument = ref({
 // 문제 선택 핸들러
 const selectQuestion = (index) => {
   selectedQuestionIndex.value = index;
-  const question = testItems.value[index];
-  currentQuestionAndOptions.value = question.question + '\n' + (question.options || []).map((option, idx) => `${idx + 1}. ${option}`).join('\n');
-  currentAnswerAndExplanation.value = `[정답] ${question.answer}\n[해설] ${question.explanation || ''}\n[채점기준] ${question.gradingCriteria || ''}`;
-  selectedDocument.value.name = documents.value.find(doc => doc.id === question.documentId)?.name || '';
-  selectedDocument.value.tag = question.tags.join(', ');
-  selectedDocument.value.difficultyLevel = question.difficultyLevel;
+  // testItems 배열이 비어있지 않은지 확인 후 접근
+  if (testItems.value.length > 0) {
+    const question = testItems.value[index];
+    currentQuestionAndOptions.value = question.question + '\n' + (question.options || []).map((option, idx) => `${idx + 1}. ${option}`).join('\n');
+    currentAnswerAndExplanation.value = `[정답] ${question.answer}\n[해설] ${question.explanation || ''}\n[채점기준] ${question.gradingCriteria || ''}`;
+    // 전체 문서 선택 시에도 selectedDocument 정보 업데이트
+    const documentInfo = documents.value.find(doc => doc.id === question.documentId);
+    if (documentInfo) {
+      selectedDocument.value.name = documentInfo.name;
+      selectedDocument.value.tag = question.tags.join(', ');
+      selectedDocument.value.difficultyLevel = question.difficultyLevel;
+    }
+  } else {
+    // testItems가 비어있을 경우 초기화
+    currentQuestionAndOptions.value = '';
+    currentAnswerAndExplanation.value = '';
+    selectedDocument.value = { id: null, name: '', tag: '', difficultyLevel: '' };
+  }
 };
 
 // 편집 모드 토글
@@ -197,9 +211,9 @@ const saveChanges = async () => {
     const documentId = testItems.value[selectedQuestionIndex.value].documentId;
     const updatedQuestion = {
       question: currentQuestionAndOptions.value.split('\n')[0],
-      answer: currentAnswerAndExplanation.value.split('정답: ')[1]?.split('\n')[0].trim() || '',
-      explanation: currentAnswerAndExplanation.value.split('설명: ')[1]?.split('\n')[0].trim() || '',
-      gradingCriteria: currentAnswerAndExplanation.value.split('채점 기준: ')[1]?.split('\n')[0].trim() || '',
+      answer: currentAnswerAndExplanation.value.split('[정답] ')[1]?.split('\n')[0].trim() || '',
+      explanation: currentAnswerAndExplanation.value.split('[해설] ')[1]?.split('\n')[0].trim() || '',
+      gradingCriteria: currentAnswerAndExplanation.value.split('[채점기준] ')[1]?.split('\n')[0].trim() || '',
       options: currentQuestionAndOptions.value.split('\n').slice(1).map(option => option.substring(option.indexOf('.') + 2)),
     };
     console.log(updatedQuestion)
@@ -224,10 +238,18 @@ const cancelEdit = () => {
 
 // 문서 선택 핸들러
 const selectDocument = (doc) => {
-  // 선택된 문서에 해당하는 문제들만 필터링
-  testItems.value = doc.questions;
+  if (doc.id === 'all') {
+    // '전체 문서' 선택 시 모든 문제 표시
+    testItems.value = allTestItems.value;
+    selectedDocument.value = { id: 'all', name: '전체 문서', tag: '', difficultyLevel: '' };
+  } else {
+    // 특정 문서 선택 시 해당 문서의 문제만 필터링
+    testItems.value = doc.questions;
+    selectedDocument.value = doc;
+  }
+
   if (testItems.value.length > 0) {
-    selectQuestion(0);
+    selectQuestion(0); // 첫 번째 문제 선택
   } else {
     currentQuestionAndOptions.value = '';
     currentAnswerAndExplanation.value = '';
@@ -255,9 +277,15 @@ const fetchDocumentsAndQuestions = async () => {
       ],
     },
   ];
-  documents.value = fetchedData;
+  
+  // 모든 문제를 하나의 배열로 합치기
+  allTestItems.value = fetchedData.reduce((acc, doc) => acc.concat(doc.questions), []);
+
+  // '전체 문서' 옵션 추가
+  documents.value = [{ id: 'all', name: '전체 문서', questions: allTestItems.value }, ...fetchedData];
+
   if (documents.value.length > 0) {
-    selectDocument(documents.value[0]); // 첫 번째 문서 선택
+    selectDocument(documents.value[0]); // 기본적으로 '전체 문서' 선택
   }
 };
 
