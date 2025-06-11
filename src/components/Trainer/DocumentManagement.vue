@@ -80,11 +80,11 @@ const fetchDocuments = async () => {
 
   // 예시 데이터 (실제 API 연동 시 제거)
   documents.value = [
-    { id: 1, originalName: '계약서_2023.pdf', fileType: 'PDF', uploadDate: '2023-12-01', fileSize: 124580 },
-    { id: 2, originalName: '디자인시안.png', fileType: 'PNG', uploadDate: '2023-11-21', fileSize: 208470 },
-    { id: 3, originalName: '제안서.docx', fileType: 'DOCX', uploadDate: '2023-11-15', fileSize: 45200 },
-    { id: 4, originalName: '회의록_1차.txt', fileType: 'TXT', uploadDate: '2023-12-05', fileSize: 1500 },
-    { id: 5, originalName: '프로젝트_계획.xlsx', fileType: 'XLSX', uploadDate: '2023-11-28', fileSize: 300000 },
+    { id: 1, originalName: 'Aiper Front 개발환경 가이드', fileType: 'PDF', uploadDate: '2023-12-01', fileSize: 124580 },
+    { id: 2, originalName: 'alopex_UI_1.1.2_개발가이드', fileType: 'PDF', uploadDate: '2023-11-21', fileSize: 208470 },
+    { id: 3, originalName: '개발 Process 흐름도_sample', fileType: 'PDF', uploadDate: '2025-05-30', fileSize: 45200 },
+    // { id: 4, originalName: '회의록_1차.txt', fileType: 'TXT', uploadDate: '2023-12-05', fileSize: 1500 },
+    // { id: 5, originalName: '프로젝트_계획.xlsx', fileType: 'XLSX', uploadDate: '2023-11-28', fileSize: 300000 },
   ];
 };
 

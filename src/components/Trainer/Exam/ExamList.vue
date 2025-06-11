@@ -72,7 +72,7 @@ import { API_BASE_URL } from '@/config/api';
 
 
 // 임의의 테스트용 JWT 토큰 하드코딩 ✅로그인 구현 시 삭제 필요✅
-const token = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc0OTU0MzgyOCwiZXhwIjoxNzQ5NTQ3NDI4fQ.OJZ2cz2-W-CokE5D5JEqZTqZ8FQOf0nBSvmXYTz9alk';
+const token = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc0OTYxOTE4OSwiZXhwIjoxNzQ5NjIyNzg5fQ.U3vom7xAsdsEE3fVII3TRGKKhE_5HdXkG-Q6AAEXLbA';
 const projectId = 1;
 localStorage.setItem('token', token);
 localStorage.setItem('projectId', projectId);

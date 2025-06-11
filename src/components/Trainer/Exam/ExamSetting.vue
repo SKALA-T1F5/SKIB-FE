@@ -100,8 +100,8 @@
       <v-col cols="12" class="d-flex justify-space-between align-center">
         <v-btn variant="flat" color="gray" class="mr-2 force-white" @click="prevStep">← 이전단계</v-btn>
         <div class="d-flex align-center mr-2" style="gap: 8px;">
-          <v-btn variant="flat" color="gray" class="force-white">이전문제</v-btn>
-          <v-btn variant="flat" color="gray" class="force-white">다음문제</v-btn>
+          <!-- <v-btn variant="flat" color="gray" class="force-white">이전문제</v-btn>
+          <v-btn variant="flat" color="gray" class="force-white">다음문제</v-btn> -->
           <v-btn variant="flat" color="primary" @click="nextStep">다음 단계</v-btn>
         </div>
       </v-col>
@@ -132,8 +132,8 @@ const examGoal = ref('');
 
 // 선택된 문서 설정 데이터 (반응형)
 const selectedDocument = ref({
-  title: '',
-  examTime: 60,
+  title: '프론트엔드 프로젝트 이해도 평가',
+  examTime: 30,
   difficulty: '⭐⭐⭐',
   passScore: 70, // 기본값 설정
   retakeAllowed: false, // 기본값 설정
@@ -176,9 +176,9 @@ const fetchRevenues = async () => {
   // 실제 백엔드 API 호출 로직이 들어갈 자리
   // 여기서는 더미 데이터를 반환합니다.
   return [
-    { name: '문서1', keyword: '#Vue #JavaScript #Frontend' },
-    { name: '문서2', keyword: '#Python #Backend #API' },
-    { name: '문서3', keyword: '#Database #SQL #NoSQL' },
+    { name: 'Aiper Front 개발환경 가이드', keyword: '#Vue #JS #Build' },
+    { name: 'alopex_UI_1.1.2_개발가이드', keyword: '#UI #UX #Design' },
+    { name: '개발 Process 흐름도_sample', keyword: '#Flow #CI #CD' }
   ];
 };
 
@@ -186,7 +186,7 @@ const fetchRevenues = async () => {
 const fetchExamGoal = async () => {
   // 실제 백엔드 API 호출 로직이 들어갈 자리
   // 여기서는 더미 데이터를 반환합니다.
-  return '시험의 목표 입니다.';
+  return '효율적인 프론트엔드 개발 환경 구축 역량을 확인하는 시험입니다. 주요 빌드 도구, 패키지 관리, 최적화 전략을 중심으로 객관식과 주관식 혼합형으로 생성하겠습니다.';
 };
 
 // ***********************************************************************

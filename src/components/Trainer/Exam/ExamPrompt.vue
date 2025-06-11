@@ -53,8 +53,8 @@
             <v-col cols="12" class="d-flex justify-space-between align-center">
                 <v-btn variant="flat" color="gray" class="mr-2 force-white" @click="prevStep">← 이전단계</v-btn>
                 <div class="d-flex align-center mr-2" style="gap: 8px;">
-                    <v-btn variant="flat" color="gray" class="force-white">이전문제</v-btn>
-                    <v-btn variant="flat" color="gray" class="force-white">다음문제</v-btn>
+                    <!-- <v-btn variant="flat" color="gray" class="force-white">이전문제</v-btn>
+                    <v-btn variant="flat" color="gray" class="force-white">다음문제</v-btn> -->
                     <v-btn variant="flat" color="primary" @click="nextStep">다음 단계</v-btn>
                 </div>
             </v-col>
@@ -84,10 +84,10 @@ function prevStep() {
 const examPrompt = ref('')
 
 const examplePrompts = ref([
-    "로마 제국의 역사에 관한 15문항의 객관식 시험을 만들어주세요.",
-    "프로그래밍 입문에 대한 20문항의 참/거짓 시험을 만들어주세요.",
-    "세계 지리에 관한 10문항의 주관식 시험을 만들어주세요."
-])
+    "UI 컴포넌트 개발 원칙과 활용 방법에 대한 실무 중심의 객관식 시험을 출제해주세요.",
+    "프론트엔드 개발 환경 구축에 대한 이해도를 평가하는 시험을 만들어주세요. (난이도 중간, 객관식)",
+    "업무 프로세스 흐름과 단계별 책임 이해도를 평가하는 주관식 시험을 만들어주세요. (시험시간 30분)",
+]);
 
 </script>
 
