@@ -1,5 +1,6 @@
 <template>
   <v-container class="trainer-container">
+    
     <v-row>
       <v-col cols="12">
         <div class="d-flex align-end mb-4">

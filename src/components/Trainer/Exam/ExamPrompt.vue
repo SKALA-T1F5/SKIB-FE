@@ -1,4 +1,5 @@
 <template>
+  <AILoading :show="isLoading" />
   <v-container class="trainer-container">
         <v-row>
             <v-col cols="12">
@@ -61,19 +62,36 @@
         </v-row>
 
     </v-container>
-</template>
+  </template>
 
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import AILoading from '@/components/ui/Loading.vue';
 
-const emit = defineEmits(['next-step']);
+// 모든 이벤트를 명시적으로 선언
+const emit = defineEmits(['next-step', 'prev-step','reset-step']);
+// const emit = defineEmits({
+//   'next-step': null,
+//   'prev-step': null,
+//   'reset-step': null
+// });
 
 const router = useRouter();
+const isLoading = ref(false);
 
 // 다음 단계로 이동 함수
-function nextStep() {
-    emit('next-step');
+async function nextStep() {
+    isLoading.value = true;
+    try {
+        // 백엔드 API 호출 시뮬레이션 (실제 API 호출로 대체 필요)
+        // 실제 API 호출 예시
+        // await axios.post('/api/exam/generate', { prompt: examPrompt.value });
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        emit('next-step');
+    } finally {
+        isLoading.value = false;
+    }
 }
 
 // 이전 단계로 이동 함수
