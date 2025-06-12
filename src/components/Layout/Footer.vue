@@ -34,7 +34,7 @@ onUnmounted(() => {
 
 <style scoped>
 .footer {
-  background-color: #f8f9fa;
+  background-color: #f8f9fa00;
   color: #6c757d;
   padding: 16px 0;
   width: 100%;

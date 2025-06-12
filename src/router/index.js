@@ -7,6 +7,7 @@ import UserManagement from '@/components/Admin/UserManagement.vue'
 // Trainer Components
 import TrainerLogin from '@/components/Trainer/Login.vue'
 import TrainerMyPage from '@/components/Trainer/MyPage.vue'
+import MainLayout from '@/components/Layout/MainLayout.vue'
 import Project from '@/components/Trainer/Project.vue'
 import DocumentManagement from '@/components/Trainer/DocumentManagement.vue'
 import ExamManagement from '@/components/Trainer/ExamManagement.vue'
@@ -28,6 +29,7 @@ const routes = [
   { path: '/admin/login', name: 'AdminLogin', component: AdminLogin },
   {
     path: '/admin',
+    component: MainLayout,
     children: [
       { path: 'users', name: 'UserManagement', component: UserManagement }
     ]
@@ -37,7 +39,9 @@ const routes = [
   { path: '/trainer/login', name: 'TrainerLogin', component: TrainerLogin },
   {
     path: '/trainer',
+    component: MainLayout,
     children: [
+      { path: '', redirect: '/trainer/project' }, // 기본 경로를 project로 리다이렉트
       { path: 'mypage', name: 'TrainerMyPage', component: TrainerMyPage },
       { path: 'project', name: 'Project', component: Project },
       { path: 'project/:projectId', name: 'ProjectPage', component: ProjectPage },
@@ -46,7 +50,6 @@ const routes = [
       { path: 'project/:projectId/exam', name: 'ExamManagement', component: ExamManagement },
       { path: 'project/:projectId/problem', name: 'ProblemManagement', component: ProblemManagement },
       { path: 'project/:projectId/trainees', name: 'TrainerTraineeManagement', component: TraineeManagement },
-
     ]
   },
 
@@ -54,6 +57,7 @@ const routes = [
   { path: '/trainee/login', name: 'TraineeLogin', component: TraineeLogin },
   {
     path: '/trainee',
+    component: MainLayout,
     children: [
       { path: 'mypage', name: 'TraineeMyPage', component: TraineeMyPage },
       { path: 'test', name: 'Test', component: Test },

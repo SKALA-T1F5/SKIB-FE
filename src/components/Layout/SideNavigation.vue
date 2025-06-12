@@ -1,167 +1,69 @@
 <template>
-  <!-- 사이드 네비게이션 드로어 설정 -->
-  <v-navigation-drawer
-    app
-    v-model="drawer"
-    :permanent="true"
-    :mini-variant="mini"
-    @update:mini-variant="mini = $event"
-    :width="250"
-    :mini-variant-width="60"
-    class="sidebar-navigation"
-  >
-    <!-- 프로젝트 목록 -->
-    <v-list nav dense class="mt-2">
-      <v-list-item
-        v-for="project in projects"
-        :key="project.id"
-        link
-        class="mb-1"
-        @click="goToProjectManagement(project.id)"
+  <aside :class="['sidebar', { collapsed }]">
+    <div class="sidebar-header">
+      <span class="sidebar-title">Trainer</span>
+      <button class="collapse-btn" @click="collapsed = !collapsed">
+        <span v-if="collapsed">▶</span>
+        <span v-else>◀</span>
+      </button>
+    </div>
+    <ul class="project-list">
+      <li
+        v-for="(project, idx) in projects"
+        :key="project"
+        :class="{ active: idx === selected }"
+        @click="select(idx)"
       >
-        <!-- 🔽 펼쳤을 때: 프로젝트 이름 표시 / 🔼 접었을 때: 숨김 -->
-        <v-list-item-title v-if="!mini">{{ project.name }}</v-list-item-title>
-      </v-list-item>
-    </v-list>
-
-    <!-- 하단 프로필 영역 -->
-    <template v-slot:append>
-      <div class="profile-container" :class="{ 'mini-profile': mini }">
-        <!-- 🔽 펼쳤을 때: 이름 + 역할 표시 / 🔼 접었을 때: 아무것도 없음 -->
-        <div v-if="!mini" class="profile-info ml-2">
-          <div class="profile-name">Nicola</div>
-          <div class="profile-role text-caption">Mobile Web Design</div>
-        </div>
-
-        <v-spacer></v-spacer>
-
-        <!-- 🔽 펼쳤을 때만 보이는 버튼 -->
-        <v-btn v-if="!mini" icon small />
-      </div>
-
-      <!-- 토글 버튼: 접기/펼치기 -->
-      <div class="toggle-container">
-        <v-btn icon small @click="toggleDrawer" class="toggle-btn">
-          <!-- 🔽 펼쳤을 때: ← / 🔼 접었을 때: → -->
-          <v-icon>{{ mini ? 'mdi-chevron-right' : 'mdi-chevron-left' }}</v-icon>
-        </v-btn>
-      </div>
-    </template>
-  </v-navigation-drawer>
+        <span v-if="!collapsed">{{ project }}</span>
+        <span v-else>{{ project[0] }}</span>
+      </li>
+    </ul>
+  </aside>
 </template>
-
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
-
-// 드로어 상태 및 미니 상태 설정
-const drawer = ref(true)
-const mini = ref(false)
-
-// 프로젝트 목록
-const projects = ref([
-  { id: 1, name: 'Project A' },
-  { id: 2, name: 'Project B' },
-  { id: 3, name: 'Project C' }
-])
-
-// 드로어 토글 함수
-function toggleDrawer() {
-  mini.value = !mini.value
-}
-
-// 프로젝트 관리 페이지로 이동하는 함수
-function goToProjectManagement(projectId) {
-  router.push(`/project-management/${projectId}`)
-}
+const projects = ['project A', 'project B', 'project C']
+const selected = ref(1)
+const collapsed = ref(false)
+function select(idx) { selected.value = idx }
 </script>
 
 <style scoped>
-/* 사이드바 기본 스타일 */
-.sidebar-navigation {
-  background-color: #1a1f2c;
-  color: #fff;
-  border-right: none;
+.sidebar {
+  position: fixed;
+  top: 60px; /* 헤더 높이만큼 */
+  left: 0;
+  bottom: 0;
+  width: 180px;
+  background: #f4f6fa;
+  border-right: 1px solid #e0e0e0;
+  transition: width 0.2s;
+  z-index: 900;
+  padding-top: 16px;
 }
-
-/* 리스트 스타일 */
-.v-list {
-  background-color: transparent;
-  padding: 0 8px;
+.sidebar.collapsed { width: 56px; }
+.sidebar-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px 12px 16px;
 }
-
-.v-list-item {
-  border-radius: 8px;
-  margin-bottom: 2px;
+.sidebar-title { font-weight: bold; font-size: 16px; }
+.collapse-btn {
+  background: none; border: none; cursor: pointer; font-size: 18px; color: #888;
 }
-
-.v-list-item:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+.project-list { list-style: none; padding: 0; margin: 0; }
+.project-list li {
+  padding: 8px 16px;
+  cursor: pointer;
+  color: #444;
+  border-radius: 6px;
+  margin: 2px 8px;
+  transition: background 0.15s;
 }
-
-.v-subheader {
-  color: #6c7a93;
-  font-size: 0.75rem;
-  height: 32px;
-  padding: 0 16px;
-}
-
-.v-list-item-title {
-  color: #e0e0e0;
-  font-size: 0.875rem;
-}
-
-/* 프로필 영역 스타일 */
-.profile-container {
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
-  background-color: #242a38;
-  border-radius: 8px;
-  margin: 8px;
-}
-
-.mini-profile {
-  justify-content: center;
-  padding: 12px 0;
-}
-
-.profile-info {
-  flex: 1;
-}
-
-.profile-name {
-  font-size: 0.875rem;
-  font-weight: 500;
+.project-list li.active, .project-list li:hover {
+  background: #191D5A;
   color: #fff;
 }
-
-.profile-role {
-  color: #9aa5b9;
-  font-size: 0.75rem;
-}
-
-/* 토글 버튼 스타일 */
-.toggle-container {
-  display: flex;
-  justify-content: flex-end;
-  padding: 8px;
-}
-
-.toggle-btn {
-  background-color: #2196f3;
-  color: white;
-  border-radius: 50%;
-  height: 24px;
-  width: 24px;
-  margin-right: 8px;
-}
-
-/* 구분선 스타일 */
-.v-divider {
-  border-color: rgba(255, 255, 255, 0.08);
-}
+.sidebar.collapsed .sidebar-title { display: none; }
+.sidebar.collapsed .project-list li { text-align: center; padding: 8px 0; }
 </style>
