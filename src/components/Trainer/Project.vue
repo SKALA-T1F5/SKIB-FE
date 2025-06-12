@@ -2,18 +2,56 @@
   <v-container fluid class="py-6">
     <v-row>
       <v-col v-for="project in projects" :key="project.id" cols="12" sm="6" md="4">
-        <v-card class="project-card">
-          <v-card-title class="project-card-title">
-            <div class="text-h6">{{ project.name }}</div>
-          </v-card-title>
-          <v-card-text class="project-card-text">
-            <p><strong>설명:</strong> {{ project.description }}</p>
-            <p><strong>시작일:</strong> {{ project.startDate }}</p>
-            <p><strong>상태:</strong> {{ project.status }}</p>
+        <v-card elevation="0" class="bg-primary overflow-hidden bubble-shape bubble-primary-shape project-card">
+          <v-card-text>
+            <div class="d-flex align-start mb-6">
+              <div class="ml-auto z-1">
+                <v-menu :close-on-content-click="false">
+                  <template v-slot:activator="{ props }">
+                    <v-btn icon rounded="sm" variant="text" size="small" v-bind="props">
+                      <v-icon color="white">mdi-dots-vertical</v-icon>
+                    </v-btn>
+                  </template>
+                  <v-sheet rounded="md" width="150" class="elevation-10">
+                    <v-list density="compact">
+                      <v-list-item>
+                        <template v-slot:prepend>
+                          <v-icon>mdi-pencil</v-icon>
+                        </template>
+                        <v-list-item-title class="ml-2">수정</v-list-item-title>
+                      </v-list-item>
+                      <v-list-item>
+                        <template v-slot:prepend>
+                          <v-icon>mdi-delete</v-icon>
+                        </template>
+                        <v-list-item-title class="ml-2">삭제</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-sheet>
+                </v-menu>
+              </div>
+            </div>
+            <div class="d-flex align-center mb-2">
+              <v-icon color="white" class="mr-2">mdi-folder</v-icon>
+              <h2 class="text-h5 font-weight-medium text-white mb-0">
+                {{ project.name }}
+              </h2>
+            </div>
+            <div class="text-subtitle-1 text-medium-emphasis text-white mb-4">
+              <p class="mb-1"><strong>설명:</strong> {{ project.description }}</p>
+              <p class="mb-1"><strong>시작일:</strong> {{ project.startDate }}</p>
+              <p class="mb-1"><strong>상태:</strong> {{ project.status }}</p>
+            </div>
+            <v-btn 
+              class="project-btn-primary" 
+              @click="goToProjectManagement(project.id)"
+              variant="flat"
+              color="primary"
+              rounded="sm"
+            >
+              관리
+            </v-btn>
           </v-card-text>
-          <v-card-actions class="project-card-actions">
-            <v-btn class="project-btn-primary" @click="goToProjectManagement(project.id)">관리</v-btn>
-          </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
@@ -60,5 +98,56 @@ function goToProjectManagement(projectId) {
 }
 </script>
 
-<style>
+<style scoped>
+.project-card {
+  transition: transform 0.2s;
+  height: 100%;
+}
+
+.project-card:hover {
+  transform: translateY(-5px);
+}
+
+.bubble-shape {
+  position: relative;
+  border-radius: 15px;
+}
+
+.bubble-primary-shape::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: -1px;
+  width: 200px;
+  height: 120px;
+  background: rgba(var(--v-theme-darkprimary), 0.3);
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.bubble-primary-shape::after {
+  content: '';
+  position: absolute;
+  width: 210px;
+  height: 210px;
+  border-radius: 50%;
+  top: -85px;
+  right: -95px;
+  background: rgba(var(--v-theme-darkprimary), 0.3);
+  z-index: 0;
+}
+
+.project-btn-primary {
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.text-white {
+  color: white !important;
+}
+
+.text-medium-emphasis {
+  opacity: 0.8;
+}
 </style>
