@@ -67,7 +67,7 @@
       <!-- 출제자 목록 컨텐츠 -->
       <div v-if="currentMenu === 'quizzers'" style="flex: 1; display: flex; flex-direction: column;">
         <TrainerList ref="trainerListRef" @confirm-delete-quizzer="handleDeleteQuizzer"/>
-        </div>
+      </div>
 
       <!-- 학습자 목록 컨텐츠 -->
       <div v-if="currentMenu === 'learners'" style="flex: 1; display: flex; flex-direction: column;">

@@ -12,10 +12,9 @@
       <thead>
         <tr class="table-header">
           <th class="checkbox-column"></th>
-          <th>이름</th>
-          <th>이메일</th>
-          <th>소속명</th>
-          <th>생성 일자</th>
+          <th class="name-column">이름</th>
+          <th class="email-column">이메일</th>
+          <th class="department-column">소속명</th>
           <th class="actions-column"></th> <!-- 동작(예: 삭제 버튼)을 위한 컬럼 -->
         </tr>
       </thead>
@@ -23,10 +22,9 @@
         <!-- 예시 출제자 데이터 -->
         <tr v-for="quizzer in paginatedQuizzers" :key="quizzer.id">
           <td class="checkbox-column"><input type="checkbox" /></td>
-          <td>{{ quizzer.name }}</td>
-          <td>{{ quizzer.email }}</td>
-          <td>{{ quizzer.department }}</td>
-          <td>{{ quizzer.createdDate }}</td>
+          <td class="name-column">{{ quizzer.name }}</td>
+          <td class="email-column">{{ quizzer.email }}</td>
+          <td class="department-column">{{ quizzer.department }}</td>
           <td class="actions-column">
             <button class="delete-button" @click="confirmDelete(quizzer.id)">🗑️</button> <!-- 삭제 버튼 재활용 -->
           </td>
@@ -53,22 +51,22 @@ export default {
   data() {
     return {
       allQuizzers: [ // 전체 출제자 목록을 담을 배열
-        { id: 1, name: '홍길동', email: 'gildong@gmail.com', department: '글로벌 사업1팀', createdDate: '2025-06-18' },
-        { id: 2, name: '홍길순', email: 'gildong@gmail.com', department: '글로벌 사업1팀', createdDate: '2025-06-18' },
-        { id: 3, name: '김철수', email: 'gildong@gmail.com', department: '글로벌 사업1팀', createdDate: '2025-06-18' },
-        { id: 4, name: '이영희', email: 'gildong@gmail.com', department: '글로벌 사업1팀', createdDate: '2025-06-18' },
-        { id: 5, name: '박보검', email: 'gildong@gmail.com', department: '글로벌 사업1팀', createdDate: '2025-06-18' },
-        { id: 6, name: '김고은', email: 'gildong@gmail.com', department: '글로벌 사업1팀', createdDate: '2025-06-18' },
-        { id: 7, name: '마동석', email: 'gildong@gmail.com', department: '글로벌 사업1팀', createdDate: '2025-06-18' },
-        { id: 8, name: '손흥민', email: 'gildong@gmail.com', department: '글로벌 사업1팀', createdDate: '2025-06-18' },
-        { id: 9, name: '마동석', email: 'gildong@gmail.com', department: '글로벌 사업1팀', createdDate: '2025-06-18' },
-        { id: 10, name: '손흥민', email: 'gildong@gmail.com', department: '글로벌 사업1팀', createdDate: '2025-06-18' },
-        { id: 11, name: '박보검', email: 'gildong@gmail.com', department: '글로벌 사업1팀', createdDate: '2025-06-18' },
-        { id: 12, name: '김고은', email: 'gildong@gmail.com', department: '글로벌 사업1팀', createdDate: '2025-06-18' },
-        { id: 13, name: '마동석', email: 'gildong@gmail.com', department: '글로벌 사업1팀', createdDate: '2025-06-18' },
-        { id: 14, name: '손흥민', email: 'gildong@gmail.com', department: '글로벌 사업1팀', createdDate: '2025-06-18' },
-        { id: 15, name: '마동석', email: 'gildong@gmail.com', department: '글로벌 사업1팀', createdDate: '2025-06-18' },
-        { id: 16, name: '손흥민', email: 'gildong@gmail.com', department: '글로벌 사업1팀', createdDate: '2025-06-18' },
+        { id: 1, name: '홍길동', email: 'gildong@gmail.com', department: '글로벌 사업1팀' },
+        { id: 2, name: '홍길순', email: 'gildong@gmail.com', department: '글로벌 사업2팀' },
+        { id: 3, name: '김철수', email: 'gildong@gmail.com', department: '글로벌 사업3팀' },
+        { id: 4, name: '정대령', email: 'gildong@gmail.com', department: 'SKALA팀' },
+        { id: 5, name: '안보람', email: 'gildong@gmail.com', department: 'SKALA팀' },
+        { id: 6, name: '김고은', email: 'gildong@gmail.com', department: 'AI혁신팀' },
+        { id: 7, name: '마동석', email: 'gildong@gmail.com', department: 'IT기획팀' },
+        { id: 8, name: '손흥민', email: 'gildong@gmail.com', department: '글로벌 사업1팀' },
+        { id: 9, name: '마동석', email: 'gildong@gmail.com', department: '글로벌 사업2팀' },
+        { id: 10, name: '손흥민', email: 'gildong@gmail.com', department: '글로벌 사업1팀' },
+        { id: 11, name: '박보검', email: 'gildong@gmail.com', department: '글로벌 사업1팀' },
+        { id: 12, name: '김고은', email: 'gildong@gmail.com', department: 'AI혁신팀' },
+        { id: 13, name: '마동석', email: 'gildong@gmail.com', department: 'IT기획팀' },
+        { id: 14, name: '손흥민', email: 'gildong@gmail.com', department: '글로벌 사업1팀' },
+        { id: 15, name: '마동석', email: 'gildong@gmail.com', department: '글로벌 사업3팀' },
+        { id: 16, name: '손흥민', email: 'gildong@gmail.com', department: '글로벌 사업1팀' },
       ], // 출제자 예시 데이터
       currentPage: 1, // 현재 페이지
       itemsPerPage: 8 // 페이지당 항목 수
@@ -127,15 +125,17 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 12px;
   width: 90%;
   margin-left: auto;
   margin-right: auto;
-  margin-top: 20px; /* Add some space from the top */
+  margin-top: 30px;
 }
 
 .page-header h1 {
   font-size: 32px;
-  color: black; /* Match ProjectList.vue h1 color */
+  font-weight: bold;
+  color: #000000;
 }
 
 /* add-button-container and add-button styles removed as per image */
@@ -170,6 +170,18 @@ export default {
 .checkbox-column {
   width: 5%;
   text-align: center;
+}
+
+.name-column {
+  width: 15%;
+}
+
+.email-column {
+  width: 40%;
+}
+
+.department-column {
+  width: 35%;
 }
 
 .actions-column {
