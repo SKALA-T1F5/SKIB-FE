@@ -31,7 +31,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-// import api from '../api/axios' // Axios 인스턴스
 import axios from 'axios';
 import { API_BASE_URL } from '@/config/api';
 
@@ -41,7 +40,7 @@ const router = useRouter()
 
 const handleLogin = async () => {
   try {
-    const response = await api.post('/auth/user/login', {
+    const response = await axios.post(`${API_BASE_URL}/auth/user/login`, {
       email: id.value,
       password: password.value,
     })
@@ -52,12 +51,8 @@ const handleLogin = async () => {
         alert('로그인 실패: 서버에서 토큰을 받지 못했습니다.')
         return
       }
-
-      // JWT 토큰 저장
       localStorage.setItem('token', token)
-
-      // 로그인 성공 후 Trainee 메인 페이지로 이동
-      router.push('/trainee/main')
+      router.push('/trainer/project')
     } else {
       alert('로그인 실패: 서버 응답 오류')
     }

@@ -55,6 +55,7 @@ onMounted(async () => {
 });
 
 function goToProjectManagement(projectId) {
+  localStorage.setItem('projectId', projectId);
   router.push(`/trainer/project/${projectId}`);
 }
 </script>

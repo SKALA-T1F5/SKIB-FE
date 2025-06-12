@@ -54,7 +54,7 @@
  const router = useRouter()
  
  const goToMain = () => {
-   router.push('/trainer')
+   router.push('/trainer/project')
  }
 
 </script>
