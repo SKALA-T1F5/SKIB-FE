@@ -3,8 +3,8 @@
     <v-row>
       <v-col cols="12">
         <div class="d-flex align-end mb-4">
-          <h2 class="text-h5 font-weight-bold mr-2">시험 관리</h2>
-          <p class="text-body-2 text-medium-emphasis">관리 중인 시험 목록을 확인합니다.</p>
+          <h2 class="text-h5 font-weight-bold mr-2">테스트 관리</h2>
+          <p class="text-body-2 text-medium-emphasis">관리 중인 테스트 목록을 확인합니다.</p>
         </div>
       </v-col>
 
