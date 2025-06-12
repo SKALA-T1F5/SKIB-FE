@@ -3,7 +3,7 @@
     <AppHeader />
     <div class="content-wrapper">
       <SideNavigation :collapsed="collapsed" />
-      <div class="main-content">
+      <div class="main-content mt-0">
         <router-view />
       </div>
     </div>
@@ -22,12 +22,12 @@ const collapsed = ref(false)
 .content-wrapper {
   display: flex;
   height: calc(100vh - 60px);
-  margin-top: 60px;
+  margin-top: 30px;
 }
 
 .main-content {
   flex: 1;
-  margin-left: 180px;
+  margin-left: 230px;
   padding: 24px;
   overflow-y: auto;
   height: 100%;

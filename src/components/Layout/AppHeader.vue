@@ -1,7 +1,7 @@
 <template>
   <header class="header">
     <div class="header-left">
-      <!-- <img src="@/assets/logo.png" alt="skib" class="logo" /> -->
+      <img :src="logo" alt="skib" class="logo" />
     </div>
     <div class="header-right">
       <div class="lang-selector">
@@ -23,7 +23,7 @@
 </template>
 
 <script setup>
-// 별도 로직 없음
+import logo from '@/assets/images/header_logo.png'
 </script>
 
 <style scoped>
@@ -39,7 +39,7 @@
   top: 0; left: 0; right: 0;
   z-index: 1000;
 }
-.header-left .logo { height: 32px; }
+.header-left .logo { height: 120px; }
 .header-right { display: flex; align-items: center; gap: 16px; }
 .lang-selector {
   display: flex; align-items: center; gap: 6px;
