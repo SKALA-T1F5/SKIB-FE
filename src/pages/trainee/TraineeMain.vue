@@ -35,7 +35,7 @@
             />
 
             <div v-if="filteredTests.length === 0" class="no-tests-message">
-              <p>해당 조건에 맞는 테스트가 없습니다.</p>
+              <p>해당 조건에 일치하는 테스트가 없습니다.</p>
             </div>
           </div>
         </main>
@@ -55,28 +55,37 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '@/utils/axios';
+import api from '@/utils/axios'; // axios 인스턴스 경로 확인
 import Header from '@/components/layouts/Header.vue';
 import Footer from '@/components/layouts/Footer.vue';
 import TraineeMainSideBar from '@/components/trainee/main/TraineeMainSideBar.vue';
-import TraineeTestCard from '@/components/trainee/main/TraineeTestCard.vue'; // 경로 수정
-import AddTestModal from '@/components/trainee/main/AddTestModal.vue'; // 경로 수정
+import TraineeTestCard from '@/components/trainee/main/TraineeTestCard.vue';
+import AddTestModal from '@/components/trainee/main/AddTestModal.vue';
 
 const router = useRouter();
 
-export interface Test {
+// 서버 응답 데이터에 맞는 인터페이스 정의
+export interface SimpleTestApiResponse {
   testId: number;
-  projectId: number;
   name: string;
   difficultyLevel: 'EASY' | 'NORMAL' | 'HARD';
-  limitedTimeM: number;
-  passScore: number;
-  isRetake: 0 | 1; // 재응시 가능 여부 (0: 불가, 1: 가능)
-  createdDate: string;
-  modifiedDate: string;
-  isDeleted: 0 | 1;
-  actualScore: number; // 응시자의 실제 점수 (필수)
-  status: 'PASS' | 'FAIL'; // 상태는 PASS 또는 FAIL만. 'RETRY'는 계산된 상태이며 버튼 유무에 영향을 줌
+  score: number;
+  limitedTime: number;
+  createdAt: string;
+  isPassed: boolean; // 합격 여부
+  retake: boolean; // 재응시 가능 여부
+}
+
+// 클라이언트에서 사용할 Test 인터페이스 (서버 응답 데이터 포함)
+export interface Test {
+  testId: number;
+  name: string;
+  difficultyLevel: 'EASY' | 'NORMAL' | 'HARD';
+  score: number;
+  limitedTime: number;
+  createdAt: string;
+  isPassed: boolean;
+  retake: boolean;
 }
 
 const userName = ref(localStorage.getItem('name') || '사용자');
@@ -91,75 +100,6 @@ const resultFilters = ref({
   pass: false,
   fail: false,
 });
-
-// 샘플 테스트 데이터 정의 (status는 isRetake와 actualScore/passScore를 기반으로 계산)
-const rawSampleTestsData = [
-  {
-    testId: 999901,
-    projectId: 101,
-    name: "Vue.js 기초 테스트",
-    difficultyLevel: "EASY",
-    limitedTimeM: 60,
-    passScore: 70,
-    isRetake: 0, // 재응시 불가
-    createdDate: "2024-01-15T10:00:00Z",
-    modifiedDate: "2024-01-15T11:30:00Z",
-    isDeleted: 0,
-    actualScore: 85, // 합격 점수 70점 이상
-  },
-  {
-    testId: 999902,
-    projectId: 102,
-    name: "JavaScript 심화 테스트",
-    difficultyLevel: "NORMAL",
-    limitedTimeM: 90,
-    passScore: 60,
-    isRetake: 1, // 재응시 가능
-    createdDate: "2024-02-01T14:00:00Z",
-    modifiedDate: "2024-02-01T15:45:00Z",
-    isDeleted: 0,
-    actualScore: 55, // 합격 점수 60점 미만
-  },
-  {
-    testId: 999903,
-    projectId: 103,
-    name: "HTML/CSS 기본",
-    difficultyLevel: "EASY",
-    limitedTimeM: 45,
-    passScore: 60,
-    isRetake: 0, // 재응시 불가
-    createdDate: "2024-03-01T09:00:00Z",
-    modifiedDate: "2024-03-01T09:00:00Z",
-    isDeleted: 0,
-    actualScore: 70, // 합격 점수 60점 이상
-  },
-  {
-    testId: 999904,
-    projectId: 104,
-    name: "React 고급 주제",
-    difficultyLevel: "HARD",
-    limitedTimeM: 120,
-    passScore: 80,
-    isRetake: 0, // 재응시 불가
-    createdDate: "2024-04-10T11:00:00Z",
-    modifiedDate: "2024-04-10T12:00:00Z",
-    isDeleted: 0,
-    actualScore: 75, // 합격 점수 80점 미만
-  },
-  {
-    testId: 999905,
-    projectId: 105,
-    name: "Python 알고리즘",
-    difficultyLevel: "HARD",
-    limitedTimeM: 90,
-    passScore: 75,
-    isRetake: 1, // 재응시 가능
-    createdDate: "2024-05-01T10:00:00Z",
-    modifiedDate: "2024-05-01T11:00:00Z",
-    isDeleted: 0,
-    actualScore: 70, // 합격 점수 75점 미만
-  }
-];
 
 const filteredTests = computed(() => {
   let currentTests = tests.value;
@@ -180,18 +120,16 @@ const filteredTests = computed(() => {
     currentTests = currentTests.filter(test => {
       let matchStatusFilter = false;
 
-      // '응시 완료' 필터: PASS 또는 FAIL인 경우 (재응시 가능 여부와 상관 없음)
-      if (isDoneChecked && (test.status === 'PASS' || test.status === 'FAIL')) {
+      // isPassed와 retake 필드를 기반으로 필터링
+      if (isDoneChecked && (test.isPassed || !test.isPassed)) { // 'done'은 응시 여부이므로, 합격/불합격 모두 포함
         matchStatusFilter = true;
       }
-      // '재응시' 필터: FAIL 상태이고 재응시가 허용된 경우
-      if (isRetryChecked && test.status === 'FAIL' && test.isRetake === 1) {
+      if (isRetryChecked && test.retake && !test.isPassed) { // 'retry'는 재응시 가능하며 불합격인 경우
         matchStatusFilter = true;
       }
       return matchStatusFilter;
     });
   }
-
 
   // 3. 결과 필터링 (PASS/FAIL)
   const isPassChecked = resultFilters.value.pass;
@@ -200,10 +138,10 @@ const filteredTests = computed(() => {
   if (isPassChecked || isFailChecked) {
     currentTests = currentTests.filter(test => {
       let matchResultFilter = false;
-      if (isPassChecked && test.status === 'PASS') {
+      if (isPassChecked && test.isPassed) {
         matchResultFilter = true;
       }
-      if (isFailChecked && test.status === 'FAIL') {
+      if (isFailChecked && !test.isPassed) {
         matchResultFilter = true;
       }
       return matchResultFilter;
@@ -254,16 +192,16 @@ const addTestByLink = async (link: string) => {
         params: { testId: joinedTestInfo.testId.toString() },
         state: {
           testName: joinedTestInfo.name,
-          projectId: joinedTestInfo.projectId,
-          limitedTimeM: joinedTestInfo.limitedTimeM,
-          passScore: joinedTestInfo.passScore,
+          // projectId: joinedTestInfo.projectId, // 제거
+          limitedTimeM: joinedTestInfo.limitedTime, // limitedTime으로 변경
+          // passScore: joinedTestInfo.passScore, // 제거
           difficultyLevel: joinedTestInfo.difficultyLevel,
-          isRetake: joinedTestInfo.isRetake,
+          isRetake: joinedTestInfo.retake, // boolean 값 사용
         }
       });
     } else {
       // 시험 정보가 없으면 그냥 목록 새로고침
-      await fetchTests();
+      await fetchTests(); // 목록을 다시 불러옵니다.
     }
     hideAddTestModal();
   } catch (error: any) {
@@ -278,22 +216,42 @@ const addTestByLink = async (link: string) => {
 
 const fetchTests = async () => {
   try {
-    // 실제 API에서 데이터를 불러오는 대신, 샘플 데이터에 status를 계산하여 적용
-    tests.value = rawSampleTestsData.map(test => ({
-        ...test,
-        // actualScore와 passScore를 기반으로 status 계산
-        status: test.actualScore >= test.passScore ? 'PASS' : 'FAIL',
-    }));
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      alert('사용자 ID를 찾을 수 없습니다. 다시 로그인해주세요.');
+      router.push('/login');
+      return;
+    }
 
-    // 실제 API 호출 예시 (주석 처리됨)
-    // const response = await api.get<Omit<Test, 'status'>[]>('/trainee/tests');
-    // tests.value = response.data.map(test => {
-    //   // 서버에서 받은 데이터에 실제 점수와 합격 점수가 있다고 가정하고 status 계산
-    //   const calculatedStatus: Test['status'] = test.actualScore >= test.passScore ? 'PASS' : 'FAIL';
-    //   return { ...test, status: calculatedStatus };
-    // });
+    const response = await api.get<any>('/test/getUserTestList', {
+      params: {
+        userId: userId
+      }
+    });
+    
+    // 서버 응답에서 resultData.tests 배열을 추출합니다.
+    const fetchedTestData = response.data?.resultData?.tests;
 
-    console.log("Fetched tests (or using samples):", tests.value);
+    if (Array.isArray(fetchedTestData)) {
+      tests.value = fetchedTestData.map((test: SimpleTestApiResponse) => {
+        return {
+          testId: test.testId,
+          name: test.name,
+          difficultyLevel: test.difficultyLevel,
+          score: test.score,
+          limitedTime: test.limitedTime,
+          createdAt: test.createdAt,
+          isPassed: test.isPassed,
+          retake: test.retake,
+        };
+      });
+    } else {
+      console.error('테스트 데이터를 불러오는 데 실패했습니다: 서버 응답 형식이 예상과 다릅니다.', response.data);
+      alert('테스트 목록을 불러오는 데 실패했습니다. 서버 응답을 확인해주세요.');
+      tests.value = []; // 오류 시 빈 배열로 설정
+    }
+
+    console.log("Fetched tests from API:", tests.value);
   } catch (error) {
     console.error('테스트 데이터를 불러오는 데 실패했습니다:', error);
     alert('테스트 목록을 불러오는 데 실패했습니다. 잠시 후 다시 시도해주세요.');
@@ -310,9 +268,9 @@ const handleResetFilters = () => {
     pass: false,
     fail: false,
   };
+  fetchTests();
 };
 
-// 테스트 카드에서 발생하는 액션을 통합 처리하는 함수
 const handleTestCardAction = (test: Test, actionType: 'result' | 'feedback' | 'attend') => {
   console.log(`'${test.name}' ${actionType} 요청 (Test ID: ${test.testId})`);
 
@@ -320,39 +278,32 @@ const handleTestCardAction = (test: Test, actionType: 'result' | 'feedback' | 'a
     router.push({
       name: 'TraineeTestResult',
       params: { testId: test.testId.toString() },
-      state: { testName: test.name, projectId: test.projectId, actualScore: test.actualScore, passScore: test.passScore }
+      state: { testName: test.name, actualScore: test.score, isPassed: test.isPassed }
     });
   } else if (actionType === 'feedback') {
     router.push({
       name: 'TraineeTestFeedback',
       params: { testId: test.testId.toString() },
-      state: { testName: test.name, projectId: test.projectId, actualScore: test.actualScore, passScore: test.passScore }
+      state: { testName: test.name, actualScore: test.score, isPassed: test.isPassed }
     });
   } else if (actionType === 'attend') {
-    // 재응시 또는 초대 링크를 통한 응시 시작 전에 안내 페이지로 이동
-    // isRetake가 0 (재응시 불가) 이거나, status가 'PASS' 인 경우에도 안내 페이지로 보내는 것이 아니라
-    // 이 경우 "재응시 불가" 메시지를 띄우고 결과 페이지로 보내는 로직을 유지합니다.
-    if (test.isRetake === 1 && test.status === 'FAIL') {
+    if (test.retake && !test.isPassed) {
       router.push({
-        name: 'TraineeTestGuide', // 안내 페이지 라우트 이름
+        name: 'TraineeTestGuide',
         params: { testId: test.testId.toString() },
-        state: { // 안내 페이지에 필요한 시험 정보 전달
+        state: {
           testName: test.name,
-          projectId: test.projectId,
-          limitedTimeM: test.limitedTimeM,
-          passScore: test.passScore,
+          limitedTimeM: test.limitedTime,
           difficultyLevel: test.difficultyLevel,
-          isRetake: test.isRetake,
+          isRetake: test.retake,
         }
       });
     } else {
-      // 재응시가 불가하거나 (isRetake: 0) 이미 합격한 경우 (status: 'PASS')
       alert('이 테스트는 재응시할 수 없습니다.');
-      // 재응시 불가능한 경우 결과 페이지로 이동 (기존 로직 유지)
       router.push({
         name: 'TraineeTestResult',
         params: { testId: test.testId.toString() },
-        state: { testName: test.name, projectId: test.projectId, actualScore: test.actualScore, passScore: test.passScore }
+        state: { testName: test.name, actualScore: test.score, isPassed: test.isPassed }
       });
     }
   }
@@ -360,11 +311,12 @@ const handleTestCardAction = (test: Test, actionType: 'result' | 'feedback' | 'a
 
 
 onMounted(() => {
-  fetchTests(); // 컴포넌트 마운트 시 테스트 데이터 로드 (현재는 샘플 데이터)
+  fetchTests(); // 컴포넌트 마운트 시 테스트 데이터 로드
 });
 </script>
 
 <style scoped>
+/* CSS 스타일은 변경 없이 그대로 유지됩니다. */
 .trainee-main {
   display: flex;
   flex-direction: column;
@@ -473,6 +425,6 @@ onMounted(() => {
   text-align: center;
   padding: 50px;
   color: #777;
-  font-size: 18px;
+  font-size: 16px;
 }
 </style>

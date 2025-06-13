@@ -806,10 +806,10 @@ onMounted(() => {
 }
 
 .exit-button {
-  background-color: #34495e;
+  background-color: #1e2251;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 12px 25px;
   font-size: 16px;
   font-weight: 600;

@@ -34,7 +34,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 // --- IMPORTANT CHANGE HERE: Import useExamStore from its dedicated file ---
-import { useExamStore } from '@/stores/test.ts'; // This path should match where you saved src/stores/exam.ts
+import { useExamStore } from '@/stores/test';
 
 import Header from '@/components/layouts/Header.vue';
 import Footer from '@/components/layouts/Footer.vue';
@@ -46,7 +46,7 @@ import TestExamMainContent from '@/components/trainee/test/TestMainContent.vue';
 
 
 // Pinia 스토어 인스턴스 사용
-const examStore = useExamStore(); // <--- This line is correct.
+// const examStore = useExamStore(); // <--- This line is correct.
 
 const router = useRouter();
 

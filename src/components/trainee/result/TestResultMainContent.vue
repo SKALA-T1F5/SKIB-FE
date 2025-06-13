@@ -40,7 +40,7 @@ import SvgIcon from '@jamescoyle/vue-icon';
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js';
 import QuestionDisplay from './QuestionDisplay.vue'; // 새 컴포넌트 임포트
 import SolutionSection from './SolutionSection.vue';
-import { QuestionData } from '@/views/trainee/TraineeTestResultLayout.vue';
+import { QuestionData } from '@/pages/trainee/TraineeTestResultLayout.vue';
 
 defineProps<{
   currentQuestion: QuestionData | null;

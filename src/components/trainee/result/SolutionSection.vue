@@ -22,7 +22,7 @@
 
 <script setup lang="ts">
 import { defineProps } from 'vue';
-import { QuestionData } from '@/views/trainee/TraineeTestResultLayout.vue';
+import { QuestionData } from '@/pages/trainee/TraineeTestResultLayout.vue';
 
 defineProps<{
   currentQuestion: QuestionData;

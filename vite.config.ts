@@ -13,9 +13,10 @@ export default defineConfig({
     },
   },
   server: {
+    host: "0.0.0.0",
     proxy: {
       '/api': {
-        target: 'https://skib-backend.skala25a.project.skala-ai.com', // SpringBoot 서버 주소
+        target: 'https://skib-backend.skala25a.project.skala-ai.com/', // SpringBoot 서버 주소
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },

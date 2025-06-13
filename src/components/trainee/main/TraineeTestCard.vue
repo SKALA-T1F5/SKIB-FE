@@ -1,14 +1,13 @@
 <template>
   <div class="test-card">
-    <div :class="['status-tag', test.status.toLowerCase()]">
-      {{ test.status }}
+    <div :class="['status-tag', test.isPassed ? 'pass' : 'fail']">
+      {{ test.isPassed ? 'PASS' : 'FAIL' }}
     </div>
     <h3 class="test-title">{{ test.name }}</h3>
-    <p class="project-name">Project ID: {{ test.projectId }}</p>
     <p class="test-description">난이도: {{ test.difficultyLevel }}</p>
-    <p class="test-score">점수: {{ test.actualScore }}점 / 합격: {{ test.passScore }}점</p>
+    <p class="test-score">점수: {{ test.score }}점</p>
     <div class="test-footer">
-      <span class="test-time">제한 시간: {{ formatTime(test.limitedTimeM) }}</span>
+      <span class="test-time">제한 시간: {{ formatTime(test.limitedTime) }}</span>
       <div class="test-actions">
         <button
           class="action-button"
@@ -23,7 +22,7 @@
           피드백
         </button>
         <button
-          v-if="test.isRetake === 1 && test.status === 'FAIL'"
+          v-if="test.retake && !test.isPassed"
           class="action-button primary"
           @click="$emit('attend', test.testId)"
         >
@@ -41,13 +40,11 @@ const props = defineProps<{
   test: Test;
 }>();
 
-// emit 이벤트에 'attend' 다시 추가
 const emit = defineEmits(['retake', 'feedback', 'attend']);
 
 const formatTime = (minutes: number) => {
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
-  // 불필요한 Markdown 수식 태그를 제거하고 순수하게 시간 형식만 반환하도록 수정
   return `${String(hours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:00`;
 };
 </script>
@@ -57,21 +54,28 @@ const formatTime = (minutes: number) => {
   background-color: #f8f8f8;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 25px; /* 패딩 증가 */
+  padding: 25px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  width: 350px; /* 기본 가로 크기 증가 */
-  min-height: 220px; /* 세로 크기 증가 */
+  /* 기존 width 고정값을 제거하고 유동적인 크기 속성으로 변경 */
+  min-width: 280px; /* 카드의 최소 너비 (너무 작아지지 않게) */
+  max-width: 100%; /* 부모 컨테이너에 맞춰 최대 너비 100% */
+  height: auto; /* 내용에 따라 높이 자동 조절 */
+  min-height: 220px; /* 최소 높이 유지 */
+  /* Grid 아이템으로서의 유연성을 위해 flex 속성 추가 (선택 사항이지만 일관성 유지에 좋음) */
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
 }
 
 /* 상태 태그 (PASS/FAIL) */
 .status-tag {
   position: absolute;
-  top: 18px; /* 패딩에 맞춰 상단 위치 조정 */
-  right: 18px; /* 패딩에 맞춰 우측 위치 조정 */
+  top: 18px;
+  right: 18px;
   padding: 4px 12px;
   border-radius: 4px;
   font-size: 12px;
@@ -94,13 +98,13 @@ const formatTime = (minutes: number) => {
 .test-score {
   font-size: 14px;
   color: #555;
-  margin-bottom: 10px; /* 푸터와의 간격을 위해 조정 */
+  margin-bottom: 10px;
 }
 
 .test-title {
   font-size: 18px;
   font-weight: bold;
-  margin-top: 20px; /* status-tag와의 간격 확보 */
+  margin-top: 20px;
   margin-bottom: 8px;
   color: #333;
 }
@@ -114,7 +118,7 @@ const formatTime = (minutes: number) => {
 .test-description {
   font-size: 14px;
   color: #555;
-  margin-bottom: 10px; /* 점수 정보가 추가되면서 간격 조정 */
+  margin-bottom: 10px;
 }
 
 .test-footer {
@@ -122,16 +126,24 @@ const formatTime = (minutes: number) => {
   justify-content: space-between;
   align-items: center;
   margin-top: auto;
+  /* 버튼들이 너무 많아지면 다음 줄로 넘어가도록 설정 */
+  flex-wrap: wrap; 
+  /* 버튼 영역이 한 줄에 들어가지 않을 때 정렬 */
+  gap: 8px; 
 }
 
 .test-time {
   font-size: 12px;
   color: #999;
+  white-space: nowrap; /* 시간 정보가 한 줄에 있도록 */
 }
 
 .test-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap; /* 버튼들이 공간이 부족할 때 다음 줄로 넘어가도록 */
+  justify-content: flex-end; /* 버튼들을 오른쪽으로 정렬 */
+  margin-left: auto; /* 왼쪽의 시간 정보와 간격을 벌리기 위해 */
 }
 
 .action-button {

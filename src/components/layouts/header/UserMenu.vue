@@ -5,10 +5,10 @@
       <span class="nickname">{{ name }}</span>
       <span class="role">{{ role }}</span>
     </div>
-    <svg-icon v-if="!isExamActive" type="mdi" :path="mdiMenuDown" class="user-menu" />
-    <svg-icon v-else type="mdi" :path="mdiLock" class="user-menu locked-icon" />
+    <!-- <svg-icon v-if="!isExamActive" type="mdi" :path="mdiMenuDown" class="user-menu" />
+    <svg-icon v-else type="mdi" :path="mdiLock" class="user-menu locked-icon" /> -->
 
-    <div v-if="showUserMenu && !isExamActive" class="dropdown user-dropdown">
+    <div v-if="showUserMenu" class="dropdown user-dropdown">
       <div @click="goToMyPage">마이페이지</div>
       <div @click="logout">로그아웃</div>
     </div>

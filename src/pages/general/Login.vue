@@ -48,6 +48,7 @@ const handleLogin = async () => {
     })
 
     const token = response.data.resultData?.token
+    const userId = response.data.resultData?.userId
     const name = response.data.resultData?.name
     const role = response.data.resultData?.role
 
