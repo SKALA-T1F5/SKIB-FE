@@ -1,56 +1,87 @@
 <template>
-  <div id="test-exam-page-layout">
-    <Header :isExamActive="examStore.isExamActive" />
+  <div id="test-taking-page-layout">
+    <Header />
 
     <div class="page-content-wrapper" :class="{ 'has-sidebar': allQuestions.length > 0 }">
       <TraineeTestSideBar
         :questions="allQuestions"
         :currentQuestionId="currentQuestionId"
         @selectQuestion="handleQuestionSelectFromSidebar"
-        v-if="allQuestions.length > 0"
-        :traineeName="traineeName"
       />
 
-      <TestExamMainContent
-        :currentQuestion="currentQuestion"
-        :hasPreviousQuestion="hasPreviousQuestion"
-        :hasNextQuestion="hasNextQuestion"
-        @goToPreviousQuestion="goToPreviousQuestion"
-        @goToNextQuestion="goToNextQuestion"
-        @submitTest="submitTest"
-        :getOptionLabel="getOptionLabel"
-        :isExamMode="true"
-        @update:userAnswer="updateUserAnswer"
-        @selectOption="selectOption"
-        :isExamActive="examStore.isExamActive"
-      />
+      <main class="main-content-area">
+        <div class="test-taking-container-inner">
+          <div class="top-nav">
+            <h3 class="question-number-top" v-if="currentQuestion">{{ currentQuestion.id }}.</h3>
+            <div class="nav-buttons-wrapper">
+              <button class="nav-button" @click="goToPreviousQuestion" :disabled="!hasPreviousQuestion">
+                <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> 이전 문제
+              </button>
+              <button class="nav-button" @click="goToNextQuestion" :disabled="!hasNextQuestion">
+                다음 문제 <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
+              </button>
+            </div>
+          </div>
+
+          <div class="question-taking-area" v-if="currentQuestion">
+            <div class="question-section">
+              <div class="question-text-fixed">
+                <p class="question-text">{{ currentQuestion.questionText }}</p>
+              </div>
+              <div class="question-content-scrollable">
+                <div class="options-container" v-if="currentQuestion.type === 'OBJECTIVE'">
+                  <div
+                    v-for="(option, index) in currentQuestion.options"
+                    :key="index"
+                    :class="[
+                      'option-item',
+                      { 'is-selected': userAnswers.get(currentQuestion.id) === option }
+                    ]"
+                    @click="selectOption(option)"
+                  >
+                    <span class="option-label">{{ getOptionLabel(index) }}</span>
+                    <span class="option-content">{{ option }}</span>
+                  </div>
+                </div>
+                <div class="subjective-answer-section" v-else-if="currentQuestion.type === 'SUBJECTIVE'">
+                  <div class="answer-group">
+                    <p class="answer-label">나의 답변</p>
+                    <textarea
+                      class="answer-box user-answer-box"
+                      v-model="userAnswers.get(currentQuestion.id).value"
+                      placeholder="답변을 입력하세요."
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="loading-message">
+            <p>시험 문제를 로딩 중입니다...</p>
+          </div>
+        </div>
+        <div class="submit-and-exit-buttons">
+          <button class="submit-button" @click="handleSubmitAnswer" :disabled="!currentQuestion">
+            제출
+          </button>
+        </div>
+      </main>
     </div>
-
     <Footer />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
-// --- IMPORTANT CHANGE HERE: Import useExamStore from its dedicated file ---
-import { useExamStore } from '@/stores/test';
-
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import Header from '@/components/layouts/Header.vue';
 import Footer from '@/components/layouts/Footer.vue';
+import SvgIcon from '@jamescoyle/vue-icon';
+import { mdiChevronLeft, mdiChevronRight } from '@mdi/js';
 import TraineeTestSideBar from '@/components/trainee/test/TraineeTestSideBar.vue';
-// Note: The original error message showed '@/components/trainee/test/TestMainContent.vue'
-// but your latest code uses '@/components/trainee/exam/TestExamMainContent.vue'.
-// Please ensure the import path for your main content component is correct for your project structure.
-import TestExamMainContent from '@/components/trainee/test/TestMainContent.vue';
+import axios from 'axios'; // axios 임포트
 
-
-// Pinia 스토어 인스턴스 사용
-// const examStore = useExamStore(); // <--- This line is correct.
-
-const router = useRouter();
-
-// --- 타입 정의 ---
+// --- 문제 데이터 타입 정의 ---
 interface GradingCriterion {
   score: number;
   criteria: string;
@@ -70,28 +101,33 @@ interface RawQuestion {
   tags: string[];
 }
 
+// QuestionData 인터페이스에 isAnswered 속성 추가
 export interface QuestionData {
   id: string;
   type: 'OBJECTIVE' | 'SUBJECTIVE';
   difficulty_level: 'EASY' | 'NORMAL' | 'HARD';
   questionText: string;
   options: string[] | null;
-  correctAnswer: string;
   explanation: string;
   gradingCriteria: GradingCriterion[] | null;
   document_id: number;
   tags: string[];
-  userAnswer: string;
-  isAnswered: boolean;
-  isCorrect: boolean;
+  isAnswered: boolean; // 추가된 속성
 }
-// --- 타입 정의 끝 ---
+// --- 문제 데이터 타입 정의 끝 ---
 
+const router = useRouter();
+const route = useRoute();
+
+const testId = route.params.testId as string;
+const userId = ref('testUser123'); // 예시 userId, 실제로는 로그인 정보 등에서 가져와야 함
+
+// allQuestions를 QuestionData[] 타입으로 선언
 const allQuestions = ref<QuestionData[]>([]);
 const currentQuestionId = ref<string | null>(null);
-const traineeName = ref<string>('홍길동'); // 응시자 이름 (예시 값)
 
-// 현재 문제 객체를 계산합니다.
+const userAnswers = ref(new Map<string, string | { value: string }>());
+
 const currentQuestion = computed(() => {
   if (!currentQuestionId.value || allQuestions.value.length === 0) {
     return null;
@@ -99,20 +135,16 @@ const currentQuestion = computed(() => {
   return allQuestions.value.find(q => q.id === currentQuestionId.value);
 });
 
-// 현재 문제의 인덱스를 계산합니다.
 const currentQuestionIndex = computed(() => {
   if (!currentQuestion.value) return -1;
   return allQuestions.value.findIndex(q => q.id === currentQuestion.value?.id);
 });
 
-// 이전 문제 존재 여부를 판단합니다.
 const hasPreviousQuestion = computed(() => currentQuestionIndex.value > 0);
-
-// 다음 문제 존재 여부를 판단합니다.
 const hasNextQuestion = computed(() => currentQuestionIndex.value < allQuestions.value.length - 1);
+const isLastQuestion = computed(() => currentQuestionIndex.value === allQuestions.value.length - 1); // 변수명 복원
 
-// UI 확인을 위한 Sample Data (Hardcoded)
-const sampleExamData: RawQuestion[] = [
+const sampleApiData: RawQuestion[] = [
   {
     "type": "OBJECTIVE",
     "difficulty_level": "NORMAL",
@@ -192,51 +224,54 @@ const sampleExamData: RawQuestion[] = [
   }
 ];
 
-// 시험 문제 데이터를 가져오는 함수 (실제 API 호출로 대체될 수 있습니다.)
-const fetchExamQuestions = async () => {
+
+const fetchTestQuestions = async () => {
   try {
-    const fetchedData = sampleExamData; // 샘플 데이터를 직접 사용
+    const fetchedData = sampleApiData;
 
     if (Array.isArray(fetchedData)) {
       allQuestions.value = fetchedData.map((rawQ: RawQuestion, index: number) => {
         const generatedId = `Q${(index + 1).toString().padStart(2, '0')}`;
+        let initialAnswerValue: string | { value: string };
+
+        if (rawQ.type === 'SUBJECTIVE') {
+          initialAnswerValue = ref(''); // 주관식은 ref 객체로 초기화
+        } else {
+          initialAnswerValue = ''; // 객관식은 문자열로 초기화
+        }
+        userAnswers.value.set(generatedId, initialAnswerValue);
+        
         return {
           id: generatedId,
           type: rawQ.type,
           difficulty_level: rawQ.difficulty_level,
           questionText: rawQ.question,
           options: rawQ.options,
-          correctAnswer: rawQ.answer,
-          explanation: rawQ.explanation,
-          gradingCriteria: rawQ.grading_criteria,
+          explanation: '',
+          gradingCriteria: null,
           document_id: rawQ.document_id,
           tags: rawQ.tags,
-          userAnswer: '', // 사용자 답변 초기화
-          isAnswered: false, // 답변 여부 초기화
-          isCorrect: false, // 정답 여부 초기화
+          isAnswered: false, // 모든 문제의 답변 여부를 false로 초기화
         };
       });
 
       if (allQuestions.value.length > 0) {
-        currentQuestionId.value = allQuestions.value[0].id; // 첫 번째 문제로 설정
-        examStore.setExamActive(true); // 시험 시작 시 스토어 상태를 true로 업데이트
+        currentQuestionId.value = allQuestions.value[0].id;
       }
     } else {
-      console.warn('샘플 데이터가 예상된 문제 배열 형태가 아닙니다.', fetchedData);
+      console.warn('문제 데이터를 불러오는 데 실패했습니다: 서버 응답 형식이 예상과 다릅니다.', fetchedData);
       allQuestions.value = [];
     }
   } catch (error) {
-    console.error('시험 문제를 로드하는 데 실패했습니다:', error);
-    alert('시험 문제를 불러오는 데 실패했습니다. 콘솔을 확인해주세요.');
+    console.error('문제 데이터를 로드하는 데 실패했습니다:', error);
+    alert('시험 문제를 불러오는 데 실패했습니다. 잠시 후 다시 시도해주세요.');
   }
 };
 
-// 사이드바에서 문제 선택 시 호출되는 핸들러
 const handleQuestionSelectFromSidebar = (questionId: string) => {
   currentQuestionId.value = questionId;
 };
 
-// 이전 문제로 이동하는 함수
 const goToPreviousQuestion = () => {
   const currentIndex = allQuestions.value.findIndex(q => q.id === currentQuestionId.value);
   if (currentIndex > 0) {
@@ -244,7 +279,6 @@ const goToPreviousQuestion = () => {
   }
 };
 
-// 다음 문제로 이동하는 함수
 const goToNextQuestion = () => {
   const currentIndex = allQuestions.value.findIndex(q => q.id === currentQuestionId.value);
   if (currentIndex < allQuestions.value.length - 1) {
@@ -252,85 +286,417 @@ const goToNextQuestion = () => {
   }
 };
 
-// 주관식 문제 답변 업데이트 함수
-const updateUserAnswer = (newValue: string) => {
-  const q = currentQuestion.value;
-  if (q) {
-    q.userAnswer = newValue;
-    q.isAnswered = newValue.trim() !== ''; // 답변 내용이 있으면 '답변 완료'로 처리
-  }
-};
-
-// 객관식 문제 옵션 선택 함수
-const selectOption = (selectedOption: string) => {
-  const q = currentQuestion.value;
-  if (q && q.type === 'OBJECTIVE') {
-    q.userAnswer = selectedOption;
-    q.isAnswered = true; // 옵션 선택 시 '답변 완료'로 처리
-  }
-};
-
-// 객관식 보기 라벨 (A, B, C...)을 생성하는 함수
 const getOptionLabel = (index: number): string => {
   return String.fromCharCode(65 + index) + ')';
 };
 
-// 시험 제출 함수
-const submitTest = () => {
-  if (confirm('시험을 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.')) {
-    console.log('시험 제출 완료!', allQuestions.value);
-    examStore.setExamActive(false); // 시험 종료 시 스토어 상태를 false로 업데이트
-    router.push({ name: 'TraineeTestResult' }); // 결과 페이지로 이동
+const selectOption = (option: string) => {
+  if (currentQuestion.value) {
+    userAnswers.value.set(currentQuestion.value.id, option);
+    // 객관식 답변 시 해당 문제의 isAnswered를 true로 설정
+    const questionToUpdate = allQuestions.value.find(q => q.id === currentQuestion.value?.id);
+    if (questionToUpdate) {
+      questionToUpdate.isAnswered = true;
+    }
   }
 };
 
-// 컴포넌트 마운트 시 시험 문제 로드
-onMounted(() => {
-  fetchExamQuestions();
+const handleSubmitAnswer = () => {
+  if (!currentQuestion.value) return;
+
+  const unansweredQuestions = allQuestions.value.filter(q => !q.isAnswered);
+  let confirmMessage = '';
+
+  if (unansweredQuestions.length > 0) {
+    confirmMessage = `풀지 않은 문제가 ${unansweredQuestions.length}개 존재합니다. 정말 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.`;
+  } else {
+    confirmMessage = `정말 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.`;
+  }
+
+  if (confirm(confirmMessage)) {
+    submitFinalTest();
+  }
+};
+
+const submitFinalTest = async () => {
+  // 전송할 답변 데이터 형식에 맞춰 변환
+  const answersToSend = Array.from(userAnswers.value.entries()).map(([questionId, answer]) => {
+    const question = allQuestions.value.find(q => q.id === questionId);
+    return {
+      id: questionId,
+      response: typeof answer === 'object' ? answer.value : answer,
+      questionType: question ? question.type : 'UNKNOWN' // 문제 타입도 함께 전송
+    };
+  });
+
+  const requestBody = {
+    userId: userId.value, // 실제 userId 사용
+    testId: testId,
+    answers: answersToSend
+  };
+
+  console.log('최종 제출될 요청 바디:', requestBody);
+
+  try {
+    const response = await axios.post('/api/answer', requestBody);
+    console.log('시험 제출 성공:', response.data);
+    alert('시험이 성공적으로 제출되었습니다!');
+    
+    // 성공 시 결과 페이지로 이동
+    router.push({
+      name: 'TraineeTestResult',
+      params: { testId: testId },
+      state: { testName: '모의 시험', actualScore: 85, isPassed: true } // 예시 데이터
+    });
+  } catch (error) {
+    console.error('시험 제출 실패:', error);
+    if (axios.isAxiosError(error) && error.response) {
+      // 서버에서 보낸 에러 메시지가 있다면 출력
+      alert(`시험 제출 중 오류가 발생했습니다: ${error.response.data.message || '알 수 없는 오류'}`);
+    } else {
+      alert('시험 제출 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    }
+  }
+};
+
+// 주관식 답변의 변경을 감지하고 isAnswered 상태 업데이트
+watch(() => {
+  if (currentQuestion.value?.type === 'SUBJECTIVE') {
+    const answerRef = userAnswers.value.get(currentQuestion.value.id);
+    // 주관식 답변이 ref이므로 .value를 통해 실제 문자열 값을 감시
+    return (answerRef as { value: string }).value;
+  }
+  return undefined;
+}, (newValue) => {
+  if (currentQuestion.value && currentQuestion.value.type === 'SUBJECTIVE') {
+    const questionToUpdate = allQuestions.value.find(q => q.id === currentQuestion.value?.id);
+    if (questionToUpdate) {
+      // 답변 내용이 비어있지 않으면 answered를 true로 설정 (공백도 답변으로 간주)
+      questionToUpdate.isAnswered = newValue !== '' && newValue !== undefined && newValue !== null;
+    }
+  }
 });
 
-// 컴포넌트 언마운트 시 추가 로직이 필요하다면 여기에 추가 (예: 시험 상태 초기화)
-// 현재는 라우터 가드에서 이동을 막고 있으므로 필수적이지 않습니다.
-onUnmounted(() => {
-  // 예: examStore.setExamActive(false); // 컴포넌트가 파괴될 때 시험 상태를 명시적으로 비활성화
+
+onMounted(() => {
+  fetchTestQuestions();
 });
 </script>
 
 <style scoped>
-#test-exam-page-layout {
+/*
+  전체 레이아웃 스타일
+  Header, Footer가 fixed이므로, main content는 margin/padding으로 공간 확보
+*/
+#test-taking-page-layout {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* 전체 화면 높이 사용 */
-  background-color: #f8f8f8; /* 배경색 설정 */
-  font-family: 'Noto Sans KR', sans-serif; /* 폰트 설정 */
-  overflow: hidden; /* 오버플로우 숨김 */
-  /* 복사/붙여넣기 방지 (전체 페이지) - 라우터 가드와 함께 사용 시 더욱 강력 */
-  user-select: none; /* 표준 */
-  -webkit-user-select: none; /* Safari */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* IE/Edge */
+  height: 100vh; /* 뷰포트 전체 높이를 사용 */
+  background-color: #f8f8f8;
+  font-family: 'Noto Sans KR', sans-serif;
+  overflow: hidden;
 }
 
 .page-content-wrapper {
   display: grid;
-  /* 사이드바가 있을 때와 없을 때의 그리드 템플릿 컬럼 설정 */
-  grid-template-columns: var(--sidebar-width, 0px) 1fr;
-  height: calc(100vh - 70px - 60px); /* 헤더(70px)와 푸터(60px) 높이를 제외한 영역 */
-  grid-template-rows: 1fr;
-  grid-template-areas: "sidebar main-content"; /* 그리드 영역 이름 정의 */
-  flex: 1; /* 남은 공간을 모두 차지하도록 설정 */
+  grid-template-columns: var(--sidebar-width, 220px) 1fr; /* 사이드바 추가로 인한 grid-template-columns 변경 */
+  height: calc(100vh - 70px - 60px); /* 예시: Header 70px, Footer 60px 가정 */
+  grid-template-rows: 1fr; /* 높이는 자동으로 채움 */
+  grid-template-areas: "sidebar main-content"; /* 사이드바 영역 명시 */
+  flex: 1;
   position: relative;
   overflow: hidden;
-  justify-content: center; /* 수평 중앙 정렬 */
-  align-items: center; /* 수직 중앙 정렬 */
 }
 
+/* 사이드바 스타일 (TraineeTestSideBar.vue에 정의되어 있지만, 부모에서 영역 지정) */
 .page-content-wrapper .trainee-test-sidebar {
-  grid-area: sidebar; /* 사이드바 영역 지정 */
+  grid-area: sidebar;
+  overflow-y: auto;
 }
 
-/* 사이드바가 있을 때만 너비 설정 */
-.page-content-wrapper.has-sidebar {
-  --sidebar-width: 180px; /* 사이드바 너비를 180px로 조정 */
+/* .has-sidebar 클래스는 이제 항상 적용되므로 제거하거나, 유동적인 너비 조절용으로 유지 */
+/* .page-content-wrapper.has-sidebar {
+  --sidebar-width: 250px;
+} */
+
+
+.main-content-area {
+  grid-area: main-content;
+  display: flex;
+  flex-direction: column;
+  padding: 25px;
+  overflow: hidden;
+  gap: 25px;
+  box-sizing: border-box;
+  position: relative; /* 제출 버튼을 absolute로 배치하기 위한 기준점 */
+  min-height: 0;
+  /* padding-bottom: 85px; 이 부분은 이제 .test-taking-container-inner가 다 채우므로 필요 없음 */
+}
+
+.test-taking-container-inner {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* 남은 공간을 모두 차지하도록 설정 */
+  min-height: 0; /* flex item 내부 스크롤을 위해 필요 */
+  overflow: hidden; /* 내부 스크롤을 위한 설정 */
+  /* 제출 버튼 공간 확보를 위해 .question-taking-area가 아닌 이 컨테이너의 하단 패딩을 줄 수도 있음 */
+  padding-bottom: 120px; /* 제출 버튼 높이(40px) + 여백(35px) */
+}
+
+/* Question Taking Area (문제 영역이 남은 공간을 모두 차지하도록) */
+.question-taking-area {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* 이 부분이 중요: 남은 공간을 채움 */
+  gap: 25px;
+  min-height: 0; /* flex item 내부 스크롤을 위해 필요 */
+  overflow: hidden; /* 이 영역에 스크롤이 생길 수 있음 */
+}
+
+.question-section {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* 남은 공간을 차지하여 높이 유연하게 조절 */
+  min-height: 350px; /* 최소 높이 유지 */
+  overflow: hidden; /* 내부 스크롤 가능한 영역을 위해 */
+}
+
+/* Top Navigation */
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-shrink: 0; /* 이 요소는 축소되지 않음 */
+}
+
+.question-number-top {
+  font-size: 26px;
+  font-weight: 700;
+  color: #343a40;
+  margin: 0;
+  padding-right: 20px;
+}
+
+.nav-buttons-wrapper {
+  display: flex;
+  gap: 12px;
+}
+
+.nav-button {
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 10px 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 500;
+  color: #495057;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.nav-button:hover:not(:disabled) {
+  background-color: #f0f0f0;
+  border-color: #d0d0d0;
+  color: #343a40;
+  transform: translateY(-1px);
+}
+
+.nav-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background-color: #f8f9fa;
+  color: #adb5bd;
+}
+
+.nav-icon {
+  font-size: 20px;
+  margin: 0 5px;
+  color: #6c757d;
+}
+.nav-button:hover:not(:disabled) .nav-icon {
+  color: #495057;
+}
+
+
+.question-text-fixed {
+  flex-shrink: 0;
+  margin-bottom: 20px;
+}
+
+.question-text {
+  font-size: 17px;
+  line-height: 1.7;
+  margin: 0;
+  color: #495057;
+}
+
+.question-content-scrollable {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.question-content-scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+.question-content-scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+.question-content-scrollable::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+.question-content-scrollable::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.option-item {
+  display: flex;
+  align-items: flex-start;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  padding: 15px 25px;
+  font-size: 16px;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+}
+
+.option-item:hover {
+  background-color: #e9ecef;
+  border-color: #ced4da;
+}
+
+.option-item.is-selected {
+  background-color: #e6f7ff;
+  border-color: #a8dcf0;
+  font-weight: 600;
+  color: #2b6cb0;
+  box-shadow: 0 2px 5px rgba(0, 123, 255, 0.1);
+}
+
+.option-label {
+  min-width: 30px;
+  font-weight: bold;
+  margin-right: 15px;
+  color: #6c757d;
+  flex-shrink: 0;
+}
+.option-item.is-selected .option-label {
+  color: #2b6cb0;
+}
+
+.option-content {
+  flex-grow: 1;
+  word-break: break-word;
+}
+
+.subjective-answer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 5px;
+}
+
+.answer-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.answer-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #343a40;
+  margin-bottom: 8px;
+  align-self: flex-start;
+}
+
+.answer-box {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  padding: 15px 20px;
+  font-size: 16px;
+  line-height: 1.6;
+  word-break: break-word;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  min-height: 150px;
+  resize: vertical;
+  color: #495057;
+}
+
+.answer-box:focus {
+  border-color: #a8dcf0;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  outline: none;
+}
+
+
+/* Submit and Exit Buttons (오른쪽 하단 고정) */
+.submit-and-exit-buttons {
+  position: absolute; /* main-content-area에 상대적으로 고정 */
+  bottom: 85px; /* Footer 높이(60px) + 버튼 하단 여백(25px) = 85px */
+  right: 25px; /* main-content-area의 padding-right와 일치 */
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  flex-shrink: 0;
+  z-index: 10; /* 다른 요소 위에 오도록 z-index 설정 */
+}
+
+.submit-button {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  background-color: #28a745;
+  color: white;
+}
+
+.submit-button:hover:not(:disabled) {
+  background-color: #218838;
+  transform: translateY(-1px);
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #92b192;
+}
+
+.loading-message {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  color: #555;
+  font-size: 17px;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

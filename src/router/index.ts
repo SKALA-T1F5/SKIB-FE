@@ -4,7 +4,7 @@ import MyPage from '@/pages/general/MyPage.vue'
 import TrainerMain from '@/pages/trainer/TrainerMain.vue'
 import TraineeMain from '@/pages/trainee/TraineeMain.vue'
 import TraineeTestGuide from '@/pages/trainee/TraineeTestGuide.vue';
-import TraineeTest from '@/pages/trainee/TraineeTest.vue'
+import TraineeTest from '@/pages/trainee/TraineeTest.vue' // @/pages/trainee/TraineeTest.vue 경로 확인
 import TraineeTestResult from '@/pages/trainee/TraineeTestResult.vue'
 import TraineeTestFeedback from '@/pages/trainee/TraineeTestFeedback.vue'
 
@@ -14,7 +14,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/trainer/main', name: 'TrainerMain', component: TrainerMain },
   { path: '/trainee/main', name: 'TraineeMain', component: TraineeMain },
   {
-    path: '/test-guide/:testId', // testId를 파라미터로 받음
+    path: '/trainee/test/guide/:testId', // 경로를 좀 더 명확하게 수정
     name: 'TraineeTestGuide',
     component: TraineeTestGuide,
     props: true, // 라우트 파라미터를 컴포넌트 prop으로 전달
@@ -25,31 +25,25 @@ const routes: RouteRecordRaw[] = [
     component: TraineeTest,
     props: true
   },
-  { path: '/:pathMatch(.*)*', redirect: '/login' },
   {
-    path: '/trainee/test/result/:testId',
+    path: '/trainee/test/result/:testId', // 결과 페이지 경로
     name: 'TraineeTestResult',
     component: TraineeTestResult,
     props: true // 파라미터를 props로 받으려면 필요
   },
   {
-    path: '/trainee/test/feedback/:testId',
+    path: '/trainee/test/feedback/:testId', // 피드백 페이지 경로
     name: 'TraineeTestFeedback',
     component: TraineeTestFeedback,
     props: true
   },
+  { path: '/:pathMatch(.*)*', redirect: '/login' }, // 정의되지 않은 모든 경로를 로그인으로 리다이렉트 (맨 마지막에 위치)
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
 })
-
-// export const isExamActive = ref(false);
-
-// export function setExamActive(status: boolean) {
-//   isExamActive.value = status;
-// }
 
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
