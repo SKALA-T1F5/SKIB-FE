@@ -14,10 +14,10 @@
           <div class="top-nav">
             <h3 class="question-number-top" v-if="currentQuestion">{{ currentQuestion.id }}.</h3>
             <div class="nav-buttons-wrapper">
-              <button class="nav-button" @click="goToPreviousQuestion" :disabled="!hasPreviousQuestion">
+              <button class="nav-button" @click="goToPreviousQuestion" :disabled="!hasPreviousQuestion || showGradingOverlay">
                 <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> 이전 문제
               </button>
-              <button class="nav-button" @click="goToNextQuestion" :disabled="!hasNextQuestion">
+              <button class="nav-button" @click="goToNextQuestion" :disabled="!hasNextQuestion || showGradingOverlay">
                 다음 문제 <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
               </button>
             </div>
@@ -50,6 +50,7 @@
                       class="answer-box user-answer-box"
                       v-model="userAnswers.get(currentQuestion.id).value"
                       placeholder="답변을 입력하세요."
+                      :disabled="showGradingOverlay"
                     ></textarea>
                   </div>
                 </div>
@@ -60,14 +61,27 @@
             <p>시험 문제를 로딩 중입니다...</p>
           </div>
         </div>
+        
         <div class="submit-and-exit-buttons">
-          <button class="submit-button" @click="handleSubmitAnswer" :disabled="!currentQuestion">
+          <button class="submit-button" @click="handleSubmitAnswer" :disabled="!currentQuestion || showGradingOverlay">
             제출
           </button>
         </div>
       </main>
     </div>
     <Footer />
+
+    <AiGradingLoading :show="showGradingOverlay" />
+
+    <div class="completion-overlay" v-if="showCompletionButtons">
+      <div class="completion-card">
+        <p class="completion-message">채점이 완료되었습니다!</p>
+        <div class="completion-buttons">
+          <button class="action-button primary" @click="goToTestResult">채점 결과 확인</button>
+          <button class="action-button secondary" @click="goToTraineeMain">수강생 메인으로</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -79,7 +93,8 @@ import Footer from '@/components/layouts/Footer.vue';
 import SvgIcon from '@jamescoyle/vue-icon';
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js';
 import TraineeTestSideBar from '@/components/trainee/test/TraineeTestSideBar.vue';
-import axios from 'axios'; // axios 임포트
+import axios from 'axios';
+import AiGradingLoading from '@/components/trainee/test/AiGradingLoading.vue'; // 새로 추가된 컴포넌트 임포트
 
 // --- 문제 데이터 타입 정의 ---
 interface GradingCriterion {
@@ -101,7 +116,6 @@ interface RawQuestion {
   tags: string[];
 }
 
-// QuestionData 인터페이스에 isAnswered 속성 추가
 export interface QuestionData {
   id: string;
   type: 'OBJECTIVE' | 'SUBJECTIVE';
@@ -112,7 +126,7 @@ export interface QuestionData {
   gradingCriteria: GradingCriterion[] | null;
   document_id: number;
   tags: string[];
-  isAnswered: boolean; // 추가된 속성
+  isAnswered: boolean;
 }
 // --- 문제 데이터 타입 정의 끝 ---
 
@@ -122,11 +136,14 @@ const route = useRoute();
 const testId = route.params.testId as string;
 const userId = ref('testUser123'); // 예시 userId, 실제로는 로그인 정보 등에서 가져와야 함
 
-// allQuestions를 QuestionData[] 타입으로 선언
 const allQuestions = ref<QuestionData[]>([]);
 const currentQuestionId = ref<string | null>(null);
-
 const userAnswers = ref(new Map<string, string | { value: string }>());
+
+// AI 채점 로딩 오버레이 상태
+const showGradingOverlay = ref(false);
+// 채점 완료 후 버튼 표시 상태
+const showCompletionButtons = ref(false);
 
 const currentQuestion = computed(() => {
   if (!currentQuestionId.value || allQuestions.value.length === 0) {
@@ -142,7 +159,7 @@ const currentQuestionIndex = computed(() => {
 
 const hasPreviousQuestion = computed(() => currentQuestionIndex.value > 0);
 const hasNextQuestion = computed(() => currentQuestionIndex.value < allQuestions.value.length - 1);
-const isLastQuestion = computed(() => currentQuestionIndex.value === allQuestions.value.length - 1); // 변수명 복원
+const isLastQuestion = computed(() => currentQuestionIndex.value === allQuestions.value.length - 1);
 
 const sampleApiData: RawQuestion[] = [
   {
@@ -235,9 +252,9 @@ const fetchTestQuestions = async () => {
         let initialAnswerValue: string | { value: string };
 
         if (rawQ.type === 'SUBJECTIVE') {
-          initialAnswerValue = ref(''); // 주관식은 ref 객체로 초기화
+          initialAnswerValue = ref('');
         } else {
-          initialAnswerValue = ''; // 객관식은 문자열로 초기화
+          initialAnswerValue = '';
         }
         userAnswers.value.set(generatedId, initialAnswerValue);
         
@@ -251,7 +268,7 @@ const fetchTestQuestions = async () => {
           gradingCriteria: null,
           document_id: rawQ.document_id,
           tags: rawQ.tags,
-          isAnswered: false, // 모든 문제의 답변 여부를 false로 초기화
+          isAnswered: false,
         };
       });
 
@@ -269,10 +286,13 @@ const fetchTestQuestions = async () => {
 };
 
 const handleQuestionSelectFromSidebar = (questionId: string) => {
-  currentQuestionId.value = questionId;
+  if (!showGradingOverlay.value && !showCompletionButtons.value) { // 로딩/완료 화면 중이 아닐 때만 이동
+    currentQuestionId.value = questionId;
+  }
 };
 
 const goToPreviousQuestion = () => {
+  if (showGradingOverlay.value || showCompletionButtons.value) return; // 로딩/완료 화면 중일 때는 작동 안 함
   const currentIndex = allQuestions.value.findIndex(q => q.id === currentQuestionId.value);
   if (currentIndex > 0) {
     currentQuestionId.value = allQuestions.value[currentIndex - 1].id;
@@ -280,6 +300,7 @@ const goToPreviousQuestion = () => {
 };
 
 const goToNextQuestion = () => {
+  if (showGradingOverlay.value || showCompletionButtons.value) return; // 로딩/완료 화면 중일 때는 작동 안 함
   const currentIndex = allQuestions.value.findIndex(q => q.id === currentQuestionId.value);
   if (currentIndex < allQuestions.value.length - 1) {
     currentQuestionId.value = allQuestions.value[currentIndex + 1].id;
@@ -291,9 +312,9 @@ const getOptionLabel = (index: number): string => {
 };
 
 const selectOption = (option: string) => {
+  if (showGradingOverlay.value || showCompletionButtons.value) return; // 로딩/완료 화면 중일 때는 선택 안 됨
   if (currentQuestion.value) {
     userAnswers.value.set(currentQuestion.value.id, option);
-    // 객관식 답변 시 해당 문제의 isAnswered를 true로 설정
     const questionToUpdate = allQuestions.value.find(q => q.id === currentQuestion.value?.id);
     if (questionToUpdate) {
       questionToUpdate.isAnswered = true;
@@ -302,7 +323,7 @@ const selectOption = (option: string) => {
 };
 
 const handleSubmitAnswer = () => {
-  if (!currentQuestion.value) return;
+  if (!currentQuestion.value || showGradingOverlay.value || showCompletionButtons.value) return;
 
   const unansweredQuestions = allQuestions.value.filter(q => !q.isAnswered);
   let confirmMessage = '';
@@ -319,18 +340,19 @@ const handleSubmitAnswer = () => {
 };
 
 const submitFinalTest = async () => {
-  // 전송할 답변 데이터 형식에 맞춰 변환
+  showGradingOverlay.value = true; // AI 채점 로딩 화면 표시
+
   const answersToSend = Array.from(userAnswers.value.entries()).map(([questionId, answer]) => {
     const question = allQuestions.value.find(q => q.id === questionId);
     return {
       id: questionId,
       response: typeof answer === 'object' ? answer.value : answer,
-      questionType: question ? question.type : 'UNKNOWN' // 문제 타입도 함께 전송
+      questionType: question ? question.type : 'UNKNOWN'
     };
   });
 
   const requestBody = {
-    userId: userId.value, // 실제 userId 사용
+    userId: userId.value,
     testId: testId,
     answers: answersToSend
   };
@@ -338,32 +360,48 @@ const submitFinalTest = async () => {
   console.log('최종 제출될 요청 바디:', requestBody);
 
   try {
-    const response = await axios.post('/api/answer', requestBody);
-    console.log('시험 제출 성공:', response.data);
-    alert('시험이 성공적으로 제출되었습니다!');
+    // 실제 API 호출 대신 3초 지연 시뮬레이션
+    // const response = await axios.post('/api/answer', requestBody);
+    await new Promise(resolve => setTimeout(resolve, 3000)); // 3초 대기
+
+    console.log('시험 제출 및 채점 완료 (시뮬레이션)');
+    // alert('시험이 성공적으로 제출 및 채점되었습니다!'); // 이 메시지는 이제 오버레이 이후에 보여짐
+
+    showGradingOverlay.value = false; // AI 채점 로딩 화면 숨김
+    showCompletionButtons.value = true; // 완료 후 버튼 표시
     
-    // 성공 시 결과 페이지로 이동
-    router.push({
-      name: 'TraineeTestResult',
-      params: { testId: testId },
-      state: { testName: '모의 시험', actualScore: 85, isPassed: true } // 예시 데이터
-    });
   } catch (error) {
     console.error('시험 제출 실패:', error);
+    showGradingOverlay.value = false; // 에러 발생 시 로딩 화면 숨김
+
     if (axios.isAxiosError(error) && error.response) {
-      // 서버에서 보낸 에러 메시지가 있다면 출력
       alert(`시험 제출 중 오류가 발생했습니다: ${error.response.data.message || '알 수 없는 오류'}`);
     } else {
       alert('시험 제출 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
+    // 에러 발생 시에는 완료 버튼을 보여주지 않고 원래 화면 유지
+    showCompletionButtons.value = false;
   }
 };
 
-// 주관식 답변의 변경을 감지하고 isAnswered 상태 업데이트
+// 채점 결과 확인 페이지로 이동
+const goToTestResult = () => {
+  router.push({
+    name: 'TraineeTestResult',
+    params: { testId: testId },
+    state: { testName: '모의 시험', actualScore: 85, isPassed: true }
+  });
+};
+
+// 수강생 메인 페이지로 이동
+const goToTraineeMain = () => {
+  router.push({ name: 'TraineeMain' }); // TraineeMain 라우트 이름으로 이동
+};
+
+
 watch(() => {
   if (currentQuestion.value?.type === 'SUBJECTIVE') {
     const answerRef = userAnswers.value.get(currentQuestion.value.id);
-    // 주관식 답변이 ref이므로 .value를 통해 실제 문자열 값을 감시
     return (answerRef as { value: string }).value;
   }
   return undefined;
@@ -371,7 +409,6 @@ watch(() => {
   if (currentQuestion.value && currentQuestion.value.type === 'SUBJECTIVE') {
     const questionToUpdate = allQuestions.value.find(q => q.id === currentQuestion.value?.id);
     if (questionToUpdate) {
-      // 답변 내용이 비어있지 않으면 answered를 true로 설정 (공백도 답변으로 간주)
       questionToUpdate.isAnswered = newValue !== '' && newValue !== undefined && newValue !== null;
     }
   }
@@ -384,14 +421,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/*
-  전체 레이아웃 스타일
-  Header, Footer가 fixed이므로, main content는 margin/padding으로 공간 확보
-*/
 #test-taking-page-layout {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* 뷰포트 전체 높이를 사용 */
+  height: 100vh;
   background-color: #f8f8f8;
   font-family: 'Noto Sans KR', sans-serif;
   overflow: hidden;
@@ -399,26 +432,19 @@ onMounted(() => {
 
 .page-content-wrapper {
   display: grid;
-  grid-template-columns: var(--sidebar-width, 220px) 1fr; /* 사이드바 추가로 인한 grid-template-columns 변경 */
-  height: calc(100vh - 70px - 60px); /* 예시: Header 70px, Footer 60px 가정 */
-  grid-template-rows: 1fr; /* 높이는 자동으로 채움 */
-  grid-template-areas: "sidebar main-content"; /* 사이드바 영역 명시 */
+  grid-template-columns: var(--sidebar-width, 220px) 1fr;
+  height: calc(100vh - 70px - 60px);
+  grid-template-rows: 1fr;
+  grid-template-areas: "sidebar main-content";
   flex: 1;
   position: relative;
   overflow: hidden;
 }
 
-/* 사이드바 스타일 (TraineeTestSideBar.vue에 정의되어 있지만, 부모에서 영역 지정) */
 .page-content-wrapper .trainee-test-sidebar {
   grid-area: sidebar;
   overflow-y: auto;
 }
-
-/* .has-sidebar 클래스는 이제 항상 적용되므로 제거하거나, 유동적인 너비 조절용으로 유지 */
-/* .page-content-wrapper.has-sidebar {
-  --sidebar-width: 250px;
-} */
-
 
 .main-content-area {
   grid-area: main-content;
@@ -428,29 +454,26 @@ onMounted(() => {
   overflow: hidden;
   gap: 25px;
   box-sizing: border-box;
-  position: relative; /* 제출 버튼을 absolute로 배치하기 위한 기준점 */
+  position: relative;
   min-height: 0;
-  /* padding-bottom: 85px; 이 부분은 이제 .test-taking-container-inner가 다 채우므로 필요 없음 */
 }
 
 .test-taking-container-inner {
   display: flex;
   flex-direction: column;
-  flex-grow: 1; /* 남은 공간을 모두 차지하도록 설정 */
-  min-height: 0; /* flex item 내부 스크롤을 위해 필요 */
-  overflow: hidden; /* 내부 스크롤을 위한 설정 */
-  /* 제출 버튼 공간 확보를 위해 .question-taking-area가 아닌 이 컨테이너의 하단 패딩을 줄 수도 있음 */
-  padding-bottom: 120px; /* 제출 버튼 높이(40px) + 여백(35px) */
+  flex-grow: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding-bottom: 120px;
 }
 
-/* Question Taking Area (문제 영역이 남은 공간을 모두 차지하도록) */
 .question-taking-area {
   display: flex;
   flex-direction: column;
-  flex-grow: 1; /* 이 부분이 중요: 남은 공간을 채움 */
+  flex-grow: 1;
   gap: 25px;
-  min-height: 0; /* flex item 내부 스크롤을 위해 필요 */
-  overflow: hidden; /* 이 영역에 스크롤이 생길 수 있음 */
+  min-height: 0;
+  overflow: hidden;
 }
 
 .question-section {
@@ -462,18 +485,17 @@ onMounted(() => {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  flex-grow: 1; /* 남은 공간을 차지하여 높이 유연하게 조절 */
-  min-height: 350px; /* 최소 높이 유지 */
-  overflow: hidden; /* 내부 스크롤 가능한 영역을 위해 */
+  flex-grow: 1;
+  min-height: 350px;
+  overflow: hidden;
 }
 
-/* Top Navigation */
 .top-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 25px;
-  flex-shrink: 0; /* 이 요소는 축소되지 않음 */
+  flex-shrink: 0;
 }
 
 .question-number-top {
@@ -526,7 +548,6 @@ onMounted(() => {
 .nav-button:hover:not(:disabled) .nav-icon {
   color: #495057;
 }
-
 
 .question-text-fixed {
   flex-shrink: 0;
@@ -649,17 +670,15 @@ onMounted(() => {
   outline: none;
 }
 
-
-/* Submit and Exit Buttons (오른쪽 하단 고정) */
 .submit-and-exit-buttons {
-  position: absolute; /* main-content-area에 상대적으로 고정 */
-  bottom: 85px; /* Footer 높이(60px) + 버튼 하단 여백(25px) = 85px */
-  right: 25px; /* main-content-area의 padding-right와 일치 */
+  position: absolute;
+  bottom: 85px;
+  right: 25px;
   display: flex;
   justify-content: flex-end;
   gap: 15px;
   flex-shrink: 0;
-  z-index: 10; /* 다른 요소 위에 오도록 z-index 설정 */
+  z-index: 10;
 }
 
 .submit-button {
@@ -698,5 +717,84 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* 채점 완료 후 선택 버튼 오버레이 스타일 */
+.completion-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9998; /* AI 채점 오버레이보다 낮은 z-index */
+}
+
+.completion-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 40px 50px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px;
+  max-width: 500px;
+  width: 90%;
+  box-sizing: border-box;
+}
+
+.completion-message {
+  font-size: 26px;
+  font-weight: 700;
+  color: #343a40;
+  margin: 0;
+}
+
+.completion-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  width: 100%;
+}
+
+.action-button {
+  border: none;
+  border-radius: 10px;
+  padding: 14px 28px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+  flex-grow: 1;
+  max-width: 200px; /* 버튼 최대 너비 설정 */
+}
+
+.action-button.primary {
+  background-color: #007bff; /* 파란색 */
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+}
+
+.action-button.primary:hover {
+  background-color: #0069d9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.action-button.secondary {
+  background-color: #6c757d; /* 회색 */
+  color: white;
+  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.2);
+}
+
+.action-button.secondary:hover {
+  background-color: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
 }
 </style>
