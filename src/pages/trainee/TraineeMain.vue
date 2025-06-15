@@ -170,6 +170,7 @@ const hideAddTestModal = () => {
   addTestModalVisible.value = false;
 };
 
+// --- START: 수정된 addTestByLink 함수 ---
 const addTestByLink = async (link: string) => {
   invitationLinkError.value = '';
   invitationLink.value = link;
@@ -179,29 +180,63 @@ const addTestByLink = async (link: string) => {
     return;
   }
 
+  // 초대 링크에서 토큰 추출 로직
+  // 실제 초대 링크 형식에 맞춰 파싱 로직을 구현해야 합니다.
+  // 예시: http://yourdomain.com/invite?token=YOUR_TOKEN_HERE
+  let token = null;
   try {
-    const response = await api.post('/trainee/join-test', { invitationLink: invitationLink.value });
+    const url = new URL(invitationLink.value);
+    token = url.searchParams.get('token');
+  } catch (e) {
+    // URL 파싱 실패 시 (예: 유효하지 않은 URL 형식)
+    invitationLinkError.value = '유효한 초대 링크 형식이 아닙니다.';
+    return;
+  }
+
+  if (!token) {
+    invitationLinkError.value = '유효한 초대 링크가 아닙니다. 토큰을 찾을 수 없습니다.';
+    return;
+  }
+
+  const userId = localStorage.getItem('userId');
+  if (!userId) {
+    alert('사용자 ID를 찾을 수 없습니다. 다시 로그인해주세요.');
+    router.push('/login');
+    return;
+  }
+
+  try {
+    const response = await api.post('/test/invite/register', {
+      token: token,
+      userId: parseInt(userId), // userId는 int 타입이므로 parseInt로 변환
+      lang: 'ko', // 기본값 'ko' 사용
+    });
+
     console.log('테스트 추가 성공:', response.data);
     alert('테스트에 성공적으로 참여했습니다!');
-    // 초대 링크로 시험에 참여했을 때도 안내 페이지로 리다이렉트
-    // 서버 응답에 시험 정보가 포함되어 있다고 가정합니다.
-    const joinedTestInfo = response.data.testDetails; // 예시: 서버 응답에 testDetails 객체가 있다고 가정
+
+    // 서버 응답 데이터 구조에 따라 joinedTestInfo 추출 로직 변경 필요
+    // Swagger 정의에 따르면 응답 데이터가 testDetails를 직접 포함하지 않을 수 있습니다.
+    // 여기서는 응답으로 받은 테스트 정보를 기반으로 안내 페이지로 리다이렉트합니다.
+    const joinedTestInfo = response.data?.resultData?.testDetails || response.data?.testDetails; // 서버 응답 구조에 따라 유연하게 처리
+    
     if (joinedTestInfo && joinedTestInfo.testId) {
       router.push({
         name: 'TraineeTestGuide',
         params: { testId: joinedTestInfo.testId.toString() },
         state: {
           testName: joinedTestInfo.name,
-          // projectId: joinedTestInfo.projectId, // 제거
-          limitedTimeM: joinedTestInfo.limitedTime, // limitedTime으로 변경
-          // passScore: joinedTestInfo.passScore, // 제거
+          limitedTimeM: joinedTestInfo.limitedTime,
           difficultyLevel: joinedTestInfo.difficultyLevel,
-          isRetake: joinedTestInfo.retake, // boolean 값 사용
+          isRetake: joinedTestInfo.retake,
         }
       });
     } else {
-      // 시험 정보가 없으면 그냥 목록 새로고침
-      await fetchTests(); // 목록을 다시 불러옵니다.
+      // 서버에서 상세 정보를 바로 주지 않으면, 전체 목록을 새로고침하여 반영
+      await fetchTests();
+      // 또한, 테스트 추가 후 바로 안내 페이지로 이동하는 대신,
+      // 메인 페이지에서 추가된 테스트를 확인하도록 사용자에게 안내할 수 있습니다.
+      // alert('새로운 테스트가 목록에 추가되었습니다.');
     }
     hideAddTestModal();
   } catch (error: any) {
@@ -213,6 +248,7 @@ const addTestByLink = async (link: string) => {
     }
   }
 };
+// --- END: 수정된 addTestByLink 함수 ---
 
 const fetchTests = async () => {
   try {
