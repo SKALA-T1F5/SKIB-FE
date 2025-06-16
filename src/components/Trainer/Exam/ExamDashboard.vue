@@ -43,21 +43,29 @@
       </v-col>
       <!-- 오른쪽: 평균 점수/합격자 수, 학습자별 분석, Tag별 분석 -->
       <v-col cols="12" sm="3">
-        <v-card elevation="0" class="score-stats-card">
+        <v-card class="dashboard-card" style="height: 520px;">
           <v-card-title class="card-title">평균 점수 / 합격자 수</v-card-title>
           <v-divider color="secondary" class="custom-divider"></v-divider>
           <v-card-text>
-            <div v-if="scoreStats" class="d-flex flex-column align-center justify-center h-100">
-              <div class="text-center mb-4">
-                <p class="text-h4 font-weight-bold" style="color: #1976D2;">{{ scoreStats.averageScore }}</p>
-                <p class="text-body-2">평균 점수</p>
+            <!-- <div v-if="scoreStats" class="score-stats-grid"> -->
+              <div class="score-stats-item">
+                <div class="score-stats-icon">
+                  <v-icon color="primary">mdi-account-group</v-icon>
+                </div>
+                <div>
+                  <div class="score-stats-value">{{ scoreStats.averageScore }}</div>
+                  <div class="score-stats-label">평균 점수</div>
+                </div>
               </div>
-              <div class="text-center">
-                <p class="text-h4 font-weight-bold" style="color: #4CAF50;">{{ scoreStats.passCount }}</p>
-                <p class="text-body-2">합격자 수</p>
+              <div class="score-stats-item">
+                <div class="score-stats-icon">
+                  <v-icon color="primary">mdi-check-circle</v-icon>
+                </div>
+                <div>
+                  <div class="score-stats-value">{{ scoreStats.passCount }}</div>
+                  <div class="score-stats-label">합격자 수</div>
+                </div>
               </div>
-            </div>
-            <v-progress-circular v-else indeterminate color="primary"></v-progress-circular>
           </v-card-text>
         </v-card>
         <v-card elevation="0" class="mt-4">
@@ -97,7 +105,12 @@ const props = defineProps({
 // 데이터 상태 관리
 const totalStudents = ref(0);
 const aiSummary = ref(null);
-const scoreStats = ref(null);
+const scoreStats = ref({
+  averageScore: 0,
+  passCount: 0,
+  failCount: 0,
+  passRate: 0
+});
 const loading = ref(false);
 const error = ref(null);
 
@@ -111,7 +124,9 @@ const mockData = {
   },
   scoreStats: {
     averageScore: 75.5,
-    passCount: 18
+    passCount: 18,
+    failCount: 7,
+    passRate: 72.0
   }
 };
 
@@ -220,8 +235,54 @@ onMounted(() => {
   margin-bottom: 0;
 }
 
-.score-stats-card {
-  height: 180px;
+.score-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0;
+  background: #f5f7fb;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px 0 rgba(60, 72, 100, 0.04);
+  overflow: hidden;
+}
+.score-stats-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 0 20px 0;
+  background: #fff;
+  border-right: 1px solid #e3e6ed;
+  border-bottom: 1px solid #e3e6ed;
+}
+.score-stats-item:nth-child(2n) {
+  border-right: none;
+}
+.score-stats-item:nth-last-child(-n+2) {
+  border-bottom: none;
+}
+.score-stats-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #f5f7fb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  font-size: 28px;
+}
+.score-stats-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #3c4864;
+  margin-bottom: 2px;
+}
+.score-stats-label {
+  font-size: 0.85rem;
+  color: #a0a4b8;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 /* 반응형 스타일 */
@@ -251,5 +312,13 @@ onMounted(() => {
   font-weight: 500 !important;
   padding: 16px !important;
   line-height: 1.5 !important;
+}
+
+.dashboard-card {
+  border-radius: 16px;
+  box-shadow: 0 2px 8px 0 rgba(60, 72, 100, 0.04);
+  background: #fff;
+  margin-bottom: 24px;
+  /* 필요시 공통 스타일 추가 */
 }
 </style>
