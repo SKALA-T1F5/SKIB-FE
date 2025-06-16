@@ -40,7 +40,7 @@
               </v-btn>
               <v-spacer />
               <v-btn color="primary" style="width: 48%;" variant="outlined" prepend-icon="mdi-chart-line" size="default"
-                @click="router.push('/exam/1')">
+                @click="handleExamDashboard">
                 응시현황
               </v-btn>
             </v-card-text>
@@ -79,12 +79,16 @@ import { API_BASE_URL } from '@/config/api';
 // console.log('token:', token);
 // console.log('projectId:', projectId);
 
-const emit = defineEmits(['next-step']);
+const emit = defineEmits(['next-step', 'exam-dashboard']);
 
 const router = useRouter();
 
 const addExam = () => {
   emit('next-step');
+};
+
+const handleExamDashboard = () => {
+  emit('exam-dashboard');
 };
 
 const props = defineProps({

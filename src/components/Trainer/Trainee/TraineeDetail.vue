@@ -16,28 +16,7 @@
               <v-expansion-panel-title>인적사항</v-expansion-panel-title>
               <v-expansion-panel-text>
                 <v-card-text>
-                  <v-list dense>
-                    <v-list-item>
-                      <v-list-item-title class="font-weight-bold">이름:</v-list-item-title>
-                      <v-list-item-subtitle>{{ traineeDetail.name }}</v-list-item-subtitle>
-                    </v-list-item>
-                    <v-list-item>
-                      <v-list-item-title class="font-weight-bold">이메일:</v-list-item-title>
-                      <v-list-item-subtitle>{{ traineeDetail.email }}</v-list-item-subtitle>
-                    </v-list-item>
-                    <v-list-item>
-                      <v-list-item-title class="font-weight-bold">상태:</v-list-item-title>
-                      <v-list-item-subtitle>{{ traineeDetail.status }}</v-list-item-subtitle>
-                    </v-list-item>
-                    <v-list-item>
-                      <v-list-item-title class="font-weight-bold">등록일:</v-list-item-title>
-                      <v-list-item-subtitle>{{ traineeDetail.registeredDate }}</v-list-item-subtitle>
-                    </v-list-item>
-                    <v-list-item>
-                      <v-list-item-title class="font-weight-bold">최근 로그인:</v-list-item-title>
-                      <v-list-item-subtitle>{{ traineeDetail.lastLogin }}</v-list-item-subtitle>
-                    </v-list-item>
-                  </v-list>
+ 
                 </v-card-text>
               </v-expansion-panel-text>
             </v-expansion-panel>
@@ -51,17 +30,7 @@
               <v-expansion-panel-title>{{ test.testName }}</v-expansion-panel-title>
               <v-expansion-panel-text>
                 <v-card-text>
-                  <v-list dense>
-                    <v-list-item>
-                      <v-list-item-title class="font-weight-bold">응시일:</v-list-item-title>
-                      <v-list-item-subtitle>{{ test.date }}</v-list-item-subtitle>
-                    </v-list-item>
-                    <v-list-item>
-                      <v-list-item-title class="font-weight-bold">점수:</v-list-item-title>
-                      <v-list-item-subtitle>{{ test.score }}</v-list-item-subtitle>
-                    </v-list-item>
-                  </v-list>
-                  <TraineeDetailChart :scoreList="[80, 90, 85, 70, 90, 60, 100, 75, 85]" :targetScore="85" />
+
                 </v-card-text>
               </v-expansion-panel-text>
             </v-expansion-panel>

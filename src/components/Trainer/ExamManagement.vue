@@ -1,7 +1,13 @@
 <template>
     <v-container fluid class="exam-management">
       <keep-alive>
-        <component :is="currentComponent" @next-step="handleNextStep" @prev-step="handlePrevStep" @reset-step="handleResetStep" />
+        <component 
+          :is="currentComponent" 
+          @next-step="handleNextStep" 
+          @prev-step="handlePrevStep" 
+          @reset-step="handleResetStep" 
+          @exam-dashboard="handleExamDashboard"
+        />
       </keep-alive>
     </v-container>
 </template>
@@ -15,12 +21,13 @@ import ExamPrompt from './Exam/ExamPrompt.vue';
 import ExamSetting from './Exam/ExamSetting.vue';
 import ExamCheck from './Exam/ExamCheck.vue';
 import ExamComplete from './Exam/ExamComplete.vue';
+import ExamDashboard from './Exam/ExamDashboard.vue';
 
 
 const router = useRouter();
 const route = useRoute();
 
-const emit = defineEmits(['next-step', 'prev-step']);
+const emit = defineEmits(['next-step', 'prev-step', 'exam-dashboard']);
 
 const currentStep = ref(0);
 
@@ -46,6 +53,10 @@ const components = [
     name: 'ExamComplete',
     component: ExamComplete,
   },
+  {
+    name: 'ExamDashboard',
+    component: ExamDashboard,
+  },
 ];
 
 const currentComponent = computed(() => components[currentStep.value].component);
@@ -65,6 +76,11 @@ function handlePrevStep() {
 function handleResetStep() {
   currentStep.value = 0;
 }
+
+function handleExamDashboard() {
+  currentStep.value = 5;
+}
+
 </script>
 
 <style lang="scss" scoped>
