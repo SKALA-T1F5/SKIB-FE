@@ -7,7 +7,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed, watch } from 'vue';
 import {
   Chart as ChartJS,
@@ -30,9 +30,9 @@ ChartJS.register(
   Legend
 );
 
-const props = defineProps<{
-  tagAccuracy: { [key: string]: number }; // { tag: score } 형태
-}>();
+const props = defineProps({
+  tagAccuracy: Object // { tag: score } 형태, TypeScript의 { [key: string]: number } 대신 Object로
+});
 
 const chartData = computed(() => {
   const labels = Object.keys(props.tagAccuracy);
@@ -83,7 +83,7 @@ const chartOptions = ref({
         backdropColor: 'rgba(255, 255, 255, 0.7)', // 틱 라벨 배경색
         backdropPadding: 2,
         display: true, // 틱 라벨 표시
-        callback: function(value: any) {
+        callback: function(value) { // value: any 제거
           return value + '%'; // 틱 라벨에 % 붙이기
         }
       }
@@ -95,7 +95,7 @@ const chartOptions = ref({
     },
     tooltip: {
       callbacks: {
-        label: function(context: any) {
+        label: function(context) { // context: any 제거
           let label = context.dataset.label || '';
           if (label) {
             label += ': ';

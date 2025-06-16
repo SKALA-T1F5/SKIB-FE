@@ -8,12 +8,12 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { defineProps } from 'vue';
 
-const props = defineProps<{
-  show: boolean;
-}>();
+const props = defineProps({
+  show: Boolean, // TypeScript의 'boolean;' 대신 'Boolean'
+});
 </script>
 
 <style scoped>

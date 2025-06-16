@@ -1,43 +1,43 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router' // RouteRecordRaw 제거
 import Login from '@/pages/general/Login.vue'
 import MyPage from '@/pages/general/MyPage.vue'
 import TrainerMain from '@/pages/trainer/TrainerMain.vue'
 import TraineeMain from '@/pages/trainee/TraineeMain.vue'
 import TraineeTestGuide from '@/pages/trainee/TraineeTestGuide.vue';
-import TraineeTest from '@/pages/trainee/TraineeTest.vue' // @/pages/trainee/TraineeTest.vue 경로 확인
+import TraineeTest from '@/pages/trainee/TraineeTest.vue'
 import TraineeTestResult from '@/pages/trainee/TraineeTestResult.vue'
 import TraineeTestFeedback from '@/pages/trainee/TraineeTestFeedback.vue'
 
-const routes: RouteRecordRaw[] = [
+const routes = [ // : RouteRecordRaw[] 제거
   { path: '/login', name: 'Login', component: Login },
   { path: '/mypage', name: 'MyPage', component: MyPage },
   { path: '/trainer/main', name: 'TrainerMain', component: TrainerMain },
   { path: '/trainee/main', name: 'TraineeMain', component: TraineeMain },
   {
-    path: '/trainee/test/guide/:testId', // 경로를 좀 더 명확하게 수정
+    path: '/trainee/test/guide/:testId',
     name: 'TraineeTestGuide',
     component: TraineeTestGuide,
-    props: true, // 라우트 파라미터를 컴포넌트 prop으로 전달
+    props: true,
   },
   {
-    path: '/trainee/test/attend/:testId', // 응시 페이지 경로
+    path: '/trainee/test/attend/:testId',
     name: 'TraineeTest',
     component: TraineeTest,
     props: true
   },
   {
-    path: '/trainee/test/result/:testId', // 결과 페이지 경로
+    path: '/trainee/test/result/:testId',
     name: 'TraineeTestResult',
     component: TraineeTestResult,
-    props: true // 파라미터를 props로 받으려면 필요
+    props: true
   },
   {
-    path: '/trainee/test/feedback/:testId', // 피드백 페이지 경로
+    path: '/trainee/test/feedback/:testId',
     name: 'TraineeTestFeedback',
     component: TraineeTestFeedback,
     props: true
   },
-  { path: '/:pathMatch(.*)*', redirect: '/login' }, // 정의되지 않은 모든 경로를 로그인으로 리다이렉트 (맨 마지막에 위치)
+  { path: '/:pathMatch(.*)*', redirect: '/login' },
 ];
 
 const router = createRouter({

@@ -14,6 +14,7 @@ import LogoArea from './header/LogoArea.vue'
 import LangSwitcher from './header/LangSwitcher.vue'
 import UserMenu from './header/UserMenu.vue'
 
+// TypeScript의 interface 또는 type 정의 없이 JavaScript 객체로 props를 정의합니다.
 const props = defineProps({
   name: { type: String, default: 'Nickname' },
   role: { type: String, default: 'Trainee' },

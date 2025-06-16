@@ -52,7 +52,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '@/utils/axios'; // axios 인스턴스 경로 확인
@@ -64,32 +64,12 @@ import AddTestModal from '@/components/trainee/main/AddTestModal.vue';
 
 const router = useRouter();
 
-// 서버 응답 데이터에 맞는 인터페이스 정의
-export interface SimpleTestApiResponse {
-  testId: number;
-  name: string;
-  difficultyLevel: 'EASY' | 'NORMAL' | 'HARD';
-  score: number;
-  limitedTime: number;
-  createdAt: string;
-  isPassed: boolean; // 합격 여부
-  retake: boolean; // 재응시 가능 여부
-}
-
-// 클라이언트에서 사용할 Test 인터페이스 (서버 응답 데이터 포함)
-export interface Test {
-  testId: number;
-  name: string;
-  difficultyLevel: 'EASY' | 'NORMAL' | 'HARD';
-  score: number;
-  limitedTime: number;
-  createdAt: string;
-  isPassed: boolean;
-  retake: boolean;
-}
+// TypeScript interfaces are removed.
+// The structure of the 'Test' object will be implicitly understood from its usage
+// and the data fetched from the API.
 
 const userName = ref(localStorage.getItem('name') || '사용자');
-const tests = ref<Test[]>([]); // API에서 불러올 실제 테스트 데이터
+const tests = ref([]); // Removed <Test[]> type annotation
 
 const searchQuery = ref('');
 const statusFilters = ref({
@@ -120,11 +100,12 @@ const filteredTests = computed(() => {
     currentTests = currentTests.filter(test => {
       let matchStatusFilter = false;
 
-      // isPassed와 retake 필드를 기반으로 필터링
-      if (isDoneChecked && (test.isPassed || !test.isPassed)) { // 'done'은 응시 여부이므로, 합격/불합격 모두 포함
+      // 'done'은 응시 여부이므로, 합격/불합격 모두 포함
+      if (isDoneChecked && (test.isPassed || !test.isPassed)) {
         matchStatusFilter = true;
       }
-      if (isRetryChecked && test.retake && !test.isPassed) { // 'retry'는 재응시 가능하며 불합격인 경우
+      // 'retry'는 재응시 가능하며 불합격인 경우
+      if (isRetryChecked && test.retake && !test.isPassed) {
         matchStatusFilter = true;
       }
       return matchStatusFilter;
@@ -171,7 +152,7 @@ const hideAddTestModal = () => {
 };
 
 // --- START: 수정된 addTestByLink 함수 ---
-const addTestByLink = async (link: string) => {
+const addTestByLink = async (link) => { // Removed ': string' type annotation
   invitationLinkError.value = '';
   invitationLink.value = link;
 
@@ -219,7 +200,7 @@ const addTestByLink = async (link: string) => {
     // Swagger 정의에 따르면 응답 데이터가 testDetails를 직접 포함하지 않을 수 있습니다.
     // 여기서는 응답으로 받은 테스트 정보를 기반으로 안내 페이지로 리다이렉트합니다.
     const joinedTestInfo = response.data?.resultData?.testDetails || response.data?.testDetails; // 서버 응답 구조에 따라 유연하게 처리
-    
+
     if (joinedTestInfo && joinedTestInfo.testId) {
       router.push({
         name: 'TraineeTestGuide',
@@ -239,7 +220,7 @@ const addTestByLink = async (link: string) => {
       // alert('새로운 테스트가 목록에 추가되었습니다.');
     }
     hideAddTestModal();
-  } catch (error: any) {
+  } catch (error) { // Removed ': any' type annotation
     console.error('테스트 추가 실패:', error);
     if (error.response && error.response.data && error.response.data.message) {
       invitationLinkError.value = error.response.data.message;
@@ -259,17 +240,17 @@ const fetchTests = async () => {
       return;
     }
 
-    const response = await api.get<any>('/test/getUserTestList', {
+    const response = await api.get('/test/getUserTestList', { // Removed <any> type annotation
       params: {
         userId: userId
       }
     });
-    
+
     // 서버 응답에서 resultData.tests 배열을 추출합니다.
     const fetchedTestData = response.data?.resultData?.tests;
 
     if (Array.isArray(fetchedTestData)) {
-      tests.value = fetchedTestData.map((test: SimpleTestApiResponse) => {
+      tests.value = fetchedTestData.map((test) => { // Removed ': SimpleTestApiResponse' type annotation
         return {
           testId: test.testId,
           name: test.name,
@@ -307,7 +288,7 @@ const handleResetFilters = () => {
   fetchTests();
 };
 
-const handleTestCardAction = (test: Test, actionType: 'result' | 'feedback' | 'attend') => {
+const handleTestCardAction = (test, actionType) => { // Removed type annotations for test and actionType
   console.log(`'${test.name}' ${actionType} 요청 (Test ID: ${test.testId})`);
 
   if (actionType === 'result') {
@@ -431,7 +412,7 @@ onMounted(() => {
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 24px;
   /* 기존 유지: flex-start는 그리드 아이템이 시작부터 정렬되도록 합니다. */
-  justify-content: flex-start; 
+  justify-content: flex-start;
   align-items: flex-start;
   /* 추가: 행의 높이를 콘텐츠에 따라 자동으로 조절합니다. */
   grid-auto-rows: minmax(auto, auto); /* 카드의 내용 길이에 따라 유연하게 높이 조절 */

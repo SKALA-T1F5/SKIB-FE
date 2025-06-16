@@ -26,31 +26,21 @@
   </SideBar>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { defineProps, defineEmits } from 'vue';
 import SideBar from '@/components/layouts/SideBar.vue';
 
-interface QuestionDataForSidebar {
-  id: string;
-  type: 'OBJECTIVE' | 'SUBJECTIVE';
-  difficulty_level: 'EASY' | 'NORMAL' | 'HARD';
-  questionText: string;
-  options: string[] | null;
-  explanation: string;
-  gradingCriteria: any[] | null;
-  document_id: number;
-  tags: string[];
-  isAnswered: boolean;
-}
+// TypeScript interface removed.
+// The prop types will be inferred or can be defined using JavaScript's runtime type checking.
 
-const props = defineProps<{
-  questions: QuestionDataForSidebar[];
-  currentQuestionId: string | null;
-}>();
+const props = defineProps({
+  questions: Array, // Use Array instead of QuestionDataForSidebar[]
+  currentQuestionId: [String, null], // Use [String, null] for string | null
+});
 
 const emit = defineEmits(['selectQuestion']);
 
-const selectQuestion = (questionId: string) => {
+const selectQuestion = (questionId) => { // Remove string type annotation
   emit('selectQuestion', questionId);
 };
 </script>

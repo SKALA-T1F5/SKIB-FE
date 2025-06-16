@@ -78,14 +78,14 @@
         <p class="completion-message">채점이 완료되었습니다!</p>
         <div class="completion-buttons">
           <button class="action-button primary" @click="goToTestResult">채점 결과 확인</button>
-          <button class="action-button secondary" @click="goToTraineeMain">수강생 메인으로</button>
+          <button class="action-button secondary" @click="goToTraineeMain">메인 화면</button>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Header from '@/components/layouts/Header.vue';
@@ -96,49 +96,49 @@ import TraineeTestSideBar from '@/components/trainee/test/TraineeTestSideBar.vue
 import axios from 'axios';
 import AiGradingLoading from '@/components/trainee/test/AiGradingLoading.vue'; // 새로 추가된 컴포넌트 임포트
 
-// --- 문제 데이터 타입 정의 ---
-interface GradingCriterion {
-  score: number;
-  criteria: string;
-  example: string;
-  note: string;
-}
+// --- 문제 데이터 타입 정의 (JavaScript에서는 주석 처리 또는 제거) ---
+// interface GradingCriterion {
+//   score: number;
+//   criteria: string;
+//   example: string;
+//   note: string;
+// }
 
-interface RawQuestion {
-  type: 'OBJECTIVE' | 'SUBJECTIVE';
-  difficulty_level: 'EASY' | 'NORMAL' | 'HARD';
-  question: string;
-  options: string[] | null;
-  answer: string;
-  explanation: string;
-  grading_criteria: GradingCriterion[] | null;
-  document_id: number;
-  tags: string[];
-}
+// interface RawQuestion {
+//   type: 'OBJECTIVE' | 'SUBJECTIVE';
+//   difficulty_level: 'EASY' | 'NORMAL' | 'HARD';
+//   question: string;
+//   options: string[] | null;
+//   answer: string;
+//   explanation: string;
+//   grading_criteria: GradingCriterion[] | null;
+//   document_id: number;
+//   tags: string[];
+// }
 
-export interface QuestionData {
-  id: string;
-  type: 'OBJECTIVE' | 'SUBJECTIVE';
-  difficulty_level: 'EASY' | 'NORMAL' | 'HARD';
-  questionText: string;
-  options: string[] | null;
-  explanation: string;
-  gradingCriteria: GradingCriterion[] | null;
-  document_id: number;
-  tags: string[];
-  isAnswered: boolean;
-}
+// export interface QuestionData {
+//   id: string;
+//   type: 'OBJECTIVE' | 'SUBJECTIVE';
+//   difficulty_level: 'EASY' | 'NORMAL' | 'HARD';
+//   questionText: string;
+//   options: string[] | null;
+//   explanation: string;
+//   gradingCriteria: GradingCriterion[] | null;
+//   document_id: number;
+//   tags: string[];
+//   isAnswered: boolean;
+// }
 // --- 문제 데이터 타입 정의 끝 ---
 
 const router = useRouter();
 const route = useRoute();
 
-const testId = route.params.testId as string;
+const testId = route.params.testId; // Removed 'as string'
 const userId = ref('testUser123'); // 예시 userId, 실제로는 로그인 정보 등에서 가져와야 함
 
-const allQuestions = ref<QuestionData[]>([]);
-const currentQuestionId = ref<string | null>(null);
-const userAnswers = ref(new Map<string, string | { value: string }>());
+const allQuestions = ref([]); // Removed <QuestionData[]> type annotation
+const currentQuestionId = ref(null); // Removed <string | null> type annotation
+const userAnswers = ref(new Map());
 
 // AI 채점 로딩 오버레이 상태
 const showGradingOverlay = ref(false);
@@ -161,7 +161,7 @@ const hasPreviousQuestion = computed(() => currentQuestionIndex.value > 0);
 const hasNextQuestion = computed(() => currentQuestionIndex.value < allQuestions.value.length - 1);
 const isLastQuestion = computed(() => currentQuestionIndex.value === allQuestions.value.length - 1);
 
-const sampleApiData: RawQuestion[] = [
+const sampleApiData = [
   {
     "type": "OBJECTIVE",
     "difficulty_level": "NORMAL",
@@ -247,9 +247,9 @@ const fetchTestQuestions = async () => {
     const fetchedData = sampleApiData;
 
     if (Array.isArray(fetchedData)) {
-      allQuestions.value = fetchedData.map((rawQ: RawQuestion, index: number) => {
+      allQuestions.value = fetchedData.map((rawQ, index) => { // Removed ': RawQuestion' type annotation
         const generatedId = `Q${(index + 1).toString().padStart(2, '0')}`;
-        let initialAnswerValue: string | { value: string };
+        let initialAnswerValue; // Removed explicit type annotation
 
         if (rawQ.type === 'SUBJECTIVE') {
           initialAnswerValue = ref('');
@@ -285,7 +285,7 @@ const fetchTestQuestions = async () => {
   }
 };
 
-const handleQuestionSelectFromSidebar = (questionId: string) => {
+const handleQuestionSelectFromSidebar = (questionId) => { // Removed ': string' type annotation
   if (!showGradingOverlay.value && !showCompletionButtons.value) { // 로딩/완료 화면 중이 아닐 때만 이동
     currentQuestionId.value = questionId;
   }
@@ -307,11 +307,11 @@ const goToNextQuestion = () => {
   }
 };
 
-const getOptionLabel = (index: number): string => {
+const getOptionLabel = (index) => { // Removed ': number' type annotation and ': string' return type
   return String.fromCharCode(65 + index) + ')';
 };
 
-const selectOption = (option: string) => {
+const selectOption = (option) => { // Removed ': string' type annotation
   if (showGradingOverlay.value || showCompletionButtons.value) return; // 로딩/완료 화면 중일 때는 선택 안 됨
   if (currentQuestion.value) {
     userAnswers.value.set(currentQuestion.value.id, option);
@@ -402,7 +402,7 @@ const goToTraineeMain = () => {
 watch(() => {
   if (currentQuestion.value?.type === 'SUBJECTIVE') {
     const answerRef = userAnswers.value.get(currentQuestion.value.id);
-    return (answerRef as { value: string }).value;
+    return answerRef.value; // Removed 'as { value: string }' type assertion
   }
   return undefined;
 }, (newValue) => {

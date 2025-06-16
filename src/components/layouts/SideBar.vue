@@ -6,7 +6,9 @@
   </div>
 </template>
 
-<script setup></script>
+<script setup>
+// 이 컴포넌트에는 스크립트 로직이 없으므로 비워둡니다.
+</script>
 
 <style scoped>
 .sidebar {

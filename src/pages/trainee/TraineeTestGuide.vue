@@ -82,7 +82,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Header from '@/components/layouts/Header.vue';
@@ -92,19 +92,19 @@ const route = useRoute();
 const router = useRouter();
 
 // 라우터 state에서 시험 정보 가져오기
-const testId = ref<number | null>(null);
-const testName = ref<string>('로딩 중...');
-const projectId = ref<number | null>(null);
-const limitedTimeM = ref<number>(0);
-const passScore = ref<number>(0);
-const difficultyLevel = ref<'EASY' | 'NORMAL' | 'HARD'>('NORMAL');
-const isRetake = ref<0 | 1>(0);
+const testId = ref(null); // Removed <number | null>
+const testName = ref('로딩 중...'); // Removed <string>
+const projectId = ref(null); // Removed <number | null>
+const limitedTimeM = ref(0); // Removed <number>
+const passScore = ref(0); // Removed <number>
+const difficultyLevel = ref('NORMAL'); // Removed <'EASY' | 'NORMAL' | 'HARD'>
+const isRetake = ref(0); // Removed <0 | 1>
 
 onMounted(() => {
   // TraineeMain.vue의 handleTestCardAction에서 state로 전달받는다고 가정
   // 또는 직접 testId를 params로 받아 API 호출하여 정보를 가져올 수도 있습니다.
   if (route.params.testId) {
-    testId.value = parseInt(route.params.testId as string);
+    testId.value = parseInt(route.params.testId); // Removed 'as string'
   }
 
   if (history.state) {
@@ -119,7 +119,7 @@ onMounted(() => {
   // fetchTestDetails(testId.value);
 });
 
-const formatTime = (minutes: number) => {
+const formatTime = (minutes) => { // Removed ': number'
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
   return `${String(hours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:00`;

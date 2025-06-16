@@ -4,7 +4,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
-// https://vite.dev/config/
+// https://vitejs.dev/config/ (문서 링크도 js에 맞게 변경)
 export default defineConfig({
   plugins: [vue(), vueDevTools()],
   resolve: {

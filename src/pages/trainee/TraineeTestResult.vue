@@ -145,8 +145,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'; // nextTick 임포트
+<script setup>
+import { ref, computed, onMounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import Header from '@/components/layouts/Header.vue';
 import Footer from '@/components/layouts/Footer.vue';
@@ -154,57 +154,20 @@ import TraineeTestResultSideBar from '@/components/trainee/result/TraineeTestRes
 import SvgIcon from '@jamescoyle/vue-icon';
 import { mdiChevronLeft, mdiChevronRight, mdiSend, mdiRobot, mdiCheckCircle, mdiCloseCircle } from '@mdi/js';
 
-// --- 문제 데이터 타입 정의 (생략 - 기존과 동일) ---
-interface GradingCriterion {
-  score: number;
-  criteria: string;
-  example: string;
-  note: string;
-}
-
-interface RawQuestion {
-  type: 'OBJECTIVE' | 'SUBJECTIVE';
-  difficulty_level: 'EASY' | 'NORMAL' | 'HARD';
-  question: string;
-  options: string[] | null;
-  answer: string;
-  explanation: string;
-  grading_criteria: GradingCriterion[] | null;
-  document_id: number;
-  tags: string[];
-}
-
-export interface QuestionData {
-  id: string;
-  type: 'OBJECTIVE' | 'SUBJECTIVE';
-  difficulty_level: 'EASY' | 'NORMAL' | 'HARD';
-  questionText: string;
-  options: string[] | null;
-  correctAnswer: string;
-  explanation: string;
-  gradingCriteria: GradingCriterion[] | null;
-  document_id: number;
-  tags: string[];
-  userAnswer: string;
-  isCorrect: boolean;
-}
-// --- 문제 데이터 타입 정의 끝 ---
-
-// --- 챗봇 메시지 타입 정의 ---
-interface ChatMessage {
-  sender: 'user' | 'bot';
-  text: string;
-}
-// --- 챗봇 메시지 타입 정의 끝 ---
+// No interface definitions in JavaScript
+// interface GradingCriterion { ... }
+// interface RawQuestion { ... }
+// export interface QuestionData { ... }
+// interface ChatMessage { ... }
 
 const router = useRouter();
 
-const allQuestions = ref<QuestionData[]>([]);
-const currentQuestionId = ref<string | null>(null);
+const allQuestions = ref([]);
+const currentQuestionId = ref(null);
 
 // 챗봇 관련 상태
-const newMessage = ref<string>(''); // 사용자가 입력할 메시지
-const messages = ref<ChatMessage[]>([]); // 챗봇 메시지 목록
+const newMessage = ref('');
+const messages = ref([]);
 
 const currentQuestion = computed(() => {
   if (!currentQuestionId.value || allQuestions.value.length === 0) {
@@ -223,7 +186,7 @@ const hasPreviousQuestion = computed(() => currentQuestionIndex.value > 0);
 const hasNextQuestion = computed(() => currentQuestionIndex.value < allQuestions.value.length - 1);
 
 // UI 확인을 위한 Sample Data (Hardcoded)
-const sampleApiData: RawQuestion[] = [
+const sampleApiData = [
   {
     "type": "OBJECTIVE",
     "difficulty_level": "NORMAL",
@@ -309,7 +272,7 @@ const fetchTestQuestions = async () => {
     const fetchedData = sampleApiData;
 
     if (Array.isArray(fetchedData)) {
-      allQuestions.value = fetchedData.map((rawQ: RawQuestion, index: number) => {
+      allQuestions.value = fetchedData.map((rawQ, index) => { // Removed : RawQuestion
         const generatedId = `Q${(index + 1).toString().padStart(2, '0')}`;
         let userAnswer = '';
         let isCorrect = false;
@@ -368,7 +331,7 @@ const fetchTestQuestions = async () => {
   }
 };
 
-const handleQuestionSelectFromSidebar = (questionId: string) => {
+const handleQuestionSelectFromSidebar = (questionId) => { // Removed : string
   currentQuestionId.value = questionId;
 };
 
@@ -386,7 +349,7 @@ const goToNextQuestion = () => {
   }
 };
 
-const getOptionLabel = (index: number): string => {
+const getOptionLabel = (index) => { // Removed : number
   return String.fromCharCode(65 + index) + ')';
 };
 

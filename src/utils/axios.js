@@ -1,4 +1,4 @@
-// src/api/axios.ts
+// src/api/axios.js (주석도 .js로 변경)
 import axios from 'axios'
 
 const api = axios.create({

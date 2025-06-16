@@ -5,9 +5,6 @@
       <span class="nickname">{{ name }}</span>
       <span class="role">{{ role }}</span>
     </div>
-    <!-- <svg-icon v-if="!isExamActive" type="mdi" :path="mdiMenuDown" class="user-menu" />
-    <svg-icon v-else type="mdi" :path="mdiLock" class="user-menu locked-icon" /> -->
-
     <div v-if="showUserMenu" class="dropdown user-dropdown">
       <div @click="goToMyPage">마이페이지</div>
       <div @click="logout">로그아웃</div>
@@ -15,7 +12,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted, defineProps } from 'vue';
 import { useRouter } from 'vue-router';
 import SvgIcon from '@jamescoyle/vue-icon';
@@ -25,9 +22,9 @@ const router = useRouter();
 const showUserMenu = ref(false);
 
 // Header.vue로부터 isExamActive prop을 받습니다.
-const props = defineProps<{
-  isExamActive?: boolean; // 시험 활성 상태를 나타내는 prop
-}>();
+const props = defineProps({
+  isExamActive: Boolean // 시험 활성 상태를 나타내는 prop (타입스크립트 인터페이스 대신 런타임 타입으로 변경)
+});
 
 // ✅ 사용자 정보 가져오기
 const name = ref('');
@@ -41,7 +38,8 @@ onMounted(() => {
   document.addEventListener('click', (event) => {
     if (showUserMenu.value && !props.isExamActive) {
       const userInfoElement = document.querySelector('.user-info');
-      if (userInfoElement && !userInfoElement.contains(event.target as Node)) {
+      // 'as Node' 캐스팅 제거 (JavaScript에서는 불필요)
+      if (userInfoElement && !userInfoElement.contains(event.target)) {
         showUserMenu.value = false;
       }
     }

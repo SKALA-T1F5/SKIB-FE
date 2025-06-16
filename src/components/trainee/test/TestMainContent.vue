@@ -38,27 +38,27 @@
   </main>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { defineProps, defineEmits, ref, onMounted, onUnmounted, computed } from 'vue';
 import SvgIcon from '@jamescoyle/vue-icon';
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js';
 import QuestionDisplay from '@/components/trainee/result/QuestionDisplay.vue';
-import { QuestionData } from '@/views/trainee/TraineeTestLayout.vue';
+// import { QuestionData } from '@/views/trainee/TraineeTestLayout.vue'; // TypeScript 타입 정의 제거
 
-const props = defineProps<{
-  currentQuestion: QuestionData | null;
-  hasPreviousQuestion: boolean;
-  hasNextQuestion: boolean;
-  getOptionLabel: (index: number) => string;
-  isExamMode: boolean;
-  isExamActive: boolean; // 시험 활성 상태를 받는 prop 추가
-}>();
+const props = defineProps({
+  currentQuestion: Object, // QuestionData | null 대신 Object
+  hasPreviousQuestion: Boolean,
+  hasNextQuestion: Boolean,
+  getOptionLabel: Function, // (index: number) => string 대신 Function
+  isExamMode: Boolean,
+  isExamActive: Boolean, // 시험 활성 상태를 받는 prop 추가
+});
 
 const emit = defineEmits(['goToPreviousQuestion', 'goToNextQuestion', 'submitTest', 'update:userAnswer', 'selectOption']);
 
 // 타이머 관련 로직
 const timeRemaining = ref(3600); // 60분 (3600초)
-let timerInterval: number | undefined;
+let timerInterval; // number | undefined 대신 선언만
 
 const formattedTime = computed(() => {
   const minutes = Math.floor(timeRemaining.value / 60);
@@ -80,14 +80,14 @@ const startTimer = () => {
 };
 
 // 복사/붙여넣기 및 우클릭 방지 핸들러
-const handleCopyPaste = (event: Event) => {
+const handleCopyPaste = (event) => { // event: Event 제거
   if (props.isExamActive) { // 시험이 활성 상태일 때만 작동
     event.preventDefault();
     alert('시험 중에는 복사 및 붙여넣기를 할 수 없습니다.');
   }
 };
 
-const handleContextMenu = (event: Event) => {
+const handleContextMenu = (event) => { // event: Event 제거
   if (props.isExamActive) { // 시험이 활성 상태일 때만 작동
     event.preventDefault();
   }

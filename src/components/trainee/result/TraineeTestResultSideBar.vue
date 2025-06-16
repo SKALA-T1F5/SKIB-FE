@@ -26,22 +26,22 @@
   </SideBar>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { defineProps, defineEmits } from 'vue';
 // SvgIcon과 mdiMenu는 Figma 이미지에 현재 필요하지 않으므로 주석 처리합니다.
 // import SvgIcon from '@jamescoyle/vue-icon';
 // import { mdiMenu } from '@mdi/js';
 import SideBar from '@/components/layouts/SideBar.vue';
-import type { QuestionData } from '@/pages/trainee/TraineeTestResult.vue';
+// import type { QuestionData } from '@/pages/trainee/TraineeTestResult.vue'; // TypeScript 타입 정의 제거
 
-const props = defineProps<{
-  questions: QuestionData[];
-  currentQuestionId: string | null;
-}>();
+const props = defineProps({
+  questions: Array, // QuestionData[] 대신 Array
+  currentQuestionId: [String, null], // string | null 대신 [String, null]
+});
 
 const emit = defineEmits(['selectQuestion']);
 
-const selectQuestion = (questionId: string) => {
+const selectQuestion = (questionId) => { // questionId: string 제거
   emit('selectQuestion', questionId);
 };
 </script>

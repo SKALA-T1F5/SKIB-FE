@@ -33,16 +33,17 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import type { Test } from '@/views/TraineeMain.vue';
+<script setup>
+// import type { Test } from '@/views/TraineeMain.vue'; // TypeScript 타입 정의 제거
 
-const props = defineProps<{
-  test: Test;
-}>();
+const props = defineProps({
+  // Test 인터페이스 대신 런타임 속성 검사 또는 단순히 Object로 선언
+  test: Object, // Prop `test`는 객체여야 합니다.
+});
 
 const emit = defineEmits(['retake', 'feedback', 'attend']);
 
-const formatTime = (minutes: number) => {
+const formatTime = (minutes) => { // minutes: number 제거
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
   return `${String(hours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:00`;
@@ -127,9 +128,9 @@ const formatTime = (minutes: number) => {
   align-items: center;
   margin-top: auto;
   /* 버튼들이 너무 많아지면 다음 줄로 넘어가도록 설정 */
-  flex-wrap: wrap; 
+  flex-wrap: wrap;
   /* 버튼 영역이 한 줄에 들어가지 않을 때 정렬 */
-  gap: 8px; 
+  gap: 8px;
 }
 
 .test-time {

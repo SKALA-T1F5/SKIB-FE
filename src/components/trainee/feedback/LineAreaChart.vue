@@ -7,7 +7,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed, watch } from 'vue';
 import {
   Chart as ChartJS,
@@ -34,11 +34,11 @@ ChartJS.register(
   Filler
 );
 
-const props = defineProps<{
-  myScore: number; // 현재 나의 점수 (레벨)
-  allParticipantScores: Array<{ userId: string; score: number }>; // 전체 응시자 점수 목록
-  myUserId: string; // 나의 userId (그래프에 나의 위치를 표시하기 위함)
-}>();
+const props = defineProps({
+  myScore: Number, // 현재 나의 점수 (레벨)
+  allParticipantScores: Array, // 전체 응시자 점수 목록
+  myUserId: String, // 나의 userId (그래프에 나의 위치를 표시하기 위함)
+});
 
 // 가상의 과거 레벨 데이터를 생성합니다.
 // 실제로는 백엔드에서 나의 과거 시험 점수 이력을 받아와야 합니다.
@@ -49,7 +49,7 @@ const generatePastLevels = () => {
     const date = new Date(today);
     date.setDate(today.getDate() - (i * 7)); // 1주 간격으로 과거 데이터
     const monthDay = `${date.getMonth() + 1}/${date.getDate()}`;
-    
+
     // 나의 현재 점수를 기반으로 과거 점수를 무작위로 생성 (실제 데이터로 대체 필요)
     let score = props.myScore + (Math.random() * 20 - 10); // +/- 10점 범위
     score = Math.max(0, Math.min(100, Math.round(score))); // 0-100 범위 유지
@@ -101,7 +101,7 @@ const chartData = computed(() => {
         showLine: false, // 선은 그리지 않음
         tooltip: {
             callbacks: {
-                label: function(context: any) {
+                label: function(context) { // context: any 제거
                     return `현재 레벨: ${context.parsed.y}%`;
                 }
             }
@@ -120,13 +120,13 @@ const chartOptions = ref({
       display: false, // 범례 숨김
     },
     tooltip: {
-        mode: 'index' as const, // 'index' 또는 'nearest'
+        mode: 'index', // 'as const' 제거
         intersect: false, // 툴팁이 겹쳐도 표시
         callbacks: {
-            title: function(context: any) {
+            title: function(context) { // context: any 제거
                 return `날짜: ${context[0].label}`;
             },
-            label: function(context: any) {
+            label: function(context) { // context: any 제거
                 let label = context.dataset.label || '';
                 if (label) {
                     label += ': ';
@@ -167,7 +167,7 @@ const chartOptions = ref({
       ticks: {
         stepSize: 10, // 틱 간격 10
         color: '#6c757d',
-        callback: function(value: any) {
+        callback: function(value) { // value: any 제거
           return value + '%'; // Y축 라벨에 % 붙이기
         }
       }

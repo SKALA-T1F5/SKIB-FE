@@ -27,14 +27,14 @@
   </teleport>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, watch } from 'vue';
 // defineProps, defineEmits는 컴파일러 매크로이므로 import 할 필요가 없습니다.
 
-const props = defineProps<{
-  isVisible: boolean;
-  invitationLinkError: string;
-}>();
+const props = defineProps({
+  isVisible: Boolean, // TypeScript의 'boolean;' 대신 'Boolean'
+  invitationLinkError: String, // TypeScript의 'string;' 대신 'String'
+});
 
 const emit = defineEmits(['close', 'addTest']);
 

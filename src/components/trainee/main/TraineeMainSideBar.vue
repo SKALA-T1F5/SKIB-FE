@@ -30,41 +30,41 @@
   </SideBar>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, watch } from 'vue';
 import SvgIcon from '@jamescoyle/vue-icon';
 import { mdiMagnify, mdiRefresh } from '@mdi/js';
 import SideBar from '@/components/layouts/SideBar.vue';
 
 // Props 정의: TraineeMain.vue로부터 값을 받음
-const props = defineProps<{
-  searchQuery: string;
-  statusFilters: { done: boolean; retry: boolean };
-  resultFilters: { pass: boolean; fail: boolean };
-}>();
+const props = defineProps({
+  searchQuery: String,
+  statusFilters: Object, // { done: boolean; retry: boolean } 대신 Object
+  resultFilters: Object, // { pass: boolean; fail: boolean } 대신 Object
+});
 
 // Emits 정의: TraineeMain.vue로 변경 사항을 알림
-const emit = defineEmits<{
-  (e: 'update:searchQuery', value: string): void;
-  (e: 'update:statusFilters', value: { done: boolean; retry: boolean }): void;
-  (e: 'update:resultFilters', value: { pass: boolean; fail: boolean }): void;
-  (e: 'reset-filters'): void; // 필터 초기화 이벤트
-}>();
+const emit = defineEmits([
+  'update:searchQuery',
+  'update:statusFilters',
+  'update:resultFilters',
+  'reset-filters', // 필터 초기화 이벤트
+]);
 
 // 검색 쿼리 업데이트
-const updateSearchQuery = (event: Event) => {
-  emit('update:searchQuery', (event.target as HTMLInputElement).value);
+const updateSearchQuery = (event) => { // event: Event 제거
+  emit('update:searchQuery', event.target.value); // as HTMLInputElement 제거
 };
 
 // 응시 여부 필터 업데이트
-const updateStatusFilter = (key: 'done' | 'retry', event: Event) => {
-  const newStatusFilters = { ...props.statusFilters, [key]: (event.target as HTMLInputElement).checked };
+const updateStatusFilter = (key, event) => { // key: 'done' | 'retry', event: Event 제거
+  const newStatusFilters = { ...props.statusFilters, [key]: event.target.checked }; // as HTMLInputElement 제거
   emit('update:statusFilters', newStatusFilters);
 };
 
 // 결과 필터 업데이트
-const updateResultFilter = (key: keyof typeof props.resultFilters, event: Event) => {
-  const newResultFilters = { ...props.resultFilters, [key]: (event.target as HTMLInputElement).checked };
+const updateResultFilter = (key, event) => { // key: keyof typeof props.resultFilters, event: Event 제거
+  const newResultFilters = { ...props.resultFilters, [key]: event.target.checked }; // as HTMLInputElement 제거
   emit('update:resultFilters', newResultFilters);
 };
 

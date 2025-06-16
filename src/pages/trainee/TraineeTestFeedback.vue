@@ -53,7 +53,7 @@
             :all-participant-scores="allParticipantScores"
             :my-user-id="myUserId"
           />
-           <p class="rank-summary">
+            <p class="rank-summary">
               당신은 전체 응시자 중 <span class="highlight-rank">{{ myRank }}등</span>이며, 
               상위 <span class="highlight-percent">{{ topPercentage }}%</span>에 해당합니다.
             </p>
@@ -64,7 +64,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import Header from '@/components/layouts/Header.vue';
@@ -74,21 +74,22 @@ import LineAreaChart from '@/components/trainee/feedback/LineAreaChart.vue'; // 
 // import axios from 'axios'; // 실제 API 호출 시 주석 해제
 
 const route = useRoute();
-const testId = route.params.testId as string;
+const testId = route.params.testId; // Removed 'as string'
 const myUserId = 'userB'; // 현재 사용자 ID (예시, 나의 점수와 매칭될 수 있도록 'userB'로 설정)
 
 // --- Mock Data (Spring Boot에서 받을 예정인 데이터) ---
-interface FeedbackData {
-  totalCorrectRate: number; // 총 정답률
-  isPassed: boolean; // 합격 여부
-  documentAccuracy: { [key: string]: number }; // 문서별 정답률 (예: { "문서1": 80, "문서2": 90 })
-  tagAccuracy: { [key: string]: number }; // 태그별 정답률 (예: { "문해력": 75, "이해력": 88 })
-  totalQuestions: number; // 총 문제 수 (새로 추가)
-  correctQuestions: number; // 맞은 문제 수 (새로 추가)
-  wrongQuestions: number; // 틀린 문제 수 (새로 추가)
-}
+// Interface definitions are removed in JavaScript
+// interface FeedbackData {
+//   totalCorrectRate: number; // 총 정답률
+//   isPassed: boolean; // 합격 여부
+//   documentAccuracy: { [key: string]: number }; // 문서별 정답률 (예: { "문서1": 80, "문서2": 90 })
+//   tagAccuracy: { [key: string]: number }; // 태그별 정답률 (예: { "문해력": 75, "이해력": 88 })
+//   totalQuestions: number; // 총 문제 수 (새로 추가)
+//   correctQuestions: number; // 맞은 문제 수 (새로 추가)
+//   wrongQuestions: number; // 틀린 문제 수 (새로 추가)
+// }
 
-const feedbackData = ref<FeedbackData>({
+const feedbackData = ref({ // Removed <FeedbackData> type annotation
   totalCorrectRate: 0,
   isPassed: false,
   documentAccuracy: {},
@@ -99,7 +100,7 @@ const feedbackData = ref<FeedbackData>({
 });
 
 // 전체 응시자 점수 (프론트엔드에서 나의 위치 계산용) - 백엔드에서 받을 예정
-const allParticipantScores = ref<Array<{ userId: string; score: number }>>([]);
+const allParticipantScores = ref([]); // Removed <Array<{ userId: string; score: number }>> type annotation
 
 const myRank = ref(0);
 const totalParticipants = ref(0);
