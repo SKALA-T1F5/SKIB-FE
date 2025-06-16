@@ -46,7 +46,7 @@
         <v-card class="dashboard-card" style="height: 520px;">
           <v-card-title class="card-title">평균 점수 / 합격자 수</v-card-title>
           <v-divider color="secondary" class="custom-divider"></v-divider>
-          <v-card-text>
+          <v-card-text style="display:flex; gap:16px; justify-content: space-between;">
             <!-- <div v-if="scoreStats" class="score-stats-grid"> -->
               <div class="score-stats-item">
                 <div class="score-stats-icon">
@@ -238,7 +238,7 @@ onMounted(() => {
 .score-stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  /* grid-template-rows: 1fr 1fr; */
   gap: 0;
   background: #f5f7fb;
   border-radius: 16px;
