@@ -40,7 +40,7 @@
               </v-btn>
               <v-spacer />
               <v-btn color="primary" style="width: 48%;" variant="outlined" prepend-icon="mdi-chart-line" size="default"
-                @click="handleExamDashboard">
+                @click="handleExamDashboard(String(exam.id))">
                 응시현황
               </v-btn>
             </v-card-text>
@@ -87,8 +87,8 @@ const addExam = () => {
   emit('next-step');
 };
 
-const handleExamDashboard = () => {
-  emit('exam-dashboard');
+const handleExamDashboard = (examId) => {
+  emit('exam-dashboard', examId);
 };
 
 const props = defineProps({

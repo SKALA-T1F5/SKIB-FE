@@ -3,6 +3,7 @@
       <keep-alive>
         <component 
           :is="currentComponent" 
+          :exam-id="currentExamId"
           @next-step="handleNextStep" 
           @prev-step="handlePrevStep" 
           @reset-step="handleResetStep" 
@@ -30,6 +31,7 @@ const route = useRoute();
 const emit = defineEmits(['next-step', 'prev-step', 'exam-dashboard']);
 
 const currentStep = ref(0);
+const currentExamId = ref('1'); // 임시로 하드코딩된 examId, 실제로는 선택된 시험의 ID를 사용해야 함
 
 const components = [
 
@@ -77,7 +79,8 @@ function handleResetStep() {
   currentStep.value = 0;
 }
 
-function handleExamDashboard() {
+function handleExamDashboard(examId) {
+  currentExamId.value = examId;
   currentStep.value = 5;
 }
 
