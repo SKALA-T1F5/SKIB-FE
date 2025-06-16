@@ -1,17 +1,56 @@
 import { createRouter, createWebHistory } from 'vue-router' // RouteRecordRaw 제거
+
+// ===== General Pages =====
 import Login from '@/pages/general/Login.vue'
 import MyPage from '@/pages/general/MyPage.vue'
+
+// ===== Trainer Pages =====
 import TrainerMain from '@/pages/trainer/TrainerMain.vue'
+import Project from '@/components/Trainer/Project.vue'
+import DocumentManagement from '@/components/Trainer/DocumentManagement.vue'
+import ExamManagement from '@/components/Trainer/ExamManagement.vue'
+import ExamGenerate from '@/components/Trainer/Problem/ProblemGenerate.vue'
+import ProblemManagement from '@/components/Trainer/ProblemManagement.vue'
+import TraineeManagement from '@/components/Trainer/TraineeManagement.vue'
+import ProjectDetail from '@/components/Trainer/ProjectDetail.vue'
+import ProjectPage from '@/components/Trainer/ProjectPage.vue' // ProjectPage.vue 파일 경로를 적절히 수정하세요.
+import MainLayout from '@/components/Layout/MainLayout.vue'
+
+// ===== Trainee Pages =====
 import TraineeMain from '@/pages/trainee/TraineeMain.vue'
-import TraineeTestGuide from '@/pages/trainee/TraineeTestGuide.vue';
+import TraineeTestGuide from '@/pages/trainee/TraineeTestGuide.vue'
 import TraineeTest from '@/pages/trainee/TraineeTest.vue'
 import TraineeTestResult from '@/pages/trainee/TraineeTestResult.vue'
 import TraineeTestFeedback from '@/pages/trainee/TraineeTestFeedback.vue'
 
-const routes = [ // : RouteRecordRaw[] 제거
+// ===== Admin Pages (예시) =====
+// import AdminMain from '@/pages/admin/AdminMain.vue'
+
+const routes = [
+  // ===== General Pages =====
   { path: '/login', name: 'Login', component: Login },
   { path: '/mypage', name: 'MyPage', component: MyPage },
-  { path: '/trainer/main', name: 'TrainerMain', component: TrainerMain },
+
+  // ===== Trainer Pages =====
+  {
+    path: '/trainer',
+    component: TrainerMain, // MainLayout이 아니라 TrainerMain.vue 사용
+    children: [
+      { path: '', redirect: 'main' }, // /trainer 접근 시 기본 redirect
+      { path: 'main', name: 'TrainerMain', component: TrainerMain },
+      { path: 'project', name: 'Project', component: Project },
+      { path: 'project/:projectId', name: 'ProjectPage', component: ProjectPage },
+      { path: 'project/:projectId/projectdetail', name: 'ProjectDetail', component: ProjectDetail },
+      { path: 'project/:projectId/document', name: 'DocumentManagement', component: DocumentManagement },
+      { path: 'project/:projectId/exam', name: 'ExamManagement', component: ExamManagement },
+      { path: 'project/:projectId/exam-generate', name: 'ExamGenerate', component: ExamGenerate },
+      { path: 'project/:projectId/problem', name: 'ProblemManagement', component: ProblemManagement },
+      { path: 'project/:projectId/trainees', name: 'TrainerTraineeManagement', component: TraineeManagement },
+    ]
+  },
+
+
+  // ===== Trainee Pages =====
   { path: '/trainee/main', name: 'TraineeMain', component: TraineeMain },
   {
     path: '/trainee/test/guide/:testId',
@@ -37,6 +76,11 @@ const routes = [ // : RouteRecordRaw[] 제거
     component: TraineeTestFeedback,
     props: true
   },
+
+  // ===== Admin Pages (예시, 실제 Admin 페이지가 있다면 여기에 추가) =====
+  // { path: '/admin/main', name: 'AdminMain', component: AdminMain },
+
+  // ===== Fallback =====
   { path: '/:pathMatch(.*)*', redirect: '/login' },
 ];
 

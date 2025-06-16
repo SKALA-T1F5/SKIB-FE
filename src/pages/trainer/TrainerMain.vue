@@ -1,21 +1,37 @@
+<!-- src/pages/trainer/TrainerMain.vue -->
 <template>
-  <div id="app">
-    <Header />
-    <div class="layout-body">
-      <SideBar class="sidebar" />
-      <div class="content-area">
-        <main class="main-content">
-          <router-view />
-          본문 예시입니다.
-        </main>
-        <Footer class="footer" />
-      </div>
-    </div>
-  </div>
+  <v-app>
+    <MainLayout>
+      <router-view />
+    </MainLayout>
+  </v-app>
 </template>
 
-<script setup lang="ts">
-import Header from '@/components/layouts/Header.vue'
-import SideBar from '@/components/layouts/SideBar.vue'
-import Footer from '@/components/layouts/Footer.vue'
+<script setup>
+import MainLayout from '@/components/Layout/MainLayout.vue'
 </script>
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+#app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.v-application {
+  height: 100%;
+  overflow: hidden;
+}
+
+.v-application__wrap {
+  height: 100%;
+  overflow: hidden;
+}
+</style>
