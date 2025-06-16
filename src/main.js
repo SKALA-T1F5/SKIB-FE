@@ -1,11 +1,17 @@
-import './assets/main.css'
+import { createApp } from 'vue';
+// import './style.css';
+import './style.scss';
+import App from './App.vue';
+import router from './router';
+import vuetify from './plugins/vuetify';
+import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
+import 'vue3-perfect-scrollbar/style.css';
+import VueApexCharts from 'vue3-apexcharts';
 
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router/index.js' // .js 확장자 명시 (필수는 아니지만 명확성을 위해)
-
-const app = createApp(App)
+const app = createApp(App);
 
 app.use(router)
-
-app.mount('#app')
+  .use(vuetify)
+  .use(VueApexCharts)
+  .component('PerfectScrollbar', PerfectScrollbar)
+  .mount('#app');

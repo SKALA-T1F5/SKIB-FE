@@ -12,6 +12,7 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+<<<<<<< HEAD
   server: {
     host: "0.0.0.0",
     proxy: {
@@ -23,3 +24,16 @@ export default defineConfig({
     },
   },
 })
+=======
+  css: {
+    preprocessorOptions: {
+      scss: {
+       
+      }
+    }
+  },
+  optimizeDeps: {
+    include: ['vue3-perfect-scrollbar']
+  }
+})
+>>>>>>> HJ
