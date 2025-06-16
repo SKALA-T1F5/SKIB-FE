@@ -13,7 +13,7 @@
       <!-- 왼쪽: AI 테스트 결과 요약, 문항별 분석 -->
       <v-col cols="12" sm="9">
         <v-card elevation="0" class="ai-summary-card">
-          <v-card-title class="text-body-2" style="color: #757575;">AI Summary</v-card-title>
+          <v-card-title class="card-title">AI Summary</v-card-title>
           <v-divider color="secondary" class="custom-divider"></v-divider>
           <v-card-text>
             <div v-if="aiSummary" class="ai-summary">
@@ -34,7 +34,7 @@
           </v-card-text>
         </v-card>
         <v-card elevation="0" class="mt-4">
-          <v-card-title class="text-body-2" style="color: #757575;">문항별 분석</v-card-title>
+          <v-card-title class="card-title">문항별 분석</v-card-title>
           <v-divider color="secondary" class="custom-divider"></v-divider>
           <v-card-text>
             <QuestionAnalysisChart :exam-id="examId" />
@@ -44,7 +44,7 @@
       <!-- 오른쪽: 평균 점수/합격자 수, 학습자별 분석, Tag별 분석 -->
       <v-col cols="12" sm="3">
         <v-card elevation="0" class="score-stats-card">
-          <v-card-title class="text-body-2" style="color: #757575;">평균 점수 / 합격자 수</v-card-title>
+          <v-card-title class="card-title">평균 점수 / 합격자 수</v-card-title>
           <v-divider color="secondary" class="custom-divider"></v-divider>
           <v-card-text>
             <div v-if="scoreStats" class="d-flex flex-column align-center justify-center h-100">
@@ -61,14 +61,14 @@
           </v-card-text>
         </v-card>
         <v-card elevation="0" class="mt-4">
-          <v-card-title class="text-body-2" style="color: #757575;">학습자별 분석</v-card-title>
+          <v-card-title class="card-title">학습자별 분석</v-card-title>
           <v-divider color="secondary" class="custom-divider"></v-divider>
           <v-card-text>
             <StudentAnalysisChart :exam-id="examId" />
           </v-card-text>
         </v-card>
         <v-card elevation="0" class="mt-4">
-          <v-card-title class="text-body-2" style="color: #757575;">Tag별 분석</v-card-title>
+          <v-card-title class="card-title">Tag별 분석</v-card-title>
           <v-divider color="secondary" class="custom-divider"></v-divider>
           <v-card-text>
             <TagAnalysisChart :exam-id="examId" />
@@ -243,5 +243,13 @@ onMounted(() => {
     height: auto;
     min-height: 180px;
   }
+}
+
+.card-title {
+  color: #757575 !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  padding: 16px !important;
+  line-height: 1.5 !important;
 }
 </style>

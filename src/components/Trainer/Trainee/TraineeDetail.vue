@@ -12,7 +12,7 @@
       <v-col cols="12">
         <v-card elevation="0">
           <v-expansion-panels elevation="0">
-            <v-expansion-panel>
+            <v-expansion-panel elevation="0">
               <v-expansion-panel-title>인적사항</v-expansion-panel-title>
               <v-expansion-panel-text>
                 <v-card-text>
