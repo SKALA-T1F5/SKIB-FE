@@ -1,148 +1,108 @@
 <template>
-  <div id="test-taking-page-layout">
-    <Header />
-
-    <div class="page-content-wrapper" :class="{ 'has-sidebar': allQuestions.length > 0 }">
+  <MainLayout>
+    <template #sidebar>
       <TraineeTestSideBar
         :questions="allQuestions"
         :currentQuestionId="currentQuestionId"
         @selectQuestion="handleQuestionSelectFromSidebar"
       />
+    </template>
 
-      <main class="main-content-area">
-        <div class="test-taking-container-inner">
-          <div class="top-nav">
-            <h3 class="question-number-top" v-if="currentQuestion">{{ currentQuestion.id }}.</h3>
-            <div class="nav-buttons-wrapper">
-              <button class="nav-button" @click="goToPreviousQuestion" :disabled="!hasPreviousQuestion || showGradingOverlay">
-                <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> 이전 문제
-              </button>
-              <button class="nav-button" @click="goToNextQuestion" :disabled="!hasNextQuestion || showGradingOverlay">
-                다음 문제 <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
-              </button>
-            </div>
-          </div>
-
-          <div class="question-taking-area" v-if="currentQuestion">
-            <div class="question-section">
-              <div class="question-text-fixed">
-                <p class="question-text">{{ currentQuestion.questionText }}</p>
-              </div>
-              <div class="question-content-scrollable">
-                <div class="options-container" v-if="currentQuestion.type === 'OBJECTIVE'">
-                  <div
-                    v-for="(option, index) in currentQuestion.options"
-                    :key="index"
-                    :class="[
-                      'option-item',
-                      { 'is-selected': userAnswers.get(currentQuestion.id) === option }
-                    ]"
-                    @click="selectOption(option)"
-                  >
-                    <span class="option-label">{{ getOptionLabel(index) }}</span>
-                    <span class="option-content">{{ option }}</span>
-                  </div>
-                </div>
-                <div class="subjective-answer-section" v-else-if="currentQuestion.type === 'SUBJECTIVE'">
-                  <div class="answer-group">
-                    <p class="answer-label">나의 답변</p>
-                    <textarea
-                      class="answer-box user-answer-box"
-                      v-model="userAnswers.get(currentQuestion.id).value"
-                      placeholder="답변을 입력하세요."
-                      :disabled="showGradingOverlay"
-                    ></textarea>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div v-else class="loading-message">
-            <p>시험 문제를 로딩 중입니다...</p>
+    <template #content>
+      <div class="test-taking-container-inner">
+        <div class="top-nav">
+          <h3 class="question-number-top" v-if="currentQuestion">{{ currentQuestion.id }}.</h3>
+          <div class="nav-buttons-wrapper">
+            <button class="nav-button" @click="goToPreviousQuestion" :disabled="!hasPreviousQuestion || showGradingOverlay">
+              <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> 이전 문제
+            </button>
+            <button class="nav-button" @click="goToNextQuestion" :disabled="!hasNextQuestion || showGradingOverlay">
+              다음 문제 <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
+            </button>
           </div>
         </div>
-        
-        <div class="submit-and-exit-buttons">
-          <button class="submit-button" @click="handleSubmitAnswer" :disabled="!currentQuestion || showGradingOverlay">
-            제출
-          </button>
+
+        <div class="question-taking-area" v-if="currentQuestion">
+          <div class="question-section">
+            <div class="question-text-fixed">
+              <p class="question-text">{{ currentQuestion.questionText }}</p>
+            </div>
+            <div class="question-content-scrollable">
+              <div class="options-container" v-if="currentQuestion.type === 'OBJECTIVE'">
+                <div
+                  v-for="(option, index) in currentQuestion.options"
+                  :key="index"
+                  :class="[
+                    'option-item',
+                    { 'is-selected': userAnswers.get(currentQuestion.id) === option }
+                  ]"
+                  @click="selectOption(option)"
+                >
+                  <span class="option-label">{{ getOptionLabel(index) }}</span>
+                  <span class="option-content">{{ option }}</span>
+                </div>
+              </div>
+              <div class="subjective-answer-section" v-else-if="currentQuestion.type === 'SUBJECTIVE'">
+                <div class="answer-group">
+                  <p class="answer-label">나의 답변</p>
+                  <textarea
+                    class="answer-box user-answer-box"
+                    v-model="userAnswers.get(currentQuestion.id).value"
+                    placeholder="답변을 입력하세요."
+                    :disabled="showGradingOverlay"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
-    </div>
-    <Footer />
-
-    <AiGradingLoading :show="showGradingOverlay" />
-
-    <div class="completion-overlay" v-if="showCompletionButtons">
-      <div class="completion-card">
-        <p class="completion-message">채점이 완료되었습니다!</p>
-        <div class="completion-buttons">
-          <button class="action-button primary" @click="goToTestResult">채점 결과 확인</button>
-          <button class="action-button secondary" @click="goToTraineeMain">메인 화면</button>
+        <div v-else class="loading-message">
+          <p>시험 문제를 로딩 중입니다...</p>
         </div>
       </div>
-    </div>
-  </div>
+      
+      <div class="submit-and-exit-buttons">
+        <button class="submit-button" @click="handleSubmitAnswer" :disabled="!currentQuestion || showGradingOverlay">
+          제출
+        </button>
+      </div>
+
+      <AiGradingLoading :show="showGradingOverlay" />
+
+      <div class="completion-overlay" v-if="showCompletionButtons">
+        <div class="completion-card">
+          <p class="completion-message">채점이 완료되었습니다!</p>
+          <div class="completion-buttons">
+            <button class="action-button primary" @click="goToTestResult">채점 결과 확인</button>
+            <button class="action-button secondary" @click="goToTraineeMain">메인 화면</button>
+          </div>
+        </div>
+      </div>
+    </template>
+  </MainLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import Header from '@/components/layouts/Header.vue';
-import Footer from '@/components/layouts/Footer.vue';
+import MainLayout from '@/components/layouts/MainLayout.vue'; // MainLayout 임포트
 import SvgIcon from '@jamescoyle/vue-icon';
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js';
 import TraineeTestSideBar from '@/components/trainee/test/TraineeTestSideBar.vue';
 import axios from 'axios';
-import AiGradingLoading from '@/components/trainee/test/AiGradingLoading.vue'; // 새로 추가된 컴포넌트 임포트
-
-// --- 문제 데이터 타입 정의 (JavaScript에서는 주석 처리 또는 제거) ---
-// interface GradingCriterion {
-//   score: number;
-//   criteria: string;
-//   example: string;
-//   note: string;
-// }
-
-// interface RawQuestion {
-//   type: 'OBJECTIVE' | 'SUBJECTIVE';
-//   difficulty_level: 'EASY' | 'NORMAL' | 'HARD';
-//   question: string;
-//   options: string[] | null;
-//   answer: string;
-//   explanation: string;
-//   grading_criteria: GradingCriterion[] | null;
-//   document_id: number;
-//   tags: string[];
-// }
-
-// export interface QuestionData {
-//   id: string;
-//   type: 'OBJECTIVE' | 'SUBJECTIVE';
-//   difficulty_level: 'EASY' | 'NORMAL' | 'HARD';
-//   questionText: string;
-//   options: string[] | null;
-//   explanation: string;
-//   gradingCriteria: GradingCriterion[] | null;
-//   document_id: number;
-//   tags: string[];
-//   isAnswered: boolean;
-// }
-// --- 문제 데이터 타입 정의 끝 ---
+import AiGradingLoading from '@/components/trainee/test/AiGradingLoading.vue';
 
 const router = useRouter();
 const route = useRoute();
 
-const testId = route.params.testId; // Removed 'as string'
-const userId = ref('testUser123'); // 예시 userId, 실제로는 로그인 정보 등에서 가져와야 함
+const testId = route.params.testId;
+const userId = ref('testUser123'); 
 
-const allQuestions = ref([]); // Removed <QuestionData[]> type annotation
-const currentQuestionId = ref(null); // Removed <string | null> type annotation
+const allQuestions = ref([]);
+const currentQuestionId = ref(null);
 const userAnswers = ref(new Map());
 
-// AI 채점 로딩 오버레이 상태
 const showGradingOverlay = ref(false);
-// 채점 완료 후 버튼 표시 상태
 const showCompletionButtons = ref(false);
 
 const currentQuestion = computed(() => {
@@ -247,9 +207,9 @@ const fetchTestQuestions = async () => {
     const fetchedData = sampleApiData;
 
     if (Array.isArray(fetchedData)) {
-      allQuestions.value = fetchedData.map((rawQ, index) => { // Removed ': RawQuestion' type annotation
+      allQuestions.value = fetchedData.map((rawQ, index) => {
         const generatedId = `Q${(index + 1).toString().padStart(2, '0')}`;
-        let initialAnswerValue; // Removed explicit type annotation
+        let initialAnswerValue;
 
         if (rawQ.type === 'SUBJECTIVE') {
           initialAnswerValue = ref('');
@@ -285,14 +245,14 @@ const fetchTestQuestions = async () => {
   }
 };
 
-const handleQuestionSelectFromSidebar = (questionId) => { // Removed ': string' type annotation
-  if (!showGradingOverlay.value && !showCompletionButtons.value) { // 로딩/완료 화면 중이 아닐 때만 이동
+const handleQuestionSelectFromSidebar = (questionId) => {
+  if (!showGradingOverlay.value && !showCompletionButtons.value) {
     currentQuestionId.value = questionId;
   }
 };
 
 const goToPreviousQuestion = () => {
-  if (showGradingOverlay.value || showCompletionButtons.value) return; // 로딩/완료 화면 중일 때는 작동 안 함
+  if (showGradingOverlay.value || showCompletionButtons.value) return;
   const currentIndex = allQuestions.value.findIndex(q => q.id === currentQuestionId.value);
   if (currentIndex > 0) {
     currentQuestionId.value = allQuestions.value[currentIndex - 1].id;
@@ -300,19 +260,19 @@ const goToPreviousQuestion = () => {
 };
 
 const goToNextQuestion = () => {
-  if (showGradingOverlay.value || showCompletionButtons.value) return; // 로딩/완료 화면 중일 때는 작동 안 함
+  if (showGradingOverlay.value || showCompletionButtons.value) return;
   const currentIndex = allQuestions.value.findIndex(q => q.id === currentQuestionId.value);
   if (currentIndex < allQuestions.value.length - 1) {
     currentQuestionId.value = allQuestions.value[currentIndex + 1].id;
   }
 };
 
-const getOptionLabel = (index) => { // Removed ': number' type annotation and ': string' return type
+const getOptionLabel = (index) => {
   return String.fromCharCode(65 + index) + ')';
 };
 
-const selectOption = (option) => { // Removed ': string' type annotation
-  if (showGradingOverlay.value || showCompletionButtons.value) return; // 로딩/완료 화면 중일 때는 선택 안 됨
+const selectOption = (option) => {
+  if (showGradingOverlay.value || showCompletionButtons.value) return;
   if (currentQuestion.value) {
     userAnswers.value.set(currentQuestion.value.id, option);
     const questionToUpdate = allQuestions.value.find(q => q.id === currentQuestion.value?.id);
@@ -340,7 +300,7 @@ const handleSubmitAnswer = () => {
 };
 
 const submitFinalTest = async () => {
-  showGradingOverlay.value = true; // AI 채점 로딩 화면 표시
+  showGradingOverlay.value = true;
 
   const answersToSend = Array.from(userAnswers.value.entries()).map(([questionId, answer]) => {
     const question = allQuestions.value.find(q => q.id === questionId);
@@ -360,31 +320,26 @@ const submitFinalTest = async () => {
   console.log('최종 제출될 요청 바디:', requestBody);
 
   try {
-    // 실제 API 호출 대신 3초 지연 시뮬레이션
-    // const response = await axios.post('/api/answer', requestBody);
-    await new Promise(resolve => setTimeout(resolve, 3000)); // 3초 대기
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     console.log('시험 제출 및 채점 완료 (시뮬레이션)');
-    // alert('시험이 성공적으로 제출 및 채점되었습니다!'); // 이 메시지는 이제 오버레이 이후에 보여짐
 
-    showGradingOverlay.value = false; // AI 채점 로딩 화면 숨김
-    showCompletionButtons.value = true; // 완료 후 버튼 표시
+    showGradingOverlay.value = false;
+    showCompletionButtons.value = true;
     
   } catch (error) {
     console.error('시험 제출 실패:', error);
-    showGradingOverlay.value = false; // 에러 발생 시 로딩 화면 숨김
+    showGradingOverlay.value = false;
 
     if (axios.isAxiosError(error) && error.response) {
       alert(`시험 제출 중 오류가 발생했습니다: ${error.response.data.message || '알 수 없는 오류'}`);
     } else {
       alert('시험 제출 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
-    // 에러 발생 시에는 완료 버튼을 보여주지 않고 원래 화면 유지
     showCompletionButtons.value = false;
   }
 };
 
-// 채점 결과 확인 페이지로 이동
 const goToTestResult = () => {
   router.push({
     name: 'TraineeTestResult',
@@ -393,16 +348,15 @@ const goToTestResult = () => {
   });
 };
 
-// 수강생 메인 페이지로 이동
 const goToTraineeMain = () => {
-  router.push({ name: 'TraineeMain' }); // TraineeMain 라우트 이름으로 이동
+  router.push({ name: 'TraineeMain' });
 };
 
 
 watch(() => {
   if (currentQuestion.value?.type === 'SUBJECTIVE') {
     const answerRef = userAnswers.value.get(currentQuestion.value.id);
-    return answerRef.value; // Removed 'as { value: string }' type assertion
+    return answerRef.value;
   }
   return undefined;
 }, (newValue) => {
@@ -421,50 +375,22 @@ onMounted(() => {
 </script>
 
 <style scoped>
-#test-taking-page-layout {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background-color: #f8f8f8;
-  font-family: 'Noto Sans KR', sans-serif;
-  overflow: hidden;
-}
+/* MainLayout에 의해 관리되는 .page-content-wrapper, .main-content-area 등의 스타일은 제거되었습니다. */
+/* 이제 이 스타일들은 MainLayout 내부에서 처리되거나, TraineeTest.vue의 실제 콘텐츠에 맞게 재정의되어야 합니다. */
+/* 다만, MainLayout의 CSS가 이전에 예상했던 레이아웃을 제공하므로, 여기서는 불필요한 레이아웃 관련 스타일을 제거했습니다. */
+/* 실제 콘텐츠 영역에만 적용되는 스타일은 유지됩니다. */
 
-.page-content-wrapper {
-  display: grid;
-  grid-template-columns: var(--sidebar-width, 220px) 1fr;
-  height: calc(100vh - 70px - 60px);
-  grid-template-rows: 1fr;
-  grid-template-areas: "sidebar main-content";
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-}
+/* 기존 .page-content-wrapper, .main-content-area 에 적용되었던 레이아웃 관련 스타일은 MainLayout에서 처리되므로 TraineeTest.vue에서는 제거합니다. */
+/* TraineeTest.vue는 이제 MainLayout의 content 슬롯에 직접 들어갈 내용만을 스타일링합니다. */
 
-.page-content-wrapper .trainee-test-sidebar {
-  grid-area: sidebar;
-  overflow-y: auto;
-}
-
-.main-content-area {
-  grid-area: main-content;
-  display: flex;
-  flex-direction: column;
-  padding: 25px;
-  overflow: hidden;
-  gap: 25px;
-  box-sizing: border-box;
-  position: relative;
-  min-height: 0;
-}
-
+/* .test-taking-container-inner 는 content 슬롯에 직접 들어가는 최상위 요소가 됩니다. */
 .test-taking-container-inner {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
   min-height: 0;
   overflow: hidden;
-  padding-bottom: 120px;
+  padding-bottom: 120px; /* 제출 버튼 공간 확보 */
 }
 
 .question-taking-area {
@@ -721,7 +647,7 @@ onMounted(() => {
 
 /* 채점 완료 후 선택 버튼 오버레이 스타일 */
 .completion-overlay {
-  position: fixed;
+  position: fixed; /* MainLayout의 content 슬롯 안에 있으므로 absolute 대신 fixed를 사용하여 전체 화면을 덮습니다. */
   top: 0;
   left: 0;
   width: 100%;
@@ -730,7 +656,7 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9998; /* AI 채점 오버레이보다 낮은 z-index */
+  z-index: 9998; /* AiGradingLoading 보다 낮은 z-index */
 }
 
 .completion-card {
@@ -771,11 +697,11 @@ onMounted(() => {
   cursor: pointer;
   transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
   flex-grow: 1;
-  max-width: 200px; /* 버튼 최대 너비 설정 */
+  max-width: 200px;
 }
 
 .action-button.primary {
-  background-color: #007bff; /* 파란색 */
+  background-color: #007bff;
   color: white;
   box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
 }
@@ -787,7 +713,7 @@ onMounted(() => {
 }
 
 .action-button.secondary {
-  background-color: #6c757d; /* 회색 */
+  background-color: #6c757d;
   color: white;
   box-shadow: 0 2px 8px rgba(108, 117, 125, 0.2);
 }
