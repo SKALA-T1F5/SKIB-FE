@@ -19,32 +19,21 @@
 📂SIKB-FE
  ├── 📂public
  ├── 📂src
- |    ├── 📂assets
- |    ├── 📂components
- |    |    ├── 📂layouts
- |    |    |    ├── 💾Header.vue
- |    |    |    ├── 💾SideBar.vue
- |    |    |    └── 💾Footer.vue
- |    |    ├── 📂trainee
- |    |    |    ├── 📂exam
- |    |    |    ├── 📂result
- |    |    |    └── 📂feedback
- |    |    └── 📂trainer
- |    |         ├── 📂document
- |    |         ├── 📂exam
- |    |         ├── 📂question
- |    |         └── 📂trainee
- |    ├── 📂pages
- |    |    ├── 📂admin
- |    |    ├── 📂general
- |    |    ├── 📂trainee
- |    |    └── 📂trainer
- |    ├── 📂router
- |    |    └── 💾index.ts
+ |    ├── 📂assets // 이미지, 폰트, 전역 스타일 등 정적 리소스 저장
+ |    ├── 📂components // 여러 페이지에서 재사용할 UI 컴포넌트 정의
+ |    |    ├── 📂layouts // 공통 Layouts: Header, SideBar, Footer
+ |    |    ├── 📂trainee // Trainee Component
+ |    |    └── 📂trainer // Trainer Component
+ |    ├── 📂pages // 개별 페이지 컴포넌트
+ |    |    ├── 📂admin // Admin Page
+ |    |    ├── 📂general // General Page: Login, MyPage, ...
+ |    |    ├── 📂trainee // Trainee Page
+ |    |    └── 📂trainer // Trainer Page
+ |    ├── 📂pulgins // 외부 라이브러리 전역 등록
+ |    ├── 📂router // 페이지 간 Routing Logic 설정
+ |    ├── 📂stores // Pinia 기반 상태 관리
+ |    ├── 📂theme // 색상, 폰트, 공통 스타일 변수
  |    ├── 💾App.vue
- |    └── 💾main.ts
- ├── 💾index.html
- ├── 💾package.json
- ├── 💾tsconfig.json
- └── 💾vite.config.ts
+ |    └── 💾main.js
+ └── 💾vite.config.js // Springboot 연동 간 사용
 ```

@@ -5,26 +5,27 @@
       <span class="nickname">{{ name }}</span>
       <span class="role">{{ role }}</span>
     </div>
+    <svg-icon
+      type="mdi"
+      :path="isExamMode ? mdiLock : mdiMenuDown"
+      :class="['user-menu', { 'locked-icon': isExamMode }]"
+    />
     <div v-if="showUserMenu" class="dropdown user-dropdown">
-      <div @click="goToMyPage">마이페이지</div>
-      <div @click="logout">로그아웃</div>
+      <div @click.stop="goToMyPage">마이페이지</div>
+      <div @click.stop="logout">로그아웃</div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, defineProps } from 'vue';
+import { ref, onMounted } from 'vue'; // defineProps는 사용하지 않으므로 제거
 import { useRouter } from 'vue-router';
 import SvgIcon from '@jamescoyle/vue-icon';
-import { mdiAccount, mdiMenuDown, mdiLock } from '@mdi/js'; // mdiLock 아이콘 추가
+import { mdiAccount, mdiMenuDown, mdiLock } from '@mdi/js';
 
 const router = useRouter();
 const showUserMenu = ref(false);
-
-// Header.vue로부터 isExamActive prop을 받습니다.
-const props = defineProps({
-  isExamActive: Boolean // 시험 활성 상태를 나타내는 prop (타입스크립트 인터페이스 대신 런타임 타입으로 변경)
-});
+const isExamMode = ref(false); // 시험 모드 상태 추가 (mdiLock 아이콘 제어를 위함)
 
 // ✅ 사용자 정보 가져오기
 const name = ref('');
@@ -34,21 +35,14 @@ onMounted(() => {
   name.value = localStorage.getItem('name') || '사용자';
   role.value = localStorage.getItem('role') || '';
 
-  // 드롭다운 외부 클릭 시 닫기 (시험 중이 아닐 때만)
-  document.addEventListener('click', (event) => {
-    if (showUserMenu.value && !props.isExamActive) {
-      const userInfoElement = document.querySelector('.user-info');
-      // 'as Node' 캐스팅 제거 (JavaScript에서는 불필요)
-      if (userInfoElement && !userInfoElement.contains(event.target)) {
-        showUserMenu.value = false;
-      }
-    }
-  });
+  // 예시: 시험 모드 상태를 설정할 수 있는 로직 (필요하다면 추가)
+  // isExamMode.value = someConditionBasedOnExamStatus;
 });
 
+// 드롭다운 메뉴 토글 함수
 const toggleUserMenu = () => {
-  // 시험 중이 아닐 때만 메뉴를 토글합니다.
-  if (!props.isExamActive) {
+  // 시험 모드가 아닐 때만 메뉴를 토글
+  if (!isExamMode.value) {
     showUserMenu.value = !showUserMenu.value;
   }
 };

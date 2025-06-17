@@ -1,5 +1,5 @@
 <template>
-  <SideBar class="trainee-test-sidebar">
+  <div class="trainee-test-sidebar-content">
     <div class="trainee-sidebar-inner-content">
       <div class="sidebar-header">
         <h3 class="sidebar-title">문제</h3>
@@ -19,45 +19,56 @@
             :class="['status-indicator', { 'answered': question.isAnswered }]"
             :title="question.isAnswered ? '답변 완료' : '미답변'"
           >
-            </span>
+          </span>
         </div>
       </div>
     </div>
-  </SideBar>
+  </div>
 </template>
 
 <script setup>
 import { defineProps, defineEmits } from 'vue';
-import SideBar from '@/components/layouts/SideBar.vue';
-
-// TypeScript interface removed.
-// The prop types will be inferred or can be defined using JavaScript's runtime type checking.
+// SideBar 컴포넌트 임포트를 제거합니다. MainLayout이 이미 SideBar 역할을 하는 컨테이너를 제공합니다.
+// import SideBar from '@/components/layouts/SideBar.vue'; // 이 줄을 제거합니다.
 
 const props = defineProps({
-  questions: Array, // Use Array instead of QuestionDataForSidebar[]
-  currentQuestionId: [String, null], // Use [String, null] for string | null
+  questions: Array,
+  currentQuestionId: [String, null],
 });
 
 const emit = defineEmits(['selectQuestion']);
 
-const selectQuestion = (questionId) => { // Remove string type annotation
+const selectQuestion = (questionId) => {
   emit('selectQuestion', questionId);
 };
 </script>
 
 <style scoped>
-.trainee-test-sidebar {
-  width: 180px;
-  padding: 16px;
-  border-top-right-radius: 40px;
-  min-width: 140px;
-  min-height: calc(100vh - 60px);
-  font-size: 14px;
-  color: #f8f9fa;
+/*
+  기존 .trainee-test-sidebar 스타일은 SideBar 컴포넌트에 적용되던 것이었으므로,
+  이제 MainLayout의 .sidebar-container에 의해 관리되거나,
+  이 컴포넌트의 최상위 div인 .trainee-test-sidebar-content에 맞춰 조정되어야 합니다.
+  MainLayout의 .sidebar-container가 이미 기본 너비와 배경색을 가지고 있으므로,
+  여기서는 내부 콘텐츠의 정렬 및 간격 위주로 스타일을 유지하거나 조정합니다.
+*/
+
+.trainee-test-sidebar-content {
+  /* MainLayout의 sidebar-container 안에 들어갈 콘텐츠의 스타일 */
+  width: 100%; /* 부모 컨테이너(sidebar-container)에 꽉 차도록 */
+  height: 100%; /* 부모 컨테이너에 꽉 차도록 */
+  padding: 0; /* MainLayout의 sidebar-container에서 이미 패딩을 줬을 경우 겹치지 않게 0으로 설정하거나,
+                  필요에 따라 추가 패딩을 여기에 줍니다. (현재 MainLayout은 20px 패딩) */
+  box-sizing: border-box; /* 패딩이 너비/높이에 포함되도록 */
+  /* min-width, min-height, font-size 등은 필요시 여기에 정의합니다.
+     하지만 MainLayout의 sidebar-container가 이미 기본값을 제공하므로
+     여기는 이 콘텐츠만의 고유한 스타일을 넣는 데 집중합니다. */
+  font-size: 14px; /* 콘텐츠 자체의 글꼴 크기 */
 }
 
 .trainee-sidebar-inner-content {
   width: 100%;
+  flex-grow: 1; /* 남은 공간을 차지하여 콘텐츠가 길어질 경우 스크롤 가능하게 합니다. */
+  overflow-y: auto; /* 콘텐츠가 넘칠 경우 스크롤바 생성 */
 }
 
 .sidebar-header {
@@ -66,7 +77,7 @@ const selectQuestion = (questionId) => { // Remove string type annotation
   align-items: center;
   padding-top: 5px;
   padding-bottom: 0px;
-  margin-left: 15px;
+  margin-left: 0px; /* MainLayout의 padding을 고려하여 조정 */
   margin-right: auto;
 }
 
@@ -132,13 +143,13 @@ const selectQuestion = (questionId) => { // Remove string type annotation
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background-color: transparent; /* 기본은 투명 */
-  border: 1px solid #ccc; /* 테두리 추가 */
+  background-color: transparent;
+  border: 1px solid #ccc;
   transition: background-color 0.2s, border-color 0.2s;
 }
 
 .status-indicator.answered {
-  background-color: #ffffff; /* 답변 완료 시 흰색으로 채움 */
-  border-color: #ffffff; /* 테두리도 흰색으로 */
+  background-color: #ffffff;
+  border-color: #ffffff;
 }
 </style>

@@ -1,46 +1,45 @@
 <template>
-  <SideBar class="trainee-main-specific-sidebar">
-    <div class="trainee-sidebar-inner-content">
-      <div class="search-container">
-        <svg-icon type="mdi" :path="mdiMagnify" class="search-icon" />
-        <input
-          type="text"
-          :value="searchQuery"
-          @input="updateSearchQuery"
-          placeholder="테스트 이름을 검색하세요..."
-          class="search-input"
-        />
-        <svg-icon type="mdi" :path="mdiRefresh" class="refresh-icon" @click="resetFilters" />
-      </div>
-
-      <hr class="divider" />
-
-      <div class="filter-section">
-        <div class="filter-title">응시 여부</div>
-        <label><input type="checkbox" :checked="statusFilters.done" @change="updateStatusFilter('done', $event)" /> 응시 완료</label>
-        <label><input type="checkbox" :checked="statusFilters.retry" @change="updateStatusFilter('retry', $event)" /> 재응시 가능</label>
-      </div>
-
-      <div class="filter-section">
-        <div class="filter-title">결과</div>
-        <label><input type="checkbox" :checked="resultFilters.pass" @change="updateResultFilter('pass', $event)" /> PASS</label>
-        <label><input type="checkbox" :checked="resultFilters.fail" @change="updateResultFilter('fail', $event)" /> FAIL</label>
-      </div>
+  <div class="trainee-main-sidebar-content">
+    <div class="search-container">
+      <svg-icon type="mdi" :path="mdiMagnify" class="search-icon" />
+      <input
+        type="text"
+        :value="searchQuery"
+        @input="updateSearchQuery"
+        placeholder="테스트 이름을 검색하세요..."
+        class="search-input"
+      />
+      <svg-icon type="mdi" :path="mdiRefresh" class="refresh-icon" @click="resetFilters" />
     </div>
-  </SideBar>
+
+    <hr class="divider" />
+
+    <div class="filter-section">
+      <div class="filter-title">응시 여부</div>
+      <label><input type="checkbox" :checked="statusFilters.done" @change="updateStatusFilter('done', $event)" /> 응시 완료</label>
+      <label><input type="checkbox" :checked="statusFilters.retry" @change="updateStatusFilter('retry', $event)" /> 재응시 가능</label>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-title">결과</div>
+      <label><input type="checkbox" :checked="resultFilters.pass" @change="updateResultFilter('pass', $event)" /> PASS</label>
+      <label><input type="checkbox" :checked="resultFilters.fail" @change="updateResultFilter('fail', $event)" /> FAIL</label>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue';
 import SvgIcon from '@jamescoyle/vue-icon';
 import { mdiMagnify, mdiRefresh } from '@mdi/js';
-import SideBar from '@/components/layouts/SideBar.vue';
+// SideBar 컴포넌트를 이곳에서 임포트할 필요가 없습니다. MainLayout이 이미 레이아웃을 제공합니다.
+// import SideBar from '@/components/layouts/SideBar.vue'; // <-- 이 줄은 제거해야 합니다.
 
 // Props 정의: TraineeMain.vue로부터 값을 받음
 const props = defineProps({
   searchQuery: String,
-  statusFilters: Object, // { done: boolean; retry: boolean } 대신 Object
-  resultFilters: Object, // { pass: boolean; fail: boolean } 대신 Object
+  statusFilters: Object,
+  resultFilters: Object,
 });
 
 // Emits 정의: TraineeMain.vue로 변경 사항을 알림
@@ -48,23 +47,23 @@ const emit = defineEmits([
   'update:searchQuery',
   'update:statusFilters',
   'update:resultFilters',
-  'reset-filters', // 필터 초기화 이벤트
+  'reset-filters',
 ]);
 
 // 검색 쿼리 업데이트
-const updateSearchQuery = (event) => { // event: Event 제거
-  emit('update:searchQuery', event.target.value); // as HTMLInputElement 제거
+const updateSearchQuery = (event) => {
+  emit('update:searchQuery', event.target.value);
 };
 
 // 응시 여부 필터 업데이트
-const updateStatusFilter = (key, event) => { // key: 'done' | 'retry', event: Event 제거
-  const newStatusFilters = { ...props.statusFilters, [key]: event.target.checked }; // as HTMLInputElement 제거
+const updateStatusFilter = (key, event) => {
+  const newStatusFilters = { ...props.statusFilters, [key]: event.target.checked };
   emit('update:statusFilters', newStatusFilters);
 };
 
 // 결과 필터 업데이트
-const updateResultFilter = (key, event) => { // key: keyof typeof props.resultFilters, event: Event 제거
-  const newResultFilters = { ...props.resultFilters, [key]: event.target.checked }; // as HTMLInputElement 제거
+const updateResultFilter = (key, event) => {
+  const newResultFilters = { ...props.resultFilters, [key]: event.target.checked };
   emit('update:resultFilters', newResultFilters);
 };
 
@@ -76,39 +75,35 @@ const resetFilters = () => {
 
 <style scoped>
 /*
-  SideBar.vue에서 기본 레이아웃 스타일을 제공하므로,
-  여기서는 TraineeMainSideBar 고유의 스타일만 정의합니다.
-  SideBar 컴포넌트 자체의 스타일을 오버라이드하지 않고,
-  이 컴포넌트가 렌더링될 때 적용될 스타일을 정의합니다.
+  MainLayout.vue의 .sidebar-container가 공통적인 사이드바 레이아웃(너비, 배경색, border-radius 등)을 제공합니다.
+  따라서 이곳에서는 이 사이드바 '콘텐츠' 자체에 필요한 스타일만 정의합니다.
+  `.trainee-main-specific-sidebar` 클래스는 더 이상 SideBar 컴포넌트 자체에 적용되지 않으므로 제거합니다.
+  대신, `trainee-main-sidebar-content`와 같은 클래스로 내부 콘텐츠의 스타일을 조정합니다.
 */
 
-/* SideBar 컴포넌트에 직접 적용되는 클래스 */
-.trainee-main-specific-sidebar {
-  /* TraineeMainSideBar에 필요한 너비와 패딩을 여기에 정의합니다. */
-  /* SideBar 컴포넌트의 props나 슬롯을 통해 스타일을 제어하는 것이 더 좋습니다. */
-  /* 예: <SideBar :width="180px" :padding="16px"> */
-  width: 180px; /* TraineeMainSideBar에 필요한 너비 */
-  padding: 16px; /* TraineeMainSideBar에 필요한 패딩 */
-  border-top-right-radius: 40px; /* 사이드바 상단 오른쪽 둥근 모서리 */
-  min-width: 140px; /* 최소 너비 */
-  min-height: calc(100vh - 60px); /* 최소 높이 */
-  font-size: 14px; /* TraineeMainSideBar에 필요한 글꼴 크기 */
+.trainee-main-sidebar-content {
+  /* MainLayout의 sidebar-container 안에 들어갈 콘텐츠의 스타일 */
+  width: 100%; /* 부모 컨테이너(sidebar-container)에 꽉 차도록 */
+  height: 100%; /* 부모 컨테이너에 꽉 차도록 */
+  padding: 0; /* MainLayout의 sidebar-container에서 이미 패딩을 줬을 경우 겹치지 않게 0으로 설정하거나,
+                  필요에 따라 추가 패딩을 여기에 줍니다. (현재 MainLayout은 20px 패딩) */
+  box-sizing: border-box; /* 패딩이 너비/높이에 포함되도록 */
+  /* min-width, min-height, font-size 등은 필요시 여기에 정의합니다.
+     하지만 MainLayout의 sidebar-container가 이미 기본값을 제공하므로
+     여기는 이 콘텐츠만의 고유한 스타일을 넣는 데 집중합니다. */
+  font-size: 14px; /* 콘텐츠 자체의 글꼴 크기 */
 }
 
-/* 기존 TraineeSideBar 고유의 스타일은 유지 */
-.trainee-sidebar-inner-content {
-  width: 100%;
-}
-
+/* 기존 TraineeMainSideBar 고유의 스타일은 유지 */
 .search-container {
   position: relative;
   display: flex;
   align-items: center;
-  margin-bottom: 12px;
-  margin-top: 8px;
-  padding: 8px;
-  width: 80%;
-  height: 6%;
+  margin-bottom: 6px;
+  margin-top: 6px;
+  width: 90%;
+  height: 5%;
+  min-height: 32px;
   margin-left: 2px;
   margin-right: auto;
   border-radius: 4px;
@@ -117,7 +112,7 @@ const resetFilters = () => {
 
 .search-icon {
   position: absolute;
-  left: 5px;
+  left: 2px;
   color: #888;
   height: 18px;
   z-index: 2;
@@ -125,7 +120,7 @@ const resetFilters = () => {
 
 .refresh-icon {
   position: absolute;
-  right: 10px;
+  right: 2px;
   color: #ccc;
   height: 18px;
   cursor: pointer;
@@ -139,11 +134,13 @@ const resetFilters = () => {
 
 .search-input {
   width: 100%;
-  padding: 5px 25px;
+  height: 32px; /* 불필요하게 크지 않도록 고정된 픽셀 값으로 변경 */
+  padding: 5px 30px 5px 30px; /* 상하 5px, 좌우 30px 패딩 (아이콘 공간 확보) */
   border: none;
   outline: none;
-  font-size: 14px;
+  font-size: 12px;
   background-color: transparent;
+  box-sizing: border-box; /* 패딩이 너비에 포함되도록 box-sizing 추가 */
 }
 
 .divider {

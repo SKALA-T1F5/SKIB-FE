@@ -1,6 +1,6 @@
 <template>
   <v-main>
-    <AppHeader />
+    <Header />
     <div class="content-wrapper">
       <SideNavigation :collapsed="collapsed" />
       <div class="main-content mt-0">
@@ -12,8 +12,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import AppHeader from './AppHeader.vue'
-import SideNavigation from './SideNavigation.vue'
+import Header from './AppHeader.vue'
 
 const collapsed = ref(false)
 </script>

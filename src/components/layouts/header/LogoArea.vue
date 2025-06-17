@@ -6,7 +6,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import logoImage from '@/assets/logo_semi.png'
+import logoImage from '@/assets/images/header_logo.png'
 
 const router = useRouter()
 const goToMain = () => {
@@ -18,9 +18,11 @@ const goToMain = () => {
 .logo-area {
   display: flex;
   align-items: center;
+  margin-left: -25px;
+  margin-bottom: -10px;
 }
 .logo-image {
-  height: 60px;
+  height: 130px;
   object-fit: contain;
   cursor: pointer;
 }
