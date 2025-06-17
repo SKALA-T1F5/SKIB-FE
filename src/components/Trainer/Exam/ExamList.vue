@@ -67,17 +67,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import ExamStatsChart from '../../chart/ExamStatsChart.vue';
-import axios from 'axios';
-import { API_BASE_URL } from '@/config/api';
-
-
-// 임의의 테스트용 JWT 토큰 하드코딩 ✅로그인 구현 시 삭제 필요✅
-// const token = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc0OTYxOTE4OSwiZXhwIjoxNzQ5NjIyNzg5fQ.U3vom7xAsdsEE3fVII3TRGKKhE_5HdXkG-Q6AAEXLbA';
-// const projectId = 1;
-// localStorage.setItem('token', token);
-// localStorage.setItem('projectId', projectId);
-console.log('token:', token);
-console.log('projectId:', projectId);
+import api from '@/utils/axios';
 
 const emit = defineEmits(['next-step', 'exam-dashboard']);
 
@@ -95,21 +85,20 @@ const props = defineProps({
   exams: Array
 })
 
-
 // 시험 목록을 가져오는 함수
 const fetchExams = async () => {
   try {
-    // 로컬스토리지 값 가져오기
-    const token = localStorage.getItem('token');
+    // 로컬스토리지에서 projectId 가져오기
     const projectId = localStorage.getItem('projectId');
 
-    const response = await axios.get(`${API_BASE_URL}/test/getTests`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json'
-      },
+    // projectId가 없으면 기본값 설정
+    if (!projectId) {
+      localStorage.setItem('projectId', '1');
+    }
+
+    const response = await api.get('/test/getTests', {
       params: {
-        projectId: projectId 
+        projectId: projectId || '1'
       }
     });
 

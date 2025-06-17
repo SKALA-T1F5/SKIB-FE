@@ -4,14 +4,14 @@
       <v-col cols="12">
         <div class="d-flex align-end mb-4">
           <h2 class="text-h5 font-weight-bold mr-2">테스트 응시 현황</h2>
-          <p class="text-body-2 text-medium-emphasis">{{ totalStudents }} 훈련생들의 테스트 응시 결과를 확인하고, AI Report를 생성합니다.</p>
+          <p class="text-body-2 text-medium-emphasis">훈련생들의 테스트 응시 결과를 확인하고, AI Report를 생성합니다.</p>
         </div>
         <error-alert v-if="error" :message="error" />
       </v-col>
     </v-row>
     <v-row dense>
       <!-- 왼쪽: AI 테스트 결과 요약, 문항별 분석 -->
-      <v-col cols="12" sm="9">
+      <v-col cols="12" sm="8">
         <v-card elevation="0" class="ai-summary-card">
           <v-card-title class="card-title">AI Summary</v-card-title>
           <v-divider color="secondary" class="custom-divider"></v-divider>
@@ -42,7 +42,7 @@
         </v-card>
       </v-col>
       <!-- 오른쪽: 평균 점수/합격자 수, 학습자별 분석, Tag별 분석 -->
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="4">
         <v-card class="dashboard-card" style="height: 520px;">
           <v-card-title class="card-title">평균 점수 / 합격자 수</v-card-title>
           <v-divider color="secondary" class="custom-divider"></v-divider>

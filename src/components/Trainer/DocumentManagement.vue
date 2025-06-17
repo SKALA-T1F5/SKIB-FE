@@ -57,6 +57,7 @@ import DocumentPreviewDialog from './Document/DocumentPreviewDialog.vue';
 import TabNavigation from '../Layout/TabNavigation.vue';
 import ExamManagement from './ExamManagement.vue';
 
+
 // 문서 데이터 상태 관리
 const documents = ref([]);
 const searchQuery = ref('');
