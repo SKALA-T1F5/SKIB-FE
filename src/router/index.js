@@ -36,9 +36,9 @@ const routes = [
     path: '/trainer',
     component: TrainerMain, // MainLayout이 아니라 TrainerMain.vue 사용
     children: [
-      { path: '', redirect: 'main' }, // /trainer 접근 시 기본 redirect
-      { path: 'main', name: 'TrainerMain', component: TrainerMain },
-      { path: 'project', name: 'Project', component: Project },
+      { path: '/', redirect: 'main' }, // /trainer 접근 시 기본 redirect
+      // { path: 'main', name: 'TrainerMain', component: TrainerMain },
+      { path: 'main', name: 'Project', component: Project },
       { path: 'project/:projectId', name: 'ProjectPage', component: ProjectPage },
       { path: 'project/:projectId/projectdetail', name: 'ProjectDetail', component: ProjectDetail },
       { path: 'project/:projectId/document', name: 'DocumentManagement', component: DocumentManagement },
