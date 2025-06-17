@@ -76,8 +76,8 @@ import { API_BASE_URL } from '@/config/api';
 // const projectId = 1;
 // localStorage.setItem('token', token);
 // localStorage.setItem('projectId', projectId);
-// console.log('token:', token);
-// console.log('projectId:', projectId);
+console.log('token:', token);
+console.log('projectId:', projectId);
 
 const emit = defineEmits(['next-step', 'exam-dashboard']);
 
