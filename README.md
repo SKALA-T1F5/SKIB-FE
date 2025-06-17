@@ -1,35 +1,38 @@
 # SKIB-FE
 
-This template should help get you started developing with Vue 3 in Vite.
+## Commit Code
+1. `git add .`: 변경 사항 Staging
+1. `git commit -m {commit_message}`: Commit Message 입력
+1. `git push origin {branch}`: branch로 Push
 
-## Recommended IDE Setup
+## Commit Message
+- `feat`: 새로운 기능 추가
+- `fix`: 기능 수정, 버그 수정
+- `refactor`: 코드 재구성
+- `style`: 코드에 영향을 미치지 않는 수정(ex. 띄어쓰기, 이름, 주석 등)
+- `docs`: 문서 추가 및 변경(ex. README.md, requirements.txt, .gitignore)
+- `test`: 테스트코드, 리팩토링 테스트 코드 추가
+- `chore`: 빌드 업무 수정, 패키지 매니저 수정
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
+## Directory Structure
+```Plain Text
+📂SIKB-FE
+ ├── 📂public
+ ├── 📂src
+ |    ├── 📂assets                  - 이미지, 폰트, 전역 스타일 등 정적 리소스 저장
+ |    ├── 📂components              - 역할별 Component
+ |    |    ├── 📂layouts                - 공통 Layouts: Header, SideBar, Footer
+ |    |    ├── 📂trainee                - Trainee Component
+ |    |    └── 📂trainer                - Trainer Component
+ |    ├── 📂pages                   - 역할별 Page
+ |    |    ├── 📂admin                  - Admin Page
+ |    |    ├── 📂general                - General Page: Login, MyPage, ...
+ |    |    ├── 📂trainee                - Trainee Page
+ |    |    └── 📂trainer                - Trainer Page
+ |    ├── 📂plugins                 - 외부 라이브러리 전역 등록
+ |    ├── 📂router                  - 페이지 간 Routing Logic 설정
+ |    ├── 📂stores                  - Pinia 기반 상태 관리
+ |    ├── 💾App.vue
+ |    └── 💾main.js
+ └── 💾vite.config.js               - Springboot 연동 간 사용
 ```
