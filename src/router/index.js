@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import MyPage from '@/pages/general/MyPage.vue'
 
 // General Pages
 import Login from '@/pages/general/Login.vue'
@@ -15,6 +16,7 @@ import TraineeTestGuide from '@/pages/trainee/TraineeTestGuide.vue'
 const routes = [
   // General Routes
   { path: '/login', name: 'Login', component: Login },
+  { path: '/mypage', name: 'MyPage', component: MyPage },
 
   // Trainer Routes
   { path: '/trainer/main', name: 'TrainerMain', component: TrainerMain },
