@@ -26,9 +26,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       alert('세션이 만료되었습니다. 다시 로그인해주세요.')
-      localStorage.removeItem('token')
-      localStorage.removeItem('role')
-      window.location.href = '/'
+      localStorage.clear()
+      // 로그인 페이지로 리다이렉트
+      window.location.href = '/login'
     }
     return Promise.reject(error)
   },

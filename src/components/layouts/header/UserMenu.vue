@@ -18,47 +18,45 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'; // defineProps는 사용하지 않으므로 제거
-import { useRouter } from 'vue-router';
-import SvgIcon from '@jamescoyle/vue-icon';
-import { mdiAccount, mdiMenuDown, mdiLock } from '@mdi/js';
+import { ref, onMounted } from 'vue' // defineProps는 사용하지 않으므로 제거
+import { useRouter } from 'vue-router'
+import SvgIcon from '@jamescoyle/vue-icon'
+import { mdiAccount, mdiMenuDown, mdiLock } from '@mdi/js'
 
-const router = useRouter();
-const showUserMenu = ref(false);
-const isExamMode = ref(false); // 시험 모드 상태 추가 (mdiLock 아이콘 제어를 위함)
+const router = useRouter()
+const showUserMenu = ref(false)
+const isExamMode = ref(false) // 시험 모드 상태 추가 (mdiLock 아이콘 제어를 위함)
 
 // ✅ 사용자 정보 가져오기
-const name = ref('');
-const role = ref('');
+const name = ref('')
+const role = ref('')
 
 onMounted(() => {
-  name.value = localStorage.getItem('name') || '사용자';
-  role.value = localStorage.getItem('role') || '';
+  name.value = localStorage.getItem('name') || '사용자'
+  role.value = localStorage.getItem('role') || ''
 
   // 예시: 시험 모드 상태를 설정할 수 있는 로직 (필요하다면 추가)
   // isExamMode.value = someConditionBasedOnExamStatus;
-});
+})
 
 // 드롭다운 메뉴 토글 함수
 const toggleUserMenu = () => {
   // 시험 모드가 아닐 때만 메뉴를 토글
   if (!isExamMode.value) {
-    showUserMenu.value = !showUserMenu.value;
+    showUserMenu.value = !showUserMenu.value
   }
-};
+}
 
 const goToMyPage = () => {
-  showUserMenu.value = false; // 메뉴 닫기
-  router.push('/mypage');
-};
+  showUserMenu.value = false // 메뉴 닫기
+  router.push('/mypage')
+}
 
 const logout = () => {
-  showUserMenu.value = false; // 메뉴 닫기
-  localStorage.removeItem('token');
-  localStorage.removeItem('role');
-  localStorage.removeItem('name');
-  router.push('/login');
-};
+  showUserMenu.value = false // 메뉴 닫기
+  localStorage.clear()
+  router.push('/login')
+}
 </script>
 
 <style scoped>
