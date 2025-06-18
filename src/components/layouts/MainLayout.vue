@@ -6,6 +6,9 @@
       <aside v-if="showSidebar" :class="['sidebar-container', { collapsed: isSidebarCollapsed }]">
         <div class="sidebar-header">
           <div class="sidebar-header-content">
+            <h3 class="sidebar-title" v-if="sidebarType === 'test' && !isSidebarCollapsed">
+              문제 현황
+            </h3>
             <slot name="sidebar-header-content" :is-collapsed="isSidebarCollapsed"></slot>
           </div>
           <button class="collapse-btn" @click="toggleSidebar">
@@ -14,10 +17,17 @@
             }}</span>
           </button>
         </div>
-        <hr v-if="!isSidebarCollapsed && hasSidebarHeaderContent" class="divider-in-header" />
+        <hr v-if="!isSidebarCollapsed" class="divider-in-header" />
 
         <div class="sidebar-content-slot">
-          <slot name="sidebar" :is-collapsed="isSidebarCollapsed"></slot>
+          <TraineeTestSideBar
+            v-if="sidebarType === 'test'"
+            :is-collapsed="isSidebarCollapsed"
+            :questions="testQuestions"
+            :current-question-id="currentTestQuestionId"
+            @select-question="handleSelectTestQuestion"
+          />
+          <slot name="sidebar" :is-collapsed="isSidebarCollapsed" v-else></slot>
         </div>
       </aside>
 
@@ -35,11 +45,24 @@
 import { ref, onMounted, computed, useSlots, defineProps } from 'vue'
 import Header from './Header.vue'
 import Footer from './Footer.vue'
+import TraineeTestSideBar from '@/components/trainee/test/TraineeTestSideBar.vue'
 
 const props = defineProps({
   showSidebar: {
     type: Boolean,
     default: true,
+  },
+  sidebarType: {
+    type: String,
+    default: 'default',
+  },
+  testQuestions: {
+    type: Array,
+    default: () => [],
+  },
+  currentTestQuestionId: {
+    type: [Number, String, null],
+    default: null,
   },
 })
 
@@ -48,7 +71,6 @@ const userRole = ref('Trainee')
 const isSidebarCollapsed = ref(false)
 
 const slots = useSlots()
-const hasSidebarHeaderContent = computed(() => !!slots['sidebar-header-content'])
 
 const toggleSidebar = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value
@@ -64,6 +86,13 @@ onMounted(() => {
     userRole.value = storedRole
   }
 })
+
+// TraineeTestSideBar에서 발생한 selectQuestion 이벤트를 받아서 부모 컴포넌트로 다시 emit
+const emit = defineEmits(['selectQuestionFromSidebar'])
+
+const handleSelectTestQuestion = (questionId) => {
+  emit('selectQuestionFromSidebar', questionId)
+}
 </script>
 
 <style scoped>
@@ -79,8 +108,6 @@ onMounted(() => {
   display: flex;
   flex: 1;
   overflow-x: hidden;
-  /* 여백이 많아진 원인 중 하나일 수 있으므로 gap 속성이 있다면 제거하거나 조정 */
-  /* gap: 0; */
 }
 
 .sidebar-container {
@@ -117,11 +144,11 @@ onMounted(() => {
 
 .sidebar-header {
   display: flex;
-  align-items: center;
+  align-items: center; /* 세로 중앙 정렬 */
   justify-content: flex-start;
   padding: 0 14px 0px 10px;
   position: relative;
-  padding-right: 35px;
+  padding-right: 35px; /* 토글 버튼 공간 확보 */
 }
 
 .sidebar-container.collapsed .sidebar-header {
@@ -132,8 +159,8 @@ onMounted(() => {
 .sidebar-header-content {
   flex-grow: 1;
   margin-right: 10px;
-  display: flex;
-  align-items: center;
+  display: flex; /* 내부 요소들을 flex로 관리하여 정렬 */
+  align-items: center; /* '문제 현황' 텍스트를 세로 중앙으로 정렬 */
   justify-content: flex-start;
   transition:
     opacity 0.3s ease-in-out,
@@ -151,6 +178,17 @@ onMounted(() => {
     opacity 0.3s ease-in-out,
     width 0.3s ease-in-out,
     visibility 0s linear 0s;
+}
+
+/* '문제 현황' 문구에 적용될 스타일 */
+.sidebar-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333; /* 사이드바 배경에 맞는 색상으로 조정 */
+  margin-left: 10px; /* 불필요한 마진 제거 */
+  white-space: nowrap; /* 텍스트가 한 줄로 표시되도록 */
+  overflow: hidden; /* 넘치는 텍스트 숨김 */
+  text-overflow: ellipsis; /* 넘치는 텍스트를 ...으로 표시 */
 }
 
 .divider-in-header {
@@ -190,7 +228,7 @@ onMounted(() => {
     background 0.2s,
     transform 0.3s ease-in-out;
   position: absolute;
-  top: 50%;
+  top: 50%; /* sidebar-header의 세로 중앙에 위치 */
   transform: translateY(-50%);
   right: 10px;
 }
@@ -227,28 +265,23 @@ onMounted(() => {
   flex-direction: column;
   flex: 1;
   background-color: #fff;
-  align-items: center; /* main-content를 수평 중앙으로 정렬 */
-  /* 사이드바와 content-area 사이의 불필요한 여백 제거 */
-  /* margin-left, padding-left 관련 속성 확인 및 제거/조정 */
-  margin-left: 0; /* 혹시 모를 마진 초기화 */
-  padding-left: 0; /* 혹시 모를 패딩 초기화 */
+  align-items: center;
+  margin-left: 0;
+  padding-left: 0;
 }
 
-/* 사이드바가 없을 때 content-area가 전체 너비를 차지하도록 */
 .content-area.full-width {
-  margin-left: 0; /* 사이드바 없음 -> 마진 0 */
-  width: 100%; /* 전체 너비 차지 */
+  margin-left: 0;
+  width: 100%;
+  align-items: stretch;
 }
 
 .main-content {
   flex: 1;
-  padding: 24px; /* 메인 콘텐츠 내부 패딩은 유지 */
+  padding: 24px;
   overflow-y: auto;
   min-height: 0;
-  width: 100%; /* 부모의 100%를 기본으로 하되 max-width에 의해 제한 */
+  width: 100%;
   box-sizing: border-box;
-  /* 콘텐츠 자체의 좌우 여백을 줄이려면 padding-left/right를 조정 */
-  /* 현재 padding: 24px; 가 전체 방향에 적용되므로, 좌우 패딩을 줄이고 싶다면 아래처럼 변경 */
-  /* padding: 24px 10px; // 상하 24px, 좌우 10px */
 }
 </style>
