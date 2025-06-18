@@ -1,0 +1,53 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: auto !important;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Sidebar + ContentArea 가로 배치 */
+.layout-body {
+  display: flex;
+  flex: 1;
+  min-height: 0; /* flex item 내부 스크롤을 위한 핵심 설정 */
+}
+
+/* 사이드바는 고정 너비 */
+.sidebar {
+  width: 250px;
+  background-color: #1e2251;
+}
+
+/* Content 영역 (Main + Footer 수직 배치) */
+.content-area {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Main content 영역: 넘칠 경우만 스크롤 */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  height: auto;
+  background-color: #fff;
+  min-height: 0;
+}
+
+/* Footer는 메인 아래 고정 */
+.footer {
+  height: 40px;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #666;
+}

@@ -10,8 +10,11 @@ const api = axios.create({
 
 // Token을 요청 Header에 추가
 api.interceptors.request.use((config) => {
+  // 로그인 요청은 Token을 추가하지 않음.
+  const isLoginRequest = config.url === '/auth/user/login'
   const token = localStorage.getItem('token')
-  if (token) {
+
+  if (token && !isLoginRequest) {
     config.headers.Authorization = `Bearer ${token}`
   }
   return config
