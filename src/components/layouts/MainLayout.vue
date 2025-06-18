@@ -3,7 +3,7 @@
     <Header :name="userName" :role="userRole" />
 
     <div class="layout-body">
-      <aside :class="['sidebar-container', { collapsed: isSidebarCollapsed }]">
+      <aside v-if="showSidebar" :class="['sidebar-container', { collapsed: isSidebarCollapsed }]">
         <div class="sidebar-header">
           <div class="sidebar-header-content">
             <slot name="sidebar-header-content" :is-collapsed="isSidebarCollapsed"></slot>
@@ -21,7 +21,7 @@
         </div>
       </aside>
 
-      <div class="content-area">
+      <div :class="['content-area', { 'full-width': !showSidebar }]">
         <main class="main-content">
           <slot name="content"></slot>
         </main>
@@ -32,17 +32,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, useSlots } from 'vue'
-import Header from './Header.vue' // 실제 Header.vue 경로에 맞게 수정해주세요.
-import Footer from './Footer.vue' // 실제 Footer.vue 경로에 맞게 수정해주세요.
+import { ref, onMounted, computed, useSlots, defineProps } from 'vue'
+import Header from './Header.vue'
+import Footer from './Footer.vue'
+
+const props = defineProps({
+  showSidebar: {
+    type: Boolean,
+    default: true,
+  },
+})
 
 const userName = ref('Guest')
 const userRole = ref('Trainee')
-const isSidebarCollapsed = ref(false) // 사이드바 접힘/펼침 상태
+const isSidebarCollapsed = ref(false)
 
 const slots = useSlots()
-// 'sidebar-header-content' 슬롯에 콘텐츠가 제공되었는지 확인하여 구분선 렌더링 여부를 결정합니다.
-// TraineeMain.vue에서 검색창을 이 슬롯에 넣을 것이므로, 이 값은 true가 됩니다.
 const hasSidebarHeaderContent = computed(() => !!slots['sidebar-header-content'])
 
 const toggleSidebar = () => {
@@ -73,56 +78,99 @@ onMounted(() => {
 .layout-body {
   display: flex;
   flex: 1;
-  overflow: hidden;
+  overflow-x: hidden;
+  /* 여백이 많아진 원인 중 하나일 수 있으므로 gap 속성이 있다면 제거하거나 조정 */
+  /* gap: 0; */
 }
 
 .sidebar-container {
-  width: 180px; /* 펼쳤을 때 너비 */
-  min-width: 180px; /* 최소 너비 고정 */
+  width: 180px;
+  min-width: 180px;
   background-color: #eef2f6;
   color: #222;
   padding-top: 24px;
   border-top-right-radius: 24px;
-  border-bottom-right-radius: 24px; /* 이전처럼 다시 추가 */
+  border-bottom-right-radius: 24px;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
-  /* transition: width 0.2s ease-in-out, min-width 0.2s ease-in-out; */ /* 너비는 고정되므로 transition 불필요 */
   position: relative;
   z-index: 900;
-  height: calc(100vh - 60px);
+  flex: 0 0 auto;
+  min-height: 0;
+
+  transition:
+    width 0.3s ease-in-out,
+    padding 0.3s ease-in-out,
+    border-radius 0.3s ease-in-out;
 }
 
 .sidebar-container.collapsed {
-  width: 55px; /* 접었을 때 너비 */
-  min-width: 55px; /* 접었을 때 최소 너비 */
+  width: 55px;
+  min-width: 55px;
   align-items: center;
+  padding-left: 0;
+  padding-right: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .sidebar-header {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* 슬롯 내용과 버튼을 양 끝으로 분리 */
-  padding: 0 14px 0px 10px; /* 왼쪽 여백 추가 */
+  justify-content: flex-start;
+  padding: 0 14px 0px 10px;
+  position: relative;
+  padding-right: 35px;
 }
 
 .sidebar-container.collapsed .sidebar-header {
-  justify-content: center; /* 접었을 때 버튼만 중앙으로 */
-  padding: 0 0 20px 0; /* 접었을 때 패딩 조정 */
+  padding: 0 0 20px 0;
+  justify-content: center;
 }
 
 .sidebar-header-content {
-  flex-grow: 1; /* 남은 공간을 차지하도록 */
-  margin-right: 10px; /* 토글 버튼과의 간격 */
-  display: flex; /* 내부 요소 정렬을 위해 flexbox 사용 */
-  align-items: center; /* 수직 중앙 정렬 */
-  justify-content: flex-start; /* 검색창을 왼쪽으로 정렬 */
+  flex-grow: 1;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  transition:
+    opacity 0.3s ease-in-out,
+    width 0.3s ease-in-out,
+    visibility 0s linear 0.3s;
+}
+
+.sidebar-container.collapsed .sidebar-header-content {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  pointer-events: none;
+  visibility: hidden;
+  transition:
+    opacity 0.3s ease-in-out,
+    width 0.3s ease-in-out,
+    visibility 0s linear 0s;
 }
 
 .divider-in-header {
   border: 0;
   border-top: 1px solid #e0e0e0;
   margin: 14px 10px;
+  transition:
+    opacity 0.3s ease-in-out,
+    margin 0.3s ease-in-out,
+    visibility 0s linear 0.3s;
+}
+
+.sidebar-container.collapsed .divider-in-header {
+  opacity: 0;
+  margin: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.3s ease-in-out,
+    margin 0.3s ease-in-out,
+    visibility 0s linear 0s;
 }
 
 .collapse-btn {
@@ -138,8 +186,18 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
-  transition: background 0.2s;
-  flex-shrink: 0;
+  transition:
+    background 0.2s,
+    transform 0.3s ease-in-out;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 10px;
+}
+
+.sidebar-container.collapsed .collapse-btn {
+  right: 50%;
+  transform: translateY(-50%) translateX(50%);
 }
 
 .collapse-btn:hover {
@@ -149,27 +207,48 @@ onMounted(() => {
 .sidebar-content-slot {
   flex: 1;
   overflow-y: auto;
-  padding: 0 10px 20px 14px; /* 좌우 여백 추가 및 하단 패딩 */
-  transition: opacity 0.2s ease-in-out;
+  padding: 0 10px 20px 14px;
+  transition:
+    opacity 0.3s ease-in-out,
+    visibility 0s linear 0.3s;
 }
 
 .sidebar-container.collapsed .sidebar-content-slot {
   opacity: 0;
   pointer-events: none;
+  visibility: hidden;
+  transition:
+    opacity 0.3s ease-in-out,
+    visibility 0s linear 0s;
 }
 
 .content-area {
   display: flex;
   flex-direction: column;
   flex: 1;
-  overflow: hidden;
   background-color: #fff;
+  align-items: center; /* main-content를 수평 중앙으로 정렬 */
+  /* 사이드바와 content-area 사이의 불필요한 여백 제거 */
+  /* margin-left, padding-left 관련 속성 확인 및 제거/조정 */
+  margin-left: 0; /* 혹시 모를 마진 초기화 */
+  padding-left: 0; /* 혹시 모를 패딩 초기화 */
+}
+
+/* 사이드바가 없을 때 content-area가 전체 너비를 차지하도록 */
+.content-area.full-width {
+  margin-left: 0; /* 사이드바 없음 -> 마진 0 */
+  width: 100%; /* 전체 너비 차지 */
 }
 
 .main-content {
   flex: 1;
-  padding: 24px;
+  padding: 24px; /* 메인 콘텐츠 내부 패딩은 유지 */
   overflow-y: auto;
   min-height: 0;
+  width: 100%; /* 부모의 100%를 기본으로 하되 max-width에 의해 제한 */
+  box-sizing: border-box;
+  /* 콘텐츠 자체의 좌우 여백을 줄이려면 padding-left/right를 조정 */
+  /* 현재 padding: 24px; 가 전체 방향에 적용되므로, 좌우 패딩을 줄이고 싶다면 아래처럼 변경 */
+  /* padding: 24px 10px; // 상하 24px, 좌우 10px */
 }
 </style>

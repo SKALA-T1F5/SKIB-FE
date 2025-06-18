@@ -8,6 +8,7 @@ import TrainerMain from '@/pages/trainer/TrainerMain.vue'
 
 // Trainee Pages
 import TraineeMain from '@/pages/trainee/TraineeMain.vue'
+import TraineeTestGuide from '@/pages/trainee/TraineeTestGuide.vue'
 
 // Admin Pages
 
@@ -20,6 +21,12 @@ const routes = [
 
   // Trainee Routes
   { path: '/trainee/main', name: 'TraineeMain', component: TraineeMain },
+  {
+    path: '/trainee/test/guide/:testId',
+    name: 'TraineeTestGuide',
+    component: TraineeTestGuide,
+    props: true,
+  },
 
   // Admin Routes
 
