@@ -7,7 +7,7 @@
           <button class="close-button" @click="emit('close')">×</button>
         </div>
         <div class="modal-body">
-          <p>테스트 초대 링크를 입력하세요.</p>
+          <p class="body-description">테스트 초대 링크를 입력하세요.</p>
           <input
             type="text"
             v-model="linkInput"
@@ -28,28 +28,31 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch } from 'vue'
 // defineProps, defineEmits는 컴파일러 매크로이므로 import 할 필요가 없습니다.
 
 const props = defineProps({
-  isVisible: Boolean, // TypeScript의 'boolean;' 대신 'Boolean'
-  invitationLinkError: String, // TypeScript의 'string;' 대신 'String'
-});
+  isVisible: Boolean,
+  invitationLinkError: String,
+})
 
-const emit = defineEmits(['close', 'addTest']);
+const emit = defineEmits(['close', 'addTest'])
 
-const linkInput = ref('');
+const linkInput = ref('')
 
 // 모달이 열릴 때마다 링크 입력값 초기화
-watch(() => props.isVisible, (newVal) => {
-  if (newVal) {
-    linkInput.value = '';
-  }
-});
+watch(
+  () => props.isVisible,
+  (newVal) => {
+    if (newVal) {
+      linkInput.value = ''
+    }
+  },
+)
 
 const handleAddTest = () => {
-  emit('addTest', linkInput.value); // 입력된 링크를 부모 컴포넌트로 전달
-};
+  emit('addTest', linkInput.value) // 입력된 링크를 부모 컴포넌트로 전달
+}
 </script>
 
 <style scoped>
@@ -69,7 +72,7 @@ const handleAddTest = () => {
 
 .modal-content {
   background-color: white;
-  padding: 25px;
+  padding: 20px; /* 기존 25px에서 20px로 줄여서 전체 모달 내부 여백 감소 */
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   width: 90%;
@@ -77,7 +80,7 @@ const handleAddTest = () => {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 10px; /* 기존 15px에서 10px로 줄여서 섹션 간 간격 감소 */
 }
 
 .modal-header {
@@ -85,20 +88,20 @@ const handleAddTest = () => {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
-  margin-bottom: -10px;
+  padding-bottom: 8px; /* 기존 10px에서 8px로 줄임 */
+  margin-bottom: 0; /* -10px에서 0으로 변경하여 body와의 간격 조정 */
 }
 
 .modal-header h3 {
   margin: 0;
-  font-size: 1.2em;
+  font-size: 1.15em; /* 폰트 사이즈 살짝 줄여서 공간 확보 */
   color: #333;
 }
 
 .close-button {
   background: none;
   border: none;
-  font-size: 1.5em;
+  font-size: 1.4em; /* 폰트 사이즈 살짝 줄임 */
   cursor: pointer;
   color: #999;
 }
@@ -107,18 +110,24 @@ const handleAddTest = () => {
   color: #666;
 }
 
-.modal-body p {
-  margin-bottom: 10px;
+.modal-body {
+  /* flex-direction: column; (기본값) */
+  /* gap: 8px; (필요시 추가하여 body 내 요소들 간 간격 조절) */
+}
+
+.body-description {
+  /* <p> 태그에 새로운 클래스 추가 */
+  margin-bottom: 8px; /* 기존 10px에서 8px로 줄임 */
   color: #555;
-  font-size: 0.95em;
+  font-size: 0.9em; /* 폰트 사이즈 살짝 줄여서 공간 확보 */
 }
 
 .invitation-input {
-  width: calc(100% - 20px); /* 패딩 고려 */
-  padding: 10px;
+  width: calc(100% - 20px);
+  padding: 8px; /* 기존 10px에서 8px로 줄여서 입력 필드 높이 감소 */
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 1em;
+  font-size: 0.95em; /* 폰트 사이즈 살짝 줄임 */
   outline: none;
   transition: border-color 0.2s;
 }
@@ -128,39 +137,39 @@ const handleAddTest = () => {
 }
 
 .invitation-input.input-error {
-  border-color: #F44336;
+  border-color: #f44336;
 }
 
 .error-message {
-  color: #F44336;
-  font-size: 0.85em;
-  margin-top: 5px;
+  color: #f44336;
+  font-size: 0.8em; /* 폰트 사이즈 살짝 줄임 */
+  margin-top: 3px; /* 기존 5px에서 3px로 줄여서 에러 메시지 간격 감소 */
   display: flex;
   align-items: center;
 }
 
 .error-icon {
   display: inline-block;
-  width: 16px;
-  height: 16px;
+  width: 14px; /* 아이콘 크기 줄임 */
+  height: 14px; /* 아이콘 크기 줄임 */
   border-radius: 50%;
-  background-color: #F44336;
+  background-color: #f44336;
   color: white;
   text-align: center;
-  line-height: 16px;
-  font-size: 12px;
-  margin-right: 5px;
+  line-height: 14px; /* 아이콘 크기에 맞춰 line-height 조정 */
+  font-size: 10px; /* 아이콘 내부 '!' 크기 줄임 */
+  margin-right: 4px; /* 기존 5px에서 4px로 줄임 */
 }
 .error-icon::before {
-  content: "!";
+  content: '!';
 }
 
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  padding-top: 10px;
+  padding-top: 8px; /* 기존 10px에서 8px로 줄임 */
   border-top: 1px solid #eee;
-  margin-top: 10px;
+  margin-top: 8px; /* 기존 10px에서 8px로 줄임 */
 }
 
 .modal-button {
@@ -168,9 +177,9 @@ const handleAddTest = () => {
   color: #555;
   border: 1px solid #ccc;
   border-radius: 4px;
-  padding: 8px 18px;
+  padding: 6px 15px; /* 기존 8px 18px에서 6px 15px로 줄여 버튼 크기 감소 */
   cursor: pointer;
-  font-size: 1em;
+  font-size: 0.95em; /* 폰트 사이즈 살짝 줄임 */
   transition: background-color 0.2s;
 }
 
