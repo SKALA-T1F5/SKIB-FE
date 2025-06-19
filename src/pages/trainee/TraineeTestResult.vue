@@ -1,11 +1,14 @@
 <template>
-  <MainLayout
-    :show-sidebar="allQuestions.length > 0"
-    sidebar-type="testResult"
-    :test-questions="allQuestions"
-    :current-test-question-id="currentQuestionId"
-    @select-question-from-sidebar="handleQuestionSelectFromSidebar"
-  >
+  <MainLayout :show-sidebar="allQuestions.length > 0" sidebar-type="testResult">
+    <template #sidebar="{ isCollapsed }">
+      <TraineeTestResultSideBar
+        :is-collapsed="isCollapsed"
+        :questions="allQuestions"
+        :current-question-id="currentQuestionId"
+        @select-question="handleQuestionSelectFromSidebar"
+      />
+    </template>
+
     <template #content>
       <div class="test-result-content-and-chatbot-wrapper">
         <div class="test-result-main-content">
@@ -183,7 +186,8 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import MainLayout from '@/components/layouts/MainLayout.vue' // MainLayout 경로 확인
+import MainLayout from '@/components/layouts/MainLayout.vue'
+import TraineeTestResultSideBar from '@/components/trainee/result/TraineeTestResultSideBar.vue' // TraineeTestResultSideBar 임포트
 import SvgIcon from '@jamescoyle/vue-icon'
 import {
   mdiChevronLeft,
@@ -415,6 +419,7 @@ const fetchTestQuestions = async () => {
   }
 }
 
+// TraineeTestResultSideBar에서 발생하는 'selectQuestion' 이벤트를 처리
 const handleQuestionSelectFromSidebar = (questionId) => {
   currentQuestionId.value = questionId
 }
