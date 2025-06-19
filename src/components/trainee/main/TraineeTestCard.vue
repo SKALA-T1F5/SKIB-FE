@@ -9,21 +9,14 @@
     <div class="test-footer">
       <span class="test-time">제한 시간: {{ formatTime(test.limitedTime) }}</span>
       <div class="test-actions">
-        <button
-          class="action-button"
-          @click="$emit('retake', test.testId)"
-        >
+        <button class="action-button" @click="$emit('retake-action', test.testId)">
           채점 결과
         </button>
+        <button class="action-button" @click="$emit('feedback', test.testId)">피드백</button>
         <button
-          class="action-button"
-          @click="$emit('feedback', test.testId)"
-        >
-          피드백
-        </button>
-        <button
-          v-if="test.retake && !test.isPassed"
-          class="action-button primary"
+          v-if="test.isRetake"
+          :class="['action-button', 'retake-button', { 'disabled-retake': test.retake === 1 }]"
+          :disabled="test.retake === 1"
           @click="$emit('attend', test.testId)"
         >
           재응시
@@ -34,20 +27,27 @@
 </template>
 
 <script setup>
-// import type { Test } from '@/views/TraineeMain.vue'; // TypeScript 타입 정의 제거
+// No changes to script setup needed beyond the click handler.
 
 const props = defineProps({
-  // Test 인터페이스 대신 런타임 속성 검사 또는 단순히 Object로 선언
-  test: Object, // Prop `test`는 객체여야 합니다.
-});
+  test: Object,
+})
 
-const emit = defineEmits(['retake', 'feedback', 'attend']);
+// 'retake' 이벤트를 'retake-action'으로 변경하여 이름 충돌 방지 및 명확성 부여
+const emit = defineEmits(['retake-action', 'feedback', 'attend'])
 
-const formatTime = (minutes) => { // minutes: number 제거
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  return `${String(hours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:00`;
-};
+const formatTime = (minutes) => {
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  return `${String(hours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:00`
+}
+
+// handleRetakeClick is no longer needed as we're directly emitting 'attend'
+// const handleRetakeClick = () => {
+//   if (props.test.isRetake && props.test.retake === 0) {
+//     emit('attend', props.test.testId);
+//   }
+// };
 </script>
 
 <style scoped>
@@ -61,12 +61,10 @@ const formatTime = (minutes) => { // minutes: number 제거
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  /* 기존 width 고정값을 제거하고 유동적인 크기 속성으로 변경 */
-  min-width: 280px; /* 카드의 최소 너비 (너무 작아지지 않게) */
-  max-width: 100%; /* 부모 컨테이너에 맞춰 최대 너비 100% */
-  height: auto; /* 내용에 따라 높이 자동 조절 */
-  min-height: 220px; /* 최소 높이 유지 */
-  /* Grid 아이템으로서의 유연성을 위해 flex 속성 추가 (선택 사항이지만 일관성 유지에 좋음) */
+  min-width: 280px;
+  max-width: 100%;
+  height: auto;
+  min-height: 220px;
   flex-grow: 1;
   flex-shrink: 1;
   flex-basis: auto;
@@ -88,11 +86,11 @@ const formatTime = (minutes) => { // minutes: number 제거
 }
 
 .status-tag.pass {
-  background-color: #4CAF50; /* 초록색 */
+  background-color: #4caf50; /* 초록색 */
 }
 
 .status-tag.fail {
-  background-color: #F44336; /* 빨간색 */
+  background-color: #f44336; /* 빨간색 */
 }
 
 /* 추가된 점수 정보 스타일 */
@@ -127,24 +125,22 @@ const formatTime = (minutes) => { // minutes: number 제거
   justify-content: space-between;
   align-items: center;
   margin-top: auto;
-  /* 버튼들이 너무 많아지면 다음 줄로 넘어가도록 설정 */
   flex-wrap: wrap;
-  /* 버튼 영역이 한 줄에 들어가지 않을 때 정렬 */
   gap: 8px;
 }
 
 .test-time {
   font-size: 12px;
   color: #999;
-  white-space: nowrap; /* 시간 정보가 한 줄에 있도록 */
+  white-space: nowrap;
 }
 
 .test-actions {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap; /* 버튼들이 공간이 부족할 때 다음 줄로 넘어가도록 */
-  justify-content: flex-end; /* 버튼들을 오른쪽으로 정렬 */
-  margin-left: auto; /* 왼쪽의 시간 정보와 간격을 벌리기 위해 */
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 .action-button {
@@ -163,6 +159,27 @@ const formatTime = (minutes) => { // minutes: number 제거
   background-color: #d0d0d0;
 }
 
+/* 재응시 버튼 스타일 */
+.action-button.retake-button {
+  background-color: #191d5a; /* 활성화 시 색상 */
+  color: white;
+  border-color: #191d5a;
+}
+
+.action-button.retake-button:hover:not(:disabled) {
+  background-color: #0c0f3c; /* 활성화 버튼 호버 시 더 진한 색상 */
+  border-color: #0c0f3c;
+}
+
+.action-button.disabled-retake {
+  background-color: #cccccc; /* 비활성화 시 회색 */
+  color: #666666;
+  border-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* 기존 primary 스타일은 재응시 버튼에 적용되지 않도록 주의 */
 .action-button.primary {
   background-color: #007bff;
   color: white;

@@ -35,7 +35,7 @@
           v-for="test in filteredTests"
           :key="test.testId"
           :test="test"
-          @retake="handleTestCardAction(test, 'result')"
+          @retake-action="handleTestCardAction(test, 'result')"
           @feedback="handleTestCardAction(test, 'feedback')"
           @attend="handleTestCardAction(test, 'attend')"
         />
@@ -66,9 +66,6 @@ import TraineeMainSideBar from '@/components/trainee/main/TraineeMainSideBar.vue
 import TraineeTestCard from '@/components/trainee/main/TraineeTestCard.vue'
 import AddTestModal from '@/components/trainee/main/AddTestModal.vue'
 
-// traineeSideBarRef는 더 이상 검색창에 필요하지 않으므로 제거합니다.
-// const traineeSideBarRef = ref(null);
-
 const router = useRouter()
 const userName = ref(localStorage.getItem('name') || '사용자')
 const userRole = ref(localStorage.getItem('role') || 'Trainee')
@@ -96,11 +93,7 @@ const filteredTests = computed(() => {
       if (isDoneChecked && test.score !== null && test.score !== undefined) {
         matchStatusFilter = true
       }
-      if (
-        isRetryChecked &&
-        test.retake &&
-        (test.score === null || test.score === undefined || !test.isPassed)
-      ) {
+      if (isRetryChecked && test.retake === 0 && test.isRetake) {
         matchStatusFilter = true
       }
       return matchStatusFilter
@@ -178,7 +171,7 @@ const addTestByLink = async (link) => {
           testName: joinedTestInfo.name,
           limitedTimeM: joinedTestInfo.limitedTime,
           difficultyLevel: joinedTestInfo.difficultyLevel,
-          isRetake: joinedTestInfo.retake,
+          isRetake: joinedTestInfo.isRetake,
         },
       })
     } else {
@@ -220,6 +213,8 @@ const fetchTests = async () => {
           createdAt: test.createdAt,
           isPassed: test.isPassed,
           retake: test.retake,
+          isRetake: test.isRetake,
+          passScore: test.passScore,
         }
       })
     } else {
@@ -248,55 +243,50 @@ const handleResetFilters = () => {
   }
   fetchTests()
 }
+
 const handleTestCardAction = (test, actionType) => {
   console.log(`'${test.name}' ${actionType} 요청 (Test ID: ${test.testId})`)
   if (actionType === 'result') {
     router.push({
       name: 'TraineeTestResult',
       params: { testId: test.testId.toString() },
-      state: { testName: test.name, actualScore: test.score, isPassed: test.isPassed },
+      state: {
+        testName: test.name,
+        actualScore: test.score,
+        isPassed: test.isPassed,
+        passScore: test.passScore,
+      },
     })
   } else if (actionType === 'feedback') {
     router.push({
       name: 'TraineeTestFeedback',
       params: { testId: test.testId.toString() },
-      state: { testName: test.name, actualScore: test.score, isPassed: test.isPassed },
+      state: {
+        testName: test.name,
+        actualScore: test.score,
+        isPassed: test.isPassed,
+        passScore: test.passScore,
+      },
     })
   } else if (actionType === 'attend') {
-    const hasTakenTest = test.score !== null && test.score !== undefined
-
-    if (!hasTakenTest) {
-      router.push({
-        name: 'TraineeTestGuide',
-        params: { testId: test.testId.toString() },
-        state: {
-          testName: test.name,
-          limitedTimeM: test.limitedTime,
-          difficultyLevel: test.difficultyLevel,
-          isRetake: test.retake,
-        },
-      })
-    } else if (test.retake && !test.isPassed) {
-      router.push({
-        name: 'TraineeTestGuide',
-        params: { testId: test.testId.toString() },
-        state: {
-          testName: test.name,
-          limitedTimeM: test.limitedTime,
-          difficultyLevel: test.difficultyLevel,
-          isRetake: test.retake,
-        },
-      })
-    } else {
-      alert('이 테스트는 재응시할 수 없거나 이미 응시 완료되었습니다.')
-      router.push({
-        name: 'TraineeTestResult',
-        params: { testId: test.testId.toString() },
-        state: { testName: test.name, actualScore: test.score, isPassed: test.isPassed },
-      })
-    }
+    // This 'attend' action is used for both initial test taking and retaking (via the "재응시" button).
+    // The key here is to always push to TraineeTestGuide if the action is 'attend'
+    // and the button is enabled (which is handled by :disabled on the button itself).
+    router.push({
+      name: 'TraineeTestGuide',
+      params: { testId: test.testId.toString() },
+      state: {
+        testName: test.name,
+        limitedTimeM: test.limitedTime,
+        difficultyLevel: test.difficultyLevel,
+        isRetake: test.isRetake, // Pass the isRetake status of the test itself
+      },
+    })
   }
+  // The 'retake' action type was removed here because the '재응시' button now directly emits 'attend'.
+  // This simplifies the logic by routing all test-taking/retaking attempts through 'attend'.
 }
+
 onMounted(() => {
   fetchTests()
 })
