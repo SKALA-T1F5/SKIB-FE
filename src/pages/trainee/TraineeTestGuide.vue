@@ -25,8 +25,8 @@
               <span class="info-value">{{ passScore }}점</span>
             </div>
             <div class="info-item">
-              <span class="info-label">난이도:</span>
-              <span class="info-value">{{ difficultyLevel }}</span>
+              <span class="info-label">시험 생성일:</span>
+              <span class="info-value">{{ formatCreatedAt(createdAt) }}</span>
             </div>
           </div>
           <p v-if="isRetake === 1" class="retake-info">* 이 시험은 재응시가 허용된 시험입니다.</p>
@@ -57,7 +57,9 @@
         </div>
 
         <div class="button-area">
-          <button class="start-test-button" @click="startTest">시험 시작</button>
+          <button class="start-test-button" @click="startTest" :disabled="!testId || isLoading">
+            {{ isLoading ? '시험 정보 로딩 중...' : '시험 시작' }}
+          </button>
         </div>
       </div>
     </template>
@@ -68,60 +70,142 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MainLayout from '@/components/layouts/MainLayout.vue'
+import axios from '@/config/axios' // axios import 추가
+import { isAxiosError } from 'axios' // isAxiosError 함수를 axios 패키지에서 직접 임포트
 
 const route = useRoute()
 const router = useRouter()
 
-const testId = ref(null)
+const testId = ref(null) // URL 파라미터에서 testId 가져옴
+const userId = ref('') // Local Storage에서 userId 가져올 예정
+
 const testName = ref('로딩 중...')
-const projectId = ref(null)
-const limitedTimeM = ref(0)
+const limitedTimeM = ref(0) // 분 단위
 const passScore = ref(0)
-const difficultyLevel = ref('NORMAL')
-const isRetake = ref(0)
+const createdAt = ref('')
+const difficultyLevel = ref('NORMAL') // API 응답에 difficultyLevel이 없으므로 기본값 유지
+const isRetake = ref(0) // API 응답에 isRetake가 없으므로 기본값 유지
+
+const isLoading = ref(true)
+
+const fetchTestGuideData = async () => {
+  // 1. userId를 Local Storage에서 가져오기
+  const storedUserId = localStorage.getItem('userId')
+  if (!storedUserId) {
+    alert('사용자 ID를 찾을 수 없습니다. 로그인 후 다시 시도해주세요.')
+    router.push({ name: 'Login' }) // 예: 로그인 페이지로 리다이렉트
+    return
+  }
+  userId.value = storedUserId
+
+  // 2. testId를 URL 파라미터에서 가져오기
+  if (!route.params.testId) {
+    alert('시험 ID가 제공되지 않았습니다.')
+    router.back()
+    return
+  }
+  testId.value = parseInt(route.params.testId)
+  isLoading.value = true
+
+  try {
+    // 3. API 호출 주소 변경: /api/test/getUserTest
+    // axios baseURL이 /api로 설정되어 있다고 가정하고, /test/getUserTest로 변경합니다.
+    const response = await axios.get(
+      `/test/getUserTest?userId=${userId.value}&testId=${testId.value}`,
+    )
+    const { statusCode, resultMsg, resultData } = response.data
+
+    if (statusCode === 'OK' && resultData) {
+      testName.value = resultData.name || '이름 없음'
+      limitedTimeM.value = resultData.limitedTime || 0
+      passScore.value = resultData.passScore || 0
+      createdAt.value = resultData.createdAt || ''
+      // difficultyLevel 및 isRetake는 현재 제공된 API 응답에 없으므로 기존 기본값 유지
+      // 만약 API에서 해당 정보를 제공한다면, 여기에 추가하여 바인딩할 수 있습니다.
+    } else {
+      alert(`시험 정보를 불러오는 데 실패했습니다: ${resultMsg}`)
+      router.back()
+    }
+  } catch (error) {
+    console.error('시험 가이드 데이터를 로드하는 데 실패했습니다:', error)
+    if (isAxiosError(error) && error.response) {
+      // axios.isAxiosError 대신 isAxiosError 사용
+      alert(
+        `시험 정보를 불러오는 중 오류가 발생했습니다: ${
+          error.response.data.message || '알 수 없는 오류'
+        }`,
+      )
+    } else {
+      alert('시험 정보를 불러오는 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+    }
+    router.back()
+  } finally {
+    isLoading.value = false
+  }
+}
 
 onMounted(() => {
-  if (route.params.testId) {
-    testId.value = parseInt(route.params.testId)
-  }
-
-  if (history.state) {
-    testName.value = history.state.testName || '이름 없음'
-    projectId.value = history.state.projectId || null
-    limitedTimeM.value = history.state.limitedTimeM || 0
-    passScore.value = history.state.passScore || 0
-    difficultyLevel.value = history.state.difficultyLevel || 'NORMAL'
-    isRetake.value = history.state.isRetake !== undefined ? history.state.isRetake : 0
-  }
+  fetchTestGuideData()
 })
 
-const formatTime = (minutes) => {
-  const hours = Math.floor(minutes / 60)
-  const remainingMinutes = minutes % 60
-  return `${String(hours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}:00`
+const formatTime = (totalMinutes) => {
+  if (totalMinutes === undefined || totalMinutes === null) return '정보 없음'
+
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  const seconds = 0 // 현재 limitedTimeM이 분 단위이므로 초는 0으로 가정합니다.
+
+  let timeString = ''
+  if (hours > 0) {
+    timeString += `${hours}시간 `
+  }
+  if (minutes > 0) {
+    timeString += `${minutes}분 `
+  }
+  if (seconds > 0) {
+    timeString += `${seconds}초 `
+  }
+
+  if (timeString === '') {
+    return '0분' // 제한 시간이 0분일 경우
+  }
+
+  return timeString.trim() // 마지막 공백 제거
+}
+
+const formatCreatedAt = (dateTimeString) => {
+  if (!dateTimeString) return '정보 없음'
+  // '2025-06-10T10:00:00' 형태의 문자열을 Date 객체로 변환
+  const date = new Date(dateTimeString)
+  // 유효한 Date 객체인지 확인
+  if (isNaN(date.getTime())) {
+    return '유효하지 않은 날짜'
+  }
+  return date.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
 }
 
 const startTest = () => {
-  if (testId.value) {
+  if (testId.value && userId.value && !isLoading.value) {
     router.push({
       name: 'TraineeTest',
       params: { testId: testId.value.toString() },
+      // TraineeTest에서 다시 API 호출을 하므로, 필수적인 testId와 userId만 넘겨줍니다.
       state: {
-        testName: testName.value,
-        projectId: projectId.value,
-        limitedTimeM: limitedTimeM.value,
-        passScore: passScore.value,
-        difficultyLevel: difficultyLevel.value,
-        isRetake: isRetake.value,
+        userId: userId.value, // userId를 TraineeTest로 넘겨줍니다.
       },
     })
-  } else {
+  } else if (!testId.value || !userId.value) {
     alert('시험 정보를 불러오지 못했습니다. 다시 시도해주세요.')
   }
 }
 </script>
 
 <style scoped>
+/* 기존 스타일 유지 */
 .test-guide-content {
   flex: 1;
   padding: 24px;
@@ -242,14 +326,20 @@ const startTest = () => {
   box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
 }
 
-.start-test-button:hover {
+.start-test-button:hover:not(:disabled) {
   background-color: #0056b3;
   transform: translateY(-2px);
 }
 
-.start-test-button:active {
+.start-test-button:active:not(:disabled) {
   background-color: #004085;
   transform: translateY(0);
+}
+
+.start-test-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #a0cffc;
 }
 
 @media (max-width: 768px) {

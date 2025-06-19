@@ -102,16 +102,14 @@ import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js'
 
 import MainLayout from '@/components/layouts/MainLayout.vue'
-// TraineeTestSideBar는 이제 MainLayout 내부에서 직접 사용되므로 여기서 임포트하지 않습니다.
-// import TraineeTestSideBar from '@/components/trainee/test/TraineeTestSideBar.vue'
 import axios from '@/config/axios'
 import AiGradingLoading from '@/components/trainee/test/AiGradingLoading.vue'
 
 const router = useRouter()
 const route = useRoute()
 
-const testId = route.params.testId
-const userId = ref('testUser123')
+const testId = route.params.testId // URL 파라미터에서 testId 가져옴
+const userId = ref('') // Local Storage에서 userId 가져올 예정
 
 const allQuestions = ref([])
 const currentQuestionId = ref(null)
@@ -134,159 +132,53 @@ const currentQuestionIndex = computed(() => {
 
 const hasPreviousQuestion = computed(() => currentQuestionIndex.value > 0)
 const hasNextQuestion = computed(() => currentQuestionIndex.value < allQuestions.value.length - 1)
-const isLastQuestion = computed(() => currentQuestionIndex.value === allQuestions.value.length - 1)
-
-const sampleApiData = [
-  {
-    type: 'OBJECTIVE',
-    difficulty_level: 'NORMAL',
-    question: "To-Be 프로세스 체인 정의서에서 'PC.10' 체인의 명칭은 무엇인가?",
-    options: ['세금계산서', '전자결재', '수기전표', 'ERP 전표'],
-    answer: '세금계산서',
-    explanation: "'PC.10' 체인의 명칭은 '세금계산서'로 정의되어 있습니다.",
-    grading_criteria: null,
-    document_id: 1,
-    tags: ['문해력'],
-  },
-  {
-    type: 'OBJECTIVE',
-    difficulty_level: 'NORMAL',
-    question: "PC.10.01 프로세스에서 '정발행 세금계산서'의 ERP I/F System은 무엇인가?",
-    options: ['스마트빌', 'eBill', 'XML 업로드', '오프라인'],
-    answer: 'XML 업로드',
-    explanation: '정발행 세금계산서의 ERP I/F System은 XML 업로드 방식으로 처리됩니다.',
-    grading_criteria: null,
-    document_id: 1,
-    tags: ['이해력'],
-  },
-  {
-    type: 'SUBJECTIVE',
-    difficulty_level: 'NORMAL',
-    question:
-      'PC.10.02 프로세스에서 정발행/역발행 건의 결재 요청 및 승인 절차를 설명하세요. 이 문제는 지문이 다소 길어질 수 있으므로, 보기가 스크롤될 수 있도록 충분한 높이를 확보해야 합니다. 이는 사용자가 문제의 모든 보기를 한눈에 볼 수 있도록 하면서도, 전체 레이아웃의 균형을 유지하는 데 중요합니다. 이 문제는 지문이 다소 길어질 수 있으므로, 보기가 스크롤될 수 있도록 충분한 높이를 확보해야 합니다. 이는 사용자가 문제의 모든 보기를 한눈에 볼 수 있도록 하면서도, 전체 레이아웃의 균형을 유지하는 데 중요합니다. 이 문제는 지문이 다소 길어질 수 있으므로, 보기가 스크롤될 수 있도록 충분한 높이를 확보해야 합니다. 이는 사용자가 문제의 모든 보기를 한눈에 볼 수 있도록 하면서도, 전체 레이아웃의 균형을 유지하는 데 중요합니다.',
-    options: null,
-    answer:
-      '검수/출장비 기반으로 발생한 정발행/역발행 건을 결재 요청하고, 결재 승인하는 절차입니다.',
-    explanation:
-      'PC.10.02 프로세스는 검수/출장비를 기반으로 정발행/역발행 건을 결재 요청하고 승인하는 절차를 포함합니다.',
-    grading_criteria: [
-      {
-        score: 5,
-        criteria: '정확하게 결재 요청 및 승인 절차를 설명하고, 관련 프로세스를 언급함.',
-        example:
-          '검수/출장비 기반으로 발생한 정발행/역발행 건을 결재 요청하고, 결재 승인하는 절차입니다.',
-        note: '정확한 프로세스 명칭과 절차를 포함해야 합니다.',
-      },
-      {
-        score: 3,
-        criteria: '결재 요청 및 승인 절차를 대략적으로 설명함.',
-        example: '정발행/역발행 건을 결재 요청하고 승인하는 절차입니다.',
-        note: '프로세스의 주요 요소를 언급해야 합니다.',
-      },
-      {
-        score: 1,
-        criteria: '결재 요청 또는 승인 절차 중 하나만 언급함.',
-        example: '결재 요청 절차입니다.',
-        note: '부분적인 설명만 포함된 경우입니다.',
-      },
-    ],
-    document_id: 1,
-    tags: ['분석력'],
-  },
-  {
-    type: 'SUBJECTIVE',
-    difficulty_level: 'NORMAL',
-    question: 'PC.10.03 수기전표관리 프로세스에서 수기전표의 생성 및 관리 절차를 설명하세요.',
-    options: null,
-    answer: '수기전표 대상을 조회하고 추가 등록하여 결재 상신하는 절차입니다.',
-    explanation:
-      'PC.10.03 프로세스는 수기전표 대상을 조회하고 추가 등록하여 결재 상신하는 절차를 포함합니다.',
-    grading_criteria: [
-      {
-        score: 5,
-        criteria: '수기전표의 생성 및 관리 절차를 정확하게 설명하고, 관련 프로세스를 언급함.',
-        example: '수기전표 대상을 조회하고 추가 등록하여 결재 상신하는 절차입니다.',
-        note: '정확한 프로세스 명칭과 절차를 포함해야 합니다.',
-      },
-      {
-        score: 3,
-        criteria: '수기전표의 생성 및 관리 절차를 대략적으로 설명함.',
-        example: '수기전표를 조회하고 결재 상신하는 절차입니다.',
-        note: '프로세스의 주요 요소를 언급해야 합니다.',
-      },
-      {
-        score: 1,
-        criteria: '수기전표의 생성 또는 관리 절차 중 하나만 언급함.',
-        example: '수기전표 조회 절차입니다.',
-        note: '부분적인 설명만 포함된 경우입니다.',
-      },
-    ],
-    document_id: 1,
-    tags: ['문제해결력'],
-  },
-  {
-    type: 'OBJECTIVE',
-    difficulty_level: 'HARD',
-    question: '다음 중 데이터 시각화 도구가 아닌 것은?',
-    options: ['Tableau', 'Power BI', 'MS Word', 'Qlik Sense'],
-    answer: 'MS Word',
-    explanation:
-      'MS Word는 워드 프로세싱 소프트웨어이며, Tableau, Power BI, Qlik Sense는 데이터 시각화 도구입니다.',
-    grading_criteria: null,
-    document_id: 2,
-    tags: ['상식', 'IT'],
-  },
-  {
-    type: 'SUBJECTIVE',
-    difficulty_level: 'EASY',
-    question: 'Vue.js의 주요 특징 두 가지를 설명하세요.',
-    options: null,
-    answer: 'Vue.js는 점진적 채택이 가능하며, 반응형 데이터 바인딩을 지원합니다.',
-    explanation:
-      'Vue.js의 주요 특징으로는 점진적 채택(Progressive Framework)과 반응형 시스템이 있습니다. 점진적 채택은 프로젝트의 규모에 따라 유연하게 사용할 수 있다는 것을 의미하며, 반응형 시스템은 데이터 변경 시 자동으로 UI가 업데이트되는 것을 의미합니다.',
-    grading_criteria: [
-      {
-        score: 5,
-        criteria: '점진적 채택, 반응형 시스템 등 핵심 특징 2가지 이상을 정확히 설명함.',
-        example: '점진적 채택과 반응형 데이터 바인딩이 있습니다.',
-        note: '각 특징에 대한 간략한 설명도 포함하면 좋습니다.',
-      },
-      {
-        score: 3,
-        criteria: '핵심 특징 중 1가지 또는 유사한 특징을 설명함.',
-        example: '데이터 바인딩이 편리합니다.',
-        note: '하나의 특징만 정확하거나, 설명이 모호할 수 있습니다.',
-      },
-    ],
-    document_id: 3,
-    tags: ['개발', '프론트엔드'],
-  },
-]
+// const isLastQuestion = computed(() => currentQuestionIndex.value === allQuestions.value.length - 1) // 현재 사용되지 않음
 
 const fetchTestQuestions = async () => {
+  // 1. userId를 Local Storage에서 가져오기
+  const storedUserId = localStorage.getItem('userId')
+  if (!storedUserId) {
+    alert('사용자 ID를 찾을 수 없습니다. 로그인 후 다시 시도해주세요.')
+    router.push({ name: 'Login' }) // 예: 로그인 페이지로 리다이렉트
+    return
+  }
+  userId.value = storedUserId
+
+  // 2. testId 유효성 검사
+  if (!testId || !userId.value) {
+    alert('시험 ID 또는 사용자 ID가 유효하지 않습니다.')
+    router.back() // 이전 페이지로 돌아가기
+    return
+  }
+
   try {
-    const fetchedData = sampleApiData
+    // 3. API 호출
+    const response = await axios.get(`/test/getUserTest?userId=${userId.value}&testId=${testId}`)
+    const { statusCode, resultMsg, resultData } = response.data
 
-    if (Array.isArray(fetchedData)) {
-      allQuestions.value = fetchedData.map((rawQ, index) => {
-        const generatedId = `Q${(index + 1).toString().padStart(2, '0')}`
+    if (statusCode === 'OK' && resultData && Array.isArray(resultData.questions)) {
+      allQuestions.value = resultData.questions.map((rawQ, index) => {
+        // 백엔드에서 받은 question 객체에 'id' 또는 'questionId' 필드가 있다고 가정
+        // 예시 응답에는 'questions' 배열 안에 질문 객체들이 직접 포함되어 있으므로,
+        // 각 질문 객체에 고유한 식별자 (예: questionId)가 있다고 가정합니다.
+        const questionId = rawQ.questionId || `Q${(index + 1).toString().padStart(2, '0')}` // 백엔드에서 questionId를 제공한다고 가정합니다.
+
         let initialAnswerValue
-
         if (rawQ.type === 'SUBJECTIVE') {
           initialAnswerValue = ref('')
         } else {
           initialAnswerValue = ''
         }
-        userAnswers.value.set(generatedId, initialAnswerValue)
+        userAnswers.value.set(questionId, initialAnswerValue)
 
         return {
-          id: generatedId,
+          id: questionId, // 백엔드에서 제공하는 questionId 사용 또는 생성된 ID 사용
           type: rawQ.type,
           difficulty_level: rawQ.difficulty_level,
-          questionText: rawQ.question,
+          questionText: rawQ.question, // API 응답의 'question' 필드를 'questionText'로 매핑
           options: rawQ.options,
-          explanation: '',
-          gradingCriteria: null,
+          explanation: rawQ.explanation || '', // API 응답에 explanation이 있다면 사용
+          gradingCriteria: rawQ.grading_criteria || null, // API 응답에 grading_criteria이 있다면 사용
           document_id: rawQ.document_id,
           tags: rawQ.tags,
           isAnswered: false,
@@ -295,17 +187,29 @@ const fetchTestQuestions = async () => {
 
       if (allQuestions.value.length > 0) {
         currentQuestionId.value = allQuestions.value[0].id
+      } else {
+        alert('시험 문제가 없습니다.')
+        router.back() // 문제가 없는 경우 이전 페이지로 돌아가기
       }
     } else {
       console.warn(
-        '문제 데이터를 불러오는 데 실패했습니다: 서버 응답 형식이 예상과 다릅니다.',
-        fetchedData,
+        '문제 데이터를 불러오는 데 실패했습니다: 서버 응답 형식이 예상과 다르거나 questions 필드가 없습니다.',
+        response.data,
       )
       allQuestions.value = []
+      alert(`시험 문제를 불러오는 데 실패했습니다: ${resultMsg || '알 수 없는 오류'}`)
+      router.back() // 문제 로드 실패 시 이전 페이지로 돌아가기
     }
   } catch (error) {
     console.error('문제 데이터를 로드하는 데 실패했습니다:', error)
-    alert('시험 문제를 불러오는 데 실패했습니다. 잠시 후 다시 시도해주세요.')
+    if (axios.isAxiosError(error) && error.response) {
+      alert(
+        `시험 문제를 불러오는 중 오류가 발생했습니다: ${error.response.data.message || '알 수 없는 오류'}`,
+      )
+    } else {
+      alert('시험 문제를 불러오는 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+    }
+    router.back() // 문제 로드 실패 시 이전 페이지로 돌아가기
   }
 }
 
@@ -349,7 +253,17 @@ const selectOption = (option) => {
 const handleSubmitAnswer = () => {
   if (!currentQuestion.value || showGradingOverlay.value || showCompletionButtons.value) return
 
-  const unansweredQuestions = allQuestions.value.filter((q) => !q.isAnswered)
+  const unansweredQuestions = allQuestions.value.filter((q) => {
+    const answer = userAnswers.value.get(q.id)
+    if (q.type === 'SUBJECTIVE') {
+      // 주관식은 ref.value의 trim()이 비어있는지 확인
+      return !answer || (typeof answer === 'object' && answer.value.trim() === '')
+    } else {
+      // 객관식은 Map에 값이 없거나 빈 문자열인지 확인
+      return !answer || answer === ''
+    }
+  })
+
   let confirmMessage = ''
 
   if (unansweredQuestions.length > 0) {
@@ -369,7 +283,7 @@ const submitFinalTest = async () => {
   const answersToSend = Array.from(userAnswers.value.entries()).map(([questionId, answer]) => {
     const question = allQuestions.value.find((q) => q.id === questionId)
     return {
-      id: questionId,
+      questionId: questionId, // 백엔드에서 받는 questionId 필드를 사용
       response: typeof answer === 'object' ? answer.value : answer,
       questionType: question ? question.type : 'UNKNOWN',
     }
@@ -377,14 +291,20 @@ const submitFinalTest = async () => {
 
   const requestBody = {
     userId: userId.value,
-    testId: testId,
+    testId: parseInt(testId), // testId를 숫자로 변환
     answers: answersToSend,
   }
 
   console.log('최종 제출될 요청 바디:', requestBody)
 
   try {
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    // 실제 API 호출 (예시: 채점 결과를 제출하는 API)
+    // Spring Boot에 채점 결과를 제출하는 API가 따로 있다면 해당 API를 호출해야 합니다.
+    // 예: await axios.post(`/api/test/submitTestResult`, requestBody);
+    // 현재 예시에서는 getUserTest API를 통해 문제를 가져왔으므로, 답안 제출 API는 별도로 가정합니다.
+    // 여기서는 시뮬레이션으로 대체합니다.
+
+    await new Promise((resolve) => setTimeout(resolve, 3000)) // 3초 대기 시뮬레이션
 
     console.log('시험 제출 및 채점 완료 (시뮬레이션)')
 
@@ -407,7 +327,7 @@ const goToTestResult = () => {
   router.push({
     name: 'TraineeTestResult',
     params: { testId: testId },
-    state: { testName: '모의 시험', actualScore: 85, isPassed: true },
+    state: { testName: '모의 시험', actualScore: 85, isPassed: true }, // 실제 채점 결과로 대체 필요
   })
 }
 
@@ -419,7 +339,7 @@ watch(
   () => {
     if (currentQuestion.value?.type === 'SUBJECTIVE') {
       const answerRef = userAnswers.value.get(currentQuestion.value.id)
-      return answerRef.value
+      return answerRef ? answerRef.value : undefined // answerRef가 없을 경우를 대비
     }
     return undefined
   },
@@ -439,15 +359,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* MainLayout에 의해 관리되는 .page-content-wrapper, .main-content-area 등의 스타일은 제거되었습니다. */
-/* 이제 이 스타일들은 MainLayout 내부에서 처리되거나, TraineeTest.vue의 실제 콘텐츠에 맞게 재정의되어야 합니다. */
-/* 다만, MainLayout의 CSS가 이전에 예상했던 레이아웃을 제공하므로, 여기서는 불필요한 레이아웃 관련 스타일을 제거했습니다. */
-/* 실제 콘텐츠 영역에만 적용되는 스타일은 유지됩니다. */
-
-/* 기존 .page-content-wrapper, .main-content-area 에 적용되었던 레이아웃 관련 스타일은 MainLayout에서 처리되므로 TraineeTest.vue에서는 제거합니다. */
-/* TraineeTest.vue는 이제 MainLayout의 content 슬롯에 직접 들어갈 내용만을 스타일링합니다. */
-
-/* .test-taking-container-inner 는 content 슬롯에 직접 들어가는 최상위 요소가 됩니다. */
+/* 기존 스타일 유지 */
 .test-taking-container-inner {
   display: flex;
   flex-direction: column;
