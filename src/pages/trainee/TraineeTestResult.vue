@@ -30,91 +30,11 @@
             </div>
 
             <div class="question-solution-area" v-if="currentQuestion">
-              <div class="question-section">
-                <div class="question-text-fixed">
-                  <p class="question-text">{{ currentQuestion.questionText }}</p>
-                </div>
-                <div class="question-content-scrollable">
-                  <div class="options-container" v-if="currentQuestion.type === 'OBJECTIVE'">
-                    <div
-                      v-for="(option, index) in currentQuestion.options"
-                      :key="index"
-                      :class="[
-                        'option-item',
-                        {
-                          'is-selected': currentQuestion.userAnswer === option,
-                          'is-correct-answer': option === currentQuestion.correctAnswer,
-                          'is-wrong-answer':
-                            currentQuestion.userAnswer === option &&
-                            option !== currentQuestion.correctAnswer,
-                        },
-                      ]"
-                    >
-                      <span class="option-label">{{ getOptionLabel(index) }}</span>
-                      <span class="option-content">{{ option }}</span>
-                      <svg-icon
-                        v-if="option === currentQuestion.correctAnswer"
-                        :path="mdiCheckCircle"
-                        class="answer-icon correct-icon"
-                      />
-                      <svg-icon
-                        v-if="
-                          currentQuestion.userAnswer === option &&
-                          option !== currentQuestion.correctAnswer
-                        "
-                        :path="mdiCloseCircle"
-                        class="answer-icon wrong-icon"
-                      />
-                    </div>
-                  </div>
-                  <div
-                    class="subjective-answer-section"
-                    v-else-if="currentQuestion.type === 'SUBJECTIVE'"
-                  >
-                    <div class="answer-group">
-                      <p class="answer-label">나의 답변</p>
-                      <div class="answer-box user-answer-box">
-                        <p>{{ currentQuestion.userAnswer || '답변 없음' }}</p>
-                      </div>
-                    </div>
-                    <div class="answer-group mt-3">
-                      <p class="answer-label">예시 답안</p>
-                      <div class="answer-box example-answer-box">
-                        <p>{{ currentQuestion.correctAnswer || '예시 답안 없음' }}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="solution-section">
-                <h4 class="solution-title">풀이</h4>
-                <div v-if="currentQuestion.explanation" class="solution-text">
-                  {{ currentQuestion.explanation }}
-                </div>
-                <div
-                  v-else-if="
-                    currentQuestion.gradingCriteria && currentQuestion.gradingCriteria.length > 0
-                  "
-                  class="grading-criteria"
-                >
-                  <h4 class="criteria-title">채점 기준:</h4>
-                  <ul>
-                    <li v-for="(criterion, index) in currentQuestion.gradingCriteria" :key="index">
-                      <strong>점수: {{ criterion.score }}점</strong> - {{ criterion.criteria }}
-                      <p v-if="criterion.example" class="criteria-sub-text">
-                        예시: {{ criterion.example }}
-                      </p>
-                      <p v-if="criterion.note" class="criteria-sub-text">
-                        참고: {{ criterion.note }}
-                      </p>
-                    </li>
-                  </ul>
-                </div>
-                <div v-else class="no-solution">
-                  <p>이 문제에 대한 풀이 또는 채점 기준이 없습니다.</p>
-                </div>
-              </div>
+              <TraineeQuestionArea :question="currentQuestion" />
+              <TraineeSolutionArea
+                :explanation="currentQuestion.explanation"
+                :grading-criteria="currentQuestion.gradingCriteria"
+              />
             </div>
             <div v-else class="loading-message">
               <p>시험 결과를 로딩 중입니다...</p>
@@ -126,85 +46,27 @@
           </div>
         </div>
 
-        <div class="chatbot-section">
-          <div class="chatbot-header">
-            <svg-icon type="mdi" :path="mdiRobot" class="chatbot-header-icon" />
-            <span class="chatbot-header-text">챗봇</span>
-          </div>
-
-          <div class="chatbot-messages">
-            <div class="message trainee-msg" v-if="currentQuestion && currentQuestion.id === 'Q03'">
-              <p>
-                PC.10.02 프로세스에서 정발행/역발행 건의 결재 요청 및 승인 절차를 자세히 알려주세요.
-              </p>
-            </div>
-            <div class="message bot-msg" v-if="currentQuestion && currentQuestion.id === 'Q03'">
-              <p>
-                PC.10.02 프로세스는 검수/출장비 기반으로 발생한 정발행/역발행 건을 결재 요청하고,
-                결재 승인하는 절차입니다.
-              </p>
-            </div>
-            <div class="message trainee-msg">
-              <p>세금계산서 발행 프로세스에 대해 더 알려주세요.</p>
-            </div>
-            <div class="message bot-msg">
-              <p>
-                세금계산서 발행 프로세스는 크게 정발행과 역발행으로 나뉩니다. 정발행은 공급자가
-                발행하고, 역발행은 공급받는 자가 발행 요청하는 방식입니다. 어떤 부분이 궁금하신가요?
-              </p>
-            </div>
-            <div
-              v-for="(message, index) in messages"
-              :key="index"
-              :class="['message', message.sender === 'user' ? 'trainee-msg' : 'bot-msg']"
-            >
-              <p>{{ message.text }}</p>
-            </div>
-          </div>
-
-          <div class="chatbot-input-area">
-            <input
-              type="text"
-              placeholder="메세지를 입력하세요"
-              class="message-input"
-              v-model="newMessage"
-              @keyup.enter="sendMessage"
-            />
-            <button class="send-button" @click="sendMessage">
-              <svg-icon type="mdi" :path="mdiSend" class="send-icon" />
-            </button>
-            <div class="chatbot-avatar">
-              <svg-icon type="mdi" :path="mdiRobot" class="robot-icon" />
-            </div>
-          </div>
-        </div>
+        <TraineeChatbot :current-question-id="currentQuestionId" />
       </div>
     </template>
   </MainLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '@/components/layouts/MainLayout.vue'
-import TraineeTestResultSideBar from '@/components/trainee/result/TraineeTestResultSideBar.vue' // TraineeTestResultSideBar 임포트
+import TraineeTestResultSideBar from '@/components/trainee/result/TraineeTestResultSideBar.vue'
+import TraineeQuestionArea from '@/components/trainee/result/TraineeQuestionArea.vue' // 새 컴포넌트 임포트
+import TraineeSolutionArea from '@/components/trainee/result/TraineeSolutionArea.vue' // 새 컴포넌트 임포트
+import TraineeChatbot from '@/components/trainee/result/TraineeChatbot.vue' // 새 컴포넌트 임포트
 import SvgIcon from '@jamescoyle/vue-icon'
-import {
-  mdiChevronLeft,
-  mdiChevronRight,
-  mdiSend,
-  mdiRobot,
-  mdiCheckCircle,
-  mdiCloseCircle,
-} from '@mdi/js'
+import { mdiChevronLeft, mdiChevronRight } from '@mdi/js'
 
 const router = useRouter()
 
 const allQuestions = ref([])
 const currentQuestionId = ref(null)
-
-const newMessage = ref('')
-const messages = ref([])
 
 const currentQuestion = computed(() => {
   if (!currentQuestionId.value || allQuestions.value.length === 0) {
@@ -371,8 +233,6 @@ const fetchTestQuestions = async () => {
             userAnswer = rawQ.answer // 정답으로 설정
             isCorrect = true // 정답
           }
-          // isCorrect는 userAnswer와 rawQ.answer를 비교하여 다시 결정 (위의 하드코딩된 값 무시 가능)
-          // isCorrect = (userAnswer === rawQ.answer);
         } else {
           // SUBJECTIVE (주관식)
           // Q03과 Q04는 임의로 정답 처리, Q06은 오답 처리
@@ -419,7 +279,6 @@ const fetchTestQuestions = async () => {
   }
 }
 
-// TraineeTestResultSideBar에서 발생하는 'selectQuestion' 이벤트를 처리
 const handleQuestionSelectFromSidebar = (questionId) => {
   currentQuestionId.value = questionId
 }
@@ -438,45 +297,11 @@ const goToNextQuestion = () => {
   }
 }
 
-const getOptionLabel = (index) => {
-  return String.fromCharCode(65 + index) + ')'
-}
-
 const exitTestResult = () => {
   if (confirm('테스트 결과 화면을 종료하시겠습니까?')) {
     console.log('테스트 결과 화면 종료 (실제 앱에서는 메인 페이지로 이동)')
     router.push({ name: 'TraineeMain' })
   }
-}
-
-const sendMessage = async () => {
-  if (newMessage.value.trim() === '') {
-    return
-  }
-
-  messages.value.push({
-    sender: 'user',
-    text: newMessage.value.trim(),
-  })
-
-  newMessage.value = ''
-
-  await nextTick()
-  const chatMessagesContainer = document.querySelector('.chatbot-messages')
-  if (chatMessagesContainer) {
-    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight
-  }
-
-  setTimeout(async () => {
-    messages.value.push({
-      sender: 'bot',
-      text: `"${messages.value[messages.value.length - 1].text}" 에 대한 답변을 준비 중입니다.`,
-    })
-    await nextTick()
-    if (chatMessagesContainer) {
-      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight
-    }
-  }, 1000)
 }
 
 onMounted(() => {
@@ -485,22 +310,18 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* MainLayout이 전체 레이아웃을 담당하므로 다음 스타일은 제거하거나 수정합니다. */
-/* #test-result-page-layout, .page-content-wrapper 관련 스타일 제거/수정 */
-
-/* MainLayout의 content 슬롯 안에 들어갈 콘텐츠 wrapper */
 .test-result-content-and-chatbot-wrapper {
   display: flex;
-  flex: 1; /* MainLayout의 main-content 안에서 남은 공간을 차지하도록 */
-  gap: 25px; /* 메인 콘텐츠와 챗봇 사이 간격 */
-  overflow: hidden; /* 내부 스크롤 처리를 위해 */
+  flex: 1;
+  gap: 25px;
+  overflow: hidden;
 }
 
 .test-result-main-content {
-  flex: 1; /* 남은 공간을 최대한 차지하도록 */
+  flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 0; /* MainLayout의 main-content에 이미 padding이 있으므로 여기서는 0으로 */
+  padding: 0;
   overflow: hidden;
   gap: 25px;
   box-sizing: border-box;
@@ -510,11 +331,10 @@ onMounted(() => {
 .test-result-container-inner {
   display: flex;
   flex-direction: column;
-  flex: 1; /* .test-result-main-content 내에서 남은 공간을 차지 */
-  overflow: hidden; /* 내부 스크롤 관리를 위해 */
+  flex: 1;
+  overflow: hidden;
 }
 
-/* Top Navigation */
 .top-nav {
   display: flex;
   justify-content: space-between;
@@ -574,18 +394,16 @@ onMounted(() => {
   color: #495057;
 }
 
-/* Question and Solution Area */
 .question-solution-area {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
   gap: 25px;
   min-height: 0;
-  overflow-y: auto; /* 이 영역에서만 스크롤이 발생하도록 설정 */
-  padding-right: 10px; /* 스크롤바 공간 확보 */
+  overflow-y: auto;
+  padding-right: 10px;
 }
 
-/* question-solution-area 내부 스크롤바 */
 .question-solution-area::-webkit-scrollbar {
   width: 6px;
 }
@@ -600,249 +418,6 @@ onMounted(() => {
   background: rgba(0, 0, 0, 0.4);
 }
 
-.question-section,
-.solution-section {
-  background-color: #ffffff;
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  flex-shrink: 0; /* 이 요소들이 축소되지 않도록 설정 */
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-}
-
-.question-section {
-  /* height: 350px; 고정 높이 대신 최소 높이와 flex-grow 활용 */
-  min-height: 250px; /* 최소 높이 설정 */
-  flex-grow: 1; /* 남은 공간을 차지하도록 */
-  overflow: hidden; /* 내부 스크롤 관리를 위해 */
-}
-
-.question-text-fixed {
-  flex-shrink: 0;
-  margin-bottom: 20px;
-}
-
-.question-text {
-  font-size: 17px;
-  line-height: 1.7;
-  margin: 0;
-  color: #495057;
-}
-
-.question-content-scrollable {
-  flex-grow: 1;
-  overflow-y: auto;
-  padding-right: 10px;
-}
-
-/* 문제 섹션 내부 스크롤바 */
-.question-content-scrollable::-webkit-scrollbar {
-  width: 6px;
-}
-.question-content-scrollable::-webkit-scrollbar-track {
-  background: transparent;
-}
-.question-content-scrollable::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
-}
-.question-content-scrollable::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.options-container {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.option-item {
-  display: flex;
-  align-items: flex-start;
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 10px;
-  padding: 15px 25px;
-  font-size: 16px;
-  color: #495057;
-  cursor: default;
-  transition: all 0.2s ease-in-out;
-  position: relative;
-}
-
-.option-item.is-selected {
-  background-color: #e6f7ff;
-  border-color: #a8dcf0;
-  font-weight: 600;
-  color: #2b6cb0;
-}
-
-.option-item.is-correct-answer {
-  background-color: #e6ffe6;
-  border-color: #a8edb8;
-  color: #28a745;
-}
-.option-item.is-wrong-answer {
-  background-color: #ffe6e6;
-  border-color: #edb8b8;
-  color: #dc3545;
-}
-
-.option-label {
-  min-width: 30px;
-  font-weight: bold;
-  margin-right: 15px;
-  color: #6c757d;
-  flex-shrink: 0;
-}
-.option-item.is-selected .option-label {
-  color: #2b6cb0;
-}
-.option-item.is-correct-answer .option-label {
-  color: #28a745;
-}
-.option-item.is-wrong-answer .option-label {
-  color: #dc3545;
-}
-
-.option-content {
-  flex-grow: 1;
-  word-break: break-word;
-}
-
-.answer-icon {
-  position: absolute;
-  right: 20px;
-  font-size: 22px;
-}
-
-.correct-icon {
-  color: #28a745;
-}
-
-.wrong-icon {
-  color: #dc3545;
-}
-
-.subjective-answer-section {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding-bottom: 5px;
-}
-
-.answer-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.answer-label {
-  font-size: 15px;
-  font-weight: 600;
-  color: #343a40;
-  margin-bottom: 8px;
-  align-self: flex-start;
-}
-
-.answer-box {
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 10px;
-  padding: 15px 20px;
-  font-size: 16px;
-  line-height: 1.6;
-  word-break: break-word;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.user-answer-box {
-  color: #495057;
-  background-color: #f0f4f7;
-  border-color: #d1e2ed;
-}
-
-.example-answer-box {
-  color: #28a745;
-  background-color: #e6ffe6;
-  border-color: #a8edb8;
-  font-weight: 500;
-}
-
-.answer-box p {
-  margin: 0;
-}
-
-/* Solution/Explanation Section */
-.solution-section {
-  min-height: 200px;
-  flex-shrink: 0;
-  overflow-y: auto;
-  box-sizing: border-box;
-}
-
-/* 풀이 섹션 내부 스크롤바 */
-.solution-section::-webkit-scrollbar {
-  width: 6px;
-}
-.solution-section::-webkit-scrollbar-track {
-  background: transparent;
-}
-.solution-section::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
-}
-.solution-section::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.solution-title,
-.criteria-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #343a40;
-  margin-bottom: 15px;
-}
-
-.solution-text,
-.grading-criteria {
-  font-size: 16px;
-  line-height: 1.7;
-  color: #495057;
-}
-
-.grading-criteria ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-.grading-criteria li {
-  margin-bottom: 12px;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 15px 20px;
-  background-color: #fcfdfe;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-}
-
-.criteria-sub-text {
-  font-size: 14px;
-  color: #777;
-  margin-top: 8px;
-  margin-bottom: 0;
-  line-height: 1.5;
-}
-
-.no-solution {
-  color: #777;
-  font-style: italic;
-  padding: 15px 0;
-  text-align: center;
-}
-
-/* Exit Button */
 .exit-button-container {
   margin-top: 30px;
   text-align: left;
@@ -867,167 +442,6 @@ onMounted(() => {
 .exit-button:hover {
   background-color: #2c3e50;
   transform: translateY(-1px);
-}
-
-/* Chatbot Section */
-.chatbot-section {
-  width: 380px;
-  background-color: #ffffff;
-  border-left: 1px solid #e9ecef;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  padding: 25px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  flex-shrink: 0;
-  box-sizing: border-box;
-}
-
-.chatbot-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #e9ecef;
-  flex-shrink: 0;
-}
-
-.chatbot-header-icon {
-  font-size: 28px;
-  color: #34495e;
-}
-
-.chatbot-header-text {
-  font-size: 20px;
-  font-weight: 700;
-  color: #343a40;
-}
-
-.chatbot-messages {
-  flex-grow: 1;
-  overflow-y: auto;
-  padding-right: 10px;
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Chatbot messages scrollbar */
-.chatbot-messages::-webkit-scrollbar {
-  width: 6px;
-}
-.chatbot-messages::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-.chatbot-messages::-webkit-scrollbar-thumb {
-  background: #bbb;
-  border-radius: 10px;
-}
-.chatbot-messages::-webkit-scrollbar-thumb:hover {
-  background: #999;
-}
-
-.message {
-  padding: 12px 18px;
-  border-radius: 18px;
-  margin-bottom: 12px;
-  max-width: 85%;
-  position: relative;
-  word-wrap: break-word;
-  line-height: 1.6;
-  font-size: 15px;
-}
-
-.message p {
-  margin: 0;
-}
-
-.trainee-msg {
-  background-color: #daf5cf;
-  align-self: flex-end;
-  margin-left: auto;
-  border-bottom-right-radius: 4px;
-  color: #3a5c2d;
-}
-
-.bot-msg {
-  background-color: #f0f2f5;
-  align-self: flex-start;
-  margin-right: auto;
-  border-bottom-left-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  color: #343a40;
-}
-
-.chatbot-input-area {
-  display: flex;
-  align-items: center;
-  padding-top: 15px;
-  border-top: 1px solid #e9ecef;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.message-input {
-  flex-grow: 1;
-  border: 1px solid #ced4da;
-  border-radius: 25px;
-  padding: 12px 50px 12px 20px;
-  font-size: 15px;
-  outline: none;
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
-}
-
-.message-input:focus {
-  border-color: #80bdff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-.send-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  position: absolute;
-  right: 65px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  z-index: 10;
-}
-
-.send-icon {
-  font-size: 26px;
-  color: #888;
-  transition: color 0.2s;
-}
-
-.send-icon:hover {
-  color: #343a40;
-}
-
-.chatbot-avatar {
-  width: 45px;
-  height: 45px;
-  background-color: #34495e;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 15px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-  flex-shrink: 0;
-}
-
-.robot-icon {
-  font-size: 26px;
-  color: white;
-  width: 1em;
-  height: 1em;
 }
 
 .loading-message {
