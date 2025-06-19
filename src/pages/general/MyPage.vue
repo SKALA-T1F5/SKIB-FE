@@ -14,7 +14,7 @@
 
           <div class="info-item">
             <label class="info-label">이름</label>
-            <input type="text" v-model="user.name" readonly class="info-input" />
+            <input type="text" v-model="user.name" class="info-input editable-input" />
           </div>
 
           <div class="info-item">
@@ -52,18 +52,18 @@ import Footer from '@/components/layouts/Footer.vue'
 const router = useRouter()
 
 // 로컬 스토리지에서 사용자 역할과 ID를 가져옵니다.
-const role = (localStorage.getItem('role') || '').toLowerCase()
+const role = (localStorage.getItem('role') || '').toLowerCase() // role을 소문자화
 const userId = localStorage.getItem('userId')
-
-// 사용자 정보 API 엔드포인트 설정
-const apiUrl = `/user/${role}`
 
 // 사용자 정보를 저장할 반응형 객체
 const user = ref({
   email: '',
   name: '',
-  affiliation: '',
+  affiliation: '', // department 값을 여기에 할당할 예정
 })
+
+// 컴포넌트 로드 시점의 원본 사용자 이름을 저장 (변경 여부 확인용)
+let originalUserName = ''
 
 // 새로운 비밀번호를 저장할 반응형 변수
 const newPassword = ref('')
@@ -72,16 +72,30 @@ const newPassword = ref('')
  * 사용자 정보를 API에서 불러옵니다.
  */
 const fetchUserInfo = async () => {
+  if (!userId) {
+    alert('사용자 정보를 찾을 수 없습니다. 다시 로그인해 주세요.')
+    router.push('/login')
+    return
+  }
+  if (!role) {
+    alert('사용자 역할을 찾을 수 없습니다. 다시 로그인해 주세요.')
+    router.push('/login')
+    return
+  }
+
   try {
+    const apiUrl = `/user/${role}`
     const response = await axios.get(apiUrl, {
-      params: { userId }, // userId를 쿼리 파라미터로 전달
+      params: { userId: userId },
     })
-    const data = response.data
+    const data = response.data.resultData
     user.value = {
       email: data.email,
       name: data.name,
-      affiliation: data.affiliation,
+      affiliation: data.department, // API 응답의 department 필드를 affiliation(소속)으로 매핑
     }
+    // 사용자 정보를 불러온 후 원본 이름 저장
+    originalUserName = data.name
   } catch (error) {
     console.error('사용자 정보를 불러오는 데 실패했습니다:', error)
     alert('사용자 정보를 불러오는 데 실패했습니다. 다시 시도해 주세요.')
@@ -90,31 +104,47 @@ const fetchUserInfo = async () => {
 
 /**
  * '확인' 버튼 클릭 시 실행되는 함수입니다.
- * 비밀번호 변경이 필요하면 변경 요청을 보내고, 메인 페이지로 이동합니다.
+ * 이름 및 비밀번호 변경 요청을 보내거나, 변경사항이 없으면 메인 페이지로 이동합니다.
  */
 const handleConfirm = async () => {
-  // 새 비밀번호가 입력되었다면 비밀번호 변경 요청을 보냅니다.
-  if (newPassword.value.trim()) {
-    try {
-      await axios.put(
-        `${apiUrl}/password`,
-        {
-          password: newPassword.value,
-        },
-        {
-          params: { userId }, // userId를 쿼리 파라미터로 전달
-        },
-      )
-      alert('비밀번호가 성공적으로 변경되었습니다.')
-    } catch (error) {
-      console.error('비밀번호 변경 실패:', error)
-      alert('비밀번호 변경 중 오류가 발생했습니다. 다시 시도해 주세요.')
-      return // 비밀번호 변경 실패 시 메인 페이지로 이동하지 않습니다.
-    }
+  if (!userId) {
+    alert('사용자 정보를 찾을 수 없습니다. 다시 로그인해 주세요.')
+    router.push('/login')
+    return
   }
 
-  // 사용자 역할에 따라 해당 메인 페이지로 이동합니다.
-  router.push(`/${role}/main`)
+  // 이름이 변경되었는지, 새 비밀번호가 입력되었는지 확인
+  const isNameChanged = user.value.name !== originalUserName
+  const isPasswordEntered = newPassword.value.trim() !== ''
+
+  if (!isNameChanged && !isPasswordEntered) {
+    // 변경사항이 없으면 바로 메인 페이지로 이동
+    console.log('변경사항 없음. 메인 페이지로 이동합니다.')
+    router.push(`/${role}/main`)
+    return
+  }
+
+  try {
+    const updatePayload = {
+      userId: userId,
+      name: user.value.name,
+    }
+
+    if (isPasswordEntered) {
+      updatePayload.password = newPassword.value.trim()
+    }
+
+    await axios.put(`/user/${userId}`, updatePayload)
+
+    alert('정보가 성공적으로 변경되었습니다.')
+    // 업데이트 후 사용자 정보를 다시 불러와 화면을 최신 상태로 유지
+    await fetchUserInfo()
+    // 성공적으로 변경되었으면 메인 페이지로 이동
+    router.push(`/${role}/main`)
+  } catch (error) {
+    console.error('정보 변경 실패:', error)
+    alert('정보 변경 중 오류가 발생했습니다. 다시 시도해 주세요.')
+  }
 }
 
 // 컴포넌트가 마운트되면 사용자 정보를 불러옵니다.
@@ -161,28 +191,26 @@ onMounted(fetchUserInfo)
   background-color: #f9fafb; /* Light gray background */
   border-radius: 0.5rem; /* Rounded corners */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+
+  /* Flexbox를 사용하여 내부 요소 간 간격 제어 */
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* 모든 하위 요소 간의 기본 간격을 설정 (tailwind의 gap-6과 유사) */
 }
 
 .info-item {
-  margin-bottom: 1rem; /* Adjust as needed for spacing */
+  /* gap 속성을 user-info-section에 설정했으므로, 개별 margin-bottom은 제거하거나 초기화 */
+  margin-bottom: 0; /* 기존 margin-bottom을 초기화 */
 }
 
 .info-label {
   display: block;
   color: #4a5568; /* gray-700 */
   font-weight: 500; /* medium */
-  margin-bottom: 0.25rem; /* mb-1 */
+  margin-bottom: 0.5rem; /* 라벨과 인풋 사이 간격 조정 */
 }
 
-.info-input {
-  width: 100%;
-  border: 1px solid #cbd5e0; /* border-gray-300 */
-  padding: 0.75rem 1rem; /* px-4 py-2 */
-  border-radius: 0.25rem; /* rounded */
-  background-color: #edf2f7; /* bg-gray-100 */
-  cursor: not-allowed; /* Indicate it's not editable */
-}
-
+.info-input,
 .password-input {
   width: 100%;
   border: 1px solid #cbd5e0; /* border-gray-300 */
@@ -190,9 +218,19 @@ onMounted(fetchUserInfo)
   border-radius: 0.25rem; /* rounded */
 }
 
+.info-input {
+  background-color: #edf2f7; /* bg-gray-100 */
+  cursor: not-allowed; /* Indicate it's not editable */
+}
+
+.editable-input {
+  background-color: #ffffff; /* editable input can have white background */
+  cursor: text; /* Indicate it's editable */
+}
+
 .button-group {
   text-align: center;
-  margin-top: 1.5rem; /* mt-6 */
+  margin-top: 0; /* user-info-section의 gap으로 간격이 이미 주어지므로 초기화 */
 }
 
 .confirm-button {
