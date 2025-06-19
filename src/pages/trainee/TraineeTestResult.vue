@@ -57,9 +57,9 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '@/components/layouts/MainLayout.vue'
 import TraineeTestResultSideBar from '@/components/trainee/result/TraineeTestResultSideBar.vue'
-import TraineeQuestionArea from '@/components/trainee/result/TraineeQuestionArea.vue' // 새 컴포넌트 임포트
-import TraineeSolutionArea from '@/components/trainee/result/TraineeSolutionArea.vue' // 새 컴포넌트 임포트
-import TraineeChatbot from '@/components/trainee/result/TraineeChatbot.vue' // 새 컴포넌트 임포트
+import TraineeQuestionArea from '@/components/trainee/result/TraineeQuestionArea.vue'
+import TraineeSolutionArea from '@/components/trainee/result/TraineeSolutionArea.vue'
+import TraineeChatbot from '@/components/trainee/result/TraineeChatbot.vue'
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js'
 
@@ -83,7 +83,11 @@ const currentQuestionIndex = computed(() => {
 const hasPreviousQuestion = computed(() => currentQuestionIndex.value > 0)
 const hasNextQuestion = computed(() => currentQuestionIndex.value < allQuestions.value.length - 1)
 
-// UI 확인을 위한 Sample Data (Hardcoded)
+onMounted(() => {
+  fetchTestQuestions()
+})
+
+// UI 확인을 위한 Sample Data (Hardcoded) - 이전과 동일하므로 생략
 const sampleApiData = [
   {
     type: 'OBJECTIVE',
@@ -219,34 +223,31 @@ const fetchTestQuestions = async () => {
       allQuestions.value = fetchedData.map((rawQ, index) => {
         const generatedId = `Q${(index + 1).toString().padStart(2, '0')}`
         let userAnswer = ''
-        let isCorrect = undefined // isCorrect 기본값은 undefined로 설정 (미채점 또는 미답변)
+        let isCorrect = undefined
 
         if (rawQ.type === 'OBJECTIVE') {
-          // Figma 이미지에 맞춰 Q01은 정답, Q02는 오답 (첫번째 보기 선택), Q05는 정답으로 설정
           if (generatedId === 'Q01') {
-            userAnswer = rawQ.answer // 정답으로 설정
-            isCorrect = true // 정답
+            userAnswer = rawQ.answer
+            isCorrect = true
           } else if (generatedId === 'Q02') {
-            userAnswer = rawQ.options && rawQ.options.length > 0 ? rawQ.options[0] : '' // 오답으로 설정
-            isCorrect = false // 오답
+            userAnswer = rawQ.options && rawQ.options.length > 0 ? rawQ.options[0] : ''
+            isCorrect = false
           } else if (generatedId === 'Q05') {
-            userAnswer = rawQ.answer // 정답으로 설정
-            isCorrect = true // 정답
+            userAnswer = rawQ.answer
+            isCorrect = true
           }
         } else {
-          // SUBJECTIVE (주관식)
-          // Q03과 Q04는 임의로 정답 처리, Q06은 오답 처리
           if (generatedId === 'Q03') {
             userAnswer =
               '검수/출장비 기반으로 정발행/역발행 건을 결재 요청하고 승인하는 절차입니다. 저의 답변은 좀 더 자세한 내용을 포함합니다. 이 답변은 예시 답안과 비교하여 채점될 수 있습니다.'
-            isCorrect = true // Figma 이미지처럼 'O' 표시를 위해 true
+            isCorrect = true
           } else if (generatedId === 'Q04') {
             userAnswer =
               '수기전표는 조회하고 추가 등록하여 결재 상신하는 과정으로 관리됩니다. 이 과정은 전표의 정확성을 보장하고 승인을 위한 중요한 단계입니다.'
-            isCorrect = true // Figma 이미지처럼 'O' 표시를 위해 true
+            isCorrect = true
           } else if (generatedId === 'Q06') {
-            userAnswer = '반응형 데이터 바인딩입니다.' // 부분 답변으로 오답 처리
-            isCorrect = false // Figma 이미지처럼 'X' 표시를 위해 false
+            userAnswer = '반응형 데이터 바인딩입니다.'
+            isCorrect = false
           }
         }
 
@@ -262,7 +263,7 @@ const fetchTestQuestions = async () => {
           document_id: rawQ.document_id,
           tags: rawQ.tags,
           userAnswer: userAnswer,
-          isCorrect: isCorrect, // isCorrect 속성 추가
+          isCorrect: isCorrect,
         }
       })
 
@@ -303,10 +304,6 @@ const exitTestResult = () => {
     router.push({ name: 'TraineeMain' })
   }
 }
-
-onMounted(() => {
-  fetchTestQuestions()
-})
 </script>
 
 <style scoped>
@@ -314,7 +311,8 @@ onMounted(() => {
   display: flex;
   flex: 1;
   gap: 25px;
-  overflow: hidden;
+  height: 100%; /* 부모의 전체 높이를 차지하도록 설정 */
+  overflow: hidden; /* 내부 요소가 넘치지 않도록 숨김 */
 }
 
 .test-result-main-content {
@@ -323,24 +321,27 @@ onMounted(() => {
   flex-direction: column;
   padding: 0;
   overflow: hidden;
-  gap: 25px;
+  gap: 25px; /* `top-nav`, `question-solution-area`, `exit-button-container` 사이의 간격 */
   box-sizing: border-box;
-  min-height: 0;
+  height: 100%; /* 부모의 전체 높이를 차지하도록 설정 */
 }
 
 .test-result-container-inner {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  flex: 1; /* .test-result-main-content 내에서 남은 공간을 차지 */
   overflow: hidden;
 }
 
+/* Top Navigation */
 .top-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 25px; /* question-solution-area와의 간격 */
   flex-shrink: 0;
+  height: 48px; /* 고정 높이 */
+  /* 이 top-nav의 height와 margin-bottom이 .question-solution-area의 계산에 영향을 줍니다. */
 }
 
 .question-number-top {
@@ -394,34 +395,21 @@ onMounted(() => {
   color: #495057;
 }
 
+/* Question and Solution Area */
 .question-solution-area {
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
-  gap: 25px;
-  min-height: 0;
-  overflow-y: auto;
-  padding-right: 10px;
-}
-
-.question-solution-area::-webkit-scrollbar {
-  width: 6px;
-}
-.question-solution-area::-webkit-scrollbar-track {
-  background: transparent;
-}
-.question-solution-area::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
-}
-.question-solution-area::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.4);
+  flex: 1; /* .test-result-container-inner 내에서 남은 공간을 차지 */
+  gap: 25px; /* 문제 영역과 풀이 영역 사이의 간격 */
+  overflow-y: hidden; /* 자식 컴포넌트들이 스스로 스크롤을 가짐 */
+  min-height: 0; /* 중요: Flex 컨테이너의 자식인 .question-solution-area가 내용물에 의해 커지는 것을 방지 */
 }
 
 .exit-button-container {
-  margin-top: 30px;
+  margin-top: 30px; /* question-solution-area와의 간격 */
   text-align: left;
   flex-shrink: 0;
+  height: 44px; /* 고정 높이 */
 }
 
 .exit-button {

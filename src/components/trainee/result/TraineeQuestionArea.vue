@@ -1,9 +1,8 @@
 <template>
   <div class="question-section">
-    <div class="question-text-fixed">
+    <div class="question-content-wrapper">
       <p class="question-text">{{ question.questionText }}</p>
-    </div>
-    <div class="question-content-scrollable">
+
       <div class="options-container" v-if="question.type === 'OBJECTIVE'">
         <div
           v-for="(option, index) in question.options"
@@ -72,51 +71,55 @@ const getOptionLabel = (index) => {
   border-radius: 12px;
   padding: 30px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  flex-shrink: 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  min-height: 250px;
-  flex-grow: 1;
-  overflow: hidden;
+  /* flex 속성 제거 또는 flex-shrink: 0만 유지 (height가 우선) */
+  /* flex: 0 0 auto; 와 같이 사용하여 grow/shrink 방지. height가 주요 제어 */
+
+  /* 문제 영역이 차지할 비율 (70%)에서 gap의 절반을 뺌 */
+  height: calc(70% - (25px / 2)); /* 25px는 .question-solution-area의 gap */
+  min-height: 0; /* 내용물이 길어져도 이 요소가 커지는 것을 방지하고 스크롤을 허용 */
+  overflow-y: auto; /* **문제 영역 전체 스크롤** */
+  padding-right: 10px; /* 스크롤바 공간 확보 */
 }
 
-.question-text-fixed {
-  flex-shrink: 0;
-  margin-bottom: 20px;
+/* 문제 섹션 내부 스크롤바 */
+.question-section::-webkit-scrollbar {
+  width: 6px;
+}
+.question-section::-webkit-scrollbar-track {
+  background: transparent;
+}
+.question-section::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+.question-section::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.question-content-wrapper {
+  flex-grow: 1; /* 문제 텍스트와 보기를 감싸는 컨테이너가 공간을 채우도록 */
+  display: flex;
+  flex-direction: column;
 }
 
 .question-text {
   font-size: 17px;
   line-height: 1.7;
-  margin: 0;
+  margin: 0 0 20px 0; /* 하단 마진 추가 */
   color: #495057;
-}
-
-.question-content-scrollable {
-  flex-grow: 1;
-  overflow-y: auto;
-  padding-right: 10px;
-}
-
-.question-content-scrollable::-webkit-scrollbar {
-  width: 6px;
-}
-.question-content-scrollable::-webkit-scrollbar-track {
-  background: transparent;
-}
-.question-content-scrollable::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
-}
-.question-content-scrollable::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.4);
+  flex-shrink: 0; /* 문제 텍스트 자체는 축소되지 않도록 */
 }
 
 .options-container {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  flex-grow: 1; /* 옵션 컨테이너가 남은 공간을 채우도록 */
+  min-height: 0; /* 스크롤 가능하도록 */
+  /* overflow-y: auto; 필요 시 여기에도 스크롤을 넣을 수 있지만, 상위 .question-section에서 전체 관리 */
 }
 
 .option-item {
@@ -192,6 +195,8 @@ const getOptionLabel = (index) => {
   flex-direction: column;
   gap: 20px;
   padding-bottom: 5px;
+  flex-grow: 1; /* 주관식 섹션도 남은 공간을 채우도록 */
+  min-height: 0;
 }
 
 .answer-group {

@@ -108,16 +108,17 @@ watch(
 
 <style scoped>
 .chatbot-section {
-  width: 380px;
+  width: 380px; /* 챗봇 영역 너비 고정 */
   background-color: #ffffff;
   border-left: 1px solid #e9ecef;
   border-radius: 12px;
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* 내부 요소들을 세로로 정렬 */
   padding: 25px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  flex-shrink: 0;
+  flex-shrink: 0; /* 축소되지 않도록 고정 */
   box-sizing: border-box;
+  height: 100%; /* 부모에 대한 100% 높이 설정 */
 }
 
 .chatbot-header {
@@ -127,7 +128,7 @@ watch(
   margin-bottom: 20px;
   padding-bottom: 15px;
   border-bottom: 1px solid #e9ecef;
-  flex-shrink: 0;
+  flex-shrink: 0; /* 내용이 축소되지 않도록 고정 */
 }
 
 .chatbot-header-icon {
@@ -142,14 +143,16 @@ watch(
 }
 
 .chatbot-messages {
-  flex-grow: 1;
-  overflow-y: auto;
-  padding-right: 10px;
+  flex-grow: 1; /* 남은 공간을 모두 차지하도록 */
+  overflow-y: auto; /* 내용이 넘칠 때 스크롤바 생성 */
+  padding-right: 10px; /* 스크롤바 공간 확보 */
   margin-bottom: 20px;
   display: flex;
   flex-direction: column;
+  min-height: 0; /* Flexbox 아이템이 내용물에 의해 커지는 것을 방지 */
 }
 
+/* Chatbot messages scrollbar */
 .chatbot-messages::-webkit-scrollbar {
   width: 6px;
 }
@@ -203,7 +206,7 @@ watch(
   padding-top: 15px;
   border-top: 1px solid #e9ecef;
   position: relative;
-  flex-shrink: 0;
+  flex-shrink: 0; /* 내용이 축소되지 않도록 고정 */
 }
 
 .message-input {

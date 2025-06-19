@@ -1,10 +1,13 @@
 <template>
   <div class="solution-section">
     <h4 class="solution-title">풀이</h4>
-    <div v-if="explanation" class="solution-text">
+    <div v-if="explanation" class="solution-text-scrollable">
       {{ explanation }}
     </div>
-    <div v-else-if="gradingCriteria && gradingCriteria.length > 0" class="grading-criteria">
+    <div
+      v-else-if="gradingCriteria && gradingCriteria.length > 0"
+      class="grading-criteria-scrollable"
+    >
       <h4 class="criteria-title">채점 기준:</h4>
       <ul>
         <li v-for="(criterion, index) in gradingCriteria" :key="index">
@@ -39,12 +42,18 @@ const props = defineProps({
   border-radius: 12px;
   padding: 30px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  flex-shrink: 0;
   box-sizing: border-box;
-  min-height: 200px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  /* flex 속성 제거 또는 flex-shrink: 0만 유지 (height가 우선) */
+  /* height는 25px의 gap을 고려하여 나머지 공간을 채움 (30%) */
+  height: calc(30% - (25px / 2)); /* 25px는 .question-solution-area의 gap */
+  min-height: 0; /* 내용물이 길어져도 이 요소가 커지는 것을 방지하고 스크롤을 허용 */
+  overflow-y: auto; /* 내용이 넘칠 때 스크롤바 생성 */
+  padding-right: 10px; /* 스크롤바 공간 확보 */
 }
 
+/* 풀이 섹션 내부 스크롤바 */
 .solution-section::-webkit-scrollbar {
   width: 6px;
 }
@@ -65,13 +74,16 @@ const props = defineProps({
   font-weight: 700;
   color: #343a40;
   margin-bottom: 15px;
+  flex-shrink: 0;
 }
 
-.solution-text,
-.grading-criteria {
+.solution-text-scrollable,
+.grading-criteria-scrollable {
+  flex-grow: 1;
   font-size: 16px;
   line-height: 1.7;
   color: #495057;
+  min-height: 0; /* Flexbox 아이템이 내용물에 의해 커지는 것을 방지 */
 }
 
 .grading-criteria ul {
@@ -102,5 +114,9 @@ const props = defineProps({
   font-style: italic;
   padding: 15px 0;
   text-align: center;
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>
