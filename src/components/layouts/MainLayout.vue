@@ -6,8 +6,8 @@
       <aside v-if="showSidebar" :class="['sidebar-container', { collapsed: isSidebarCollapsed }]">
         <div class="sidebar-header">
           <div class="sidebar-header-content">
-            <h3 class="sidebar-title" v-if="sidebarType === 'test' && !isSidebarCollapsed">
-              문제 현황
+            <h3 class="sidebar-title" v-if="!isSidebarCollapsed">
+              {{ sidebarTitle }}
             </h3>
             <slot name="sidebar-header-content" :is-collapsed="isSidebarCollapsed"></slot>
           </div>
@@ -20,14 +20,13 @@
         <hr v-if="!isSidebarCollapsed" class="divider-in-header" />
 
         <div class="sidebar-content-slot">
-          <TraineeTestSideBar
-            v-if="sidebarType === 'test'"
+          <component
+            :is="sidebarComponent"
             :is-collapsed="isSidebarCollapsed"
             :questions="testQuestions"
             :current-question-id="currentTestQuestionId"
             @select-question="handleSelectTestQuestion"
           />
-          <slot name="sidebar" :is-collapsed="isSidebarCollapsed" v-else></slot>
         </div>
       </aside>
 
@@ -46,6 +45,8 @@ import { ref, onMounted, computed, useSlots, defineProps } from 'vue'
 import Header from './Header.vue'
 import Footer from './Footer.vue'
 import TraineeTestSideBar from '@/components/trainee/test/TraineeTestSideBar.vue'
+// TraineeTestResultSideBar 컴포넌트 임포트 추가
+import TraineeTestResultSideBar from '@/components/trainee/result/TraineeTestResultSideBar.vue'
 
 const props = defineProps({
   showSidebar: {
@@ -54,7 +55,7 @@ const props = defineProps({
   },
   sidebarType: {
     type: String,
-    default: 'default',
+    default: 'default', // 'default', 'test', 'testResult' 등으로 구분
   },
   testQuestions: {
     type: Array,
@@ -93,9 +94,40 @@ const emit = defineEmits(['selectQuestionFromSidebar'])
 const handleSelectTestQuestion = (questionId) => {
   emit('selectQuestionFromSidebar', questionId)
 }
+
+// --- 추가/수정된 부분 ---
+
+// 1. sidebarTitle computed 속성 추가: sidebarType에 따라 제목을 동적으로 변경합니다.
+const sidebarTitle = computed(() => {
+  switch (props.sidebarType) {
+    case 'test':
+      return '문제 현황'
+    case 'testResult':
+      return '시험 결과' // 시험 결과 화면일 때 보여줄 제목
+    default:
+      return '메뉴' // 기본 제목
+  }
+})
+
+// 2. sidebarComponent computed 속성 추가: sidebarType에 따라 렌더링할 컴포넌트를 결정합니다.
+const sidebarComponent = computed(() => {
+  if (!props.showSidebar) {
+    return null // 사이드바가 표시되지 않으면 아무것도 렌더링하지 않음
+  }
+  if (props.sidebarType === 'test') {
+    return TraineeTestSideBar
+  } else if (props.sidebarType === 'testResult') {
+    return TraineeTestResultSideBar // 'testResult'일 때 TraineeTestResultSideBar 렌더링
+  }
+  // 기본 슬롯 렌더링을 원한다면 여기에 slot을 반환하거나,
+  // slots.sidebar를 직접 렌더링하는 로직을 추가할 수 있습니다.
+  // 현재 구조에서는 slot name="sidebar"를 사용하는 대신 컴포넌트를 직접 지정하는 것이 더 명확합니다.
+  return null // 일치하는 타입이 없으면 아무것도 렌더링하지 않음
+})
 </script>
 
 <style scoped>
+/* 기존 스타일 유지 */
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
 .main-layout {

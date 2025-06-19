@@ -11,6 +11,7 @@ import TrainerMain from '@/pages/trainer/TrainerMain.vue'
 import TraineeMain from '@/pages/trainee/TraineeMain.vue'
 import TraineeTestGuide from '@/pages/trainee/TraineeTestGuide.vue'
 import TraineeTest from '@/pages/trainee/TraineeTest.vue'
+import TraineeTestResult from '@/pages/trainee/TraineeTestResult.vue'
 
 // Admin Pages
 
@@ -34,6 +35,12 @@ const routes = [
     path: '/trainee/test/attend/:testId',
     name: 'TraineeTest',
     component: TraineeTest,
+    props: true,
+  },
+  {
+    path: '/trainee/test/result/:testId',
+    name: 'TraineeTestResult',
+    component: TraineeTestResult,
     props: true,
   },
 
