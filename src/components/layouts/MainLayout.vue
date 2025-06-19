@@ -20,13 +20,7 @@
         <hr v-if="!isSidebarCollapsed" class="divider-in-header" />
 
         <div class="sidebar-content-slot">
-          <component
-            :is="sidebarComponent"
-            :is-collapsed="isSidebarCollapsed"
-            :questions="testQuestions"
-            :current-question-id="currentTestQuestionId"
-            @select-question="handleSelectTestQuestion"
-          />
+          <slot name="sidebar" :is-collapsed="isSidebarCollapsed"></slot>
         </div>
       </aside>
 
@@ -44,9 +38,10 @@
 import { ref, onMounted, computed, useSlots, defineProps } from 'vue'
 import Header from './Header.vue'
 import Footer from './Footer.vue'
-import TraineeTestSideBar from '@/components/trainee/test/TraineeTestSideBar.vue'
-// TraineeTestResultSideBar 컴포넌트 임포트 추가
-import TraineeTestResultSideBar from '@/components/trainee/result/TraineeTestResultSideBar.vue'
+// MainLayout에서 더 이상 직접 TraineeTestSideBar나 TraineeTestResultSideBar를 렌더링하지 않으므로
+// 아래 두 컴포넌트 임포트는 제거했습니다.
+// import TraineeTestSideBar from '@/components/trainee/test/TraineeTestSideBar.vue'
+// import TraineeTestResultSideBar from '@/components/trainee/result/TraineeTestResultSideBar.vue'
 
 const props = defineProps({
   showSidebar: {
@@ -55,23 +50,25 @@ const props = defineProps({
   },
   sidebarType: {
     type: String,
-    default: 'default', // 'default', 'test', 'testResult' 등으로 구분
+    default: 'default', // 'test', 'testResult' 등으로 구분
   },
-  testQuestions: {
-    type: Array,
-    default: () => [],
-  },
-  currentTestQuestionId: {
-    type: [Number, String, null],
-    default: null,
-  },
+  // sidebarComponent를 직접 사용하지 않으므로, 이와 관련된 props는 더 이상 필요 없을 수 있습니다.
+  // 필요한 경우에만 유지하세요.
+  // testQuestions: {
+  //   type: Array,
+  //   default: () => [],
+  // },
+  // currentTestQuestionId: {
+  //   type: [Number, String, null],
+  //   default: null,
+  // },
 })
 
 const userName = ref('Guest')
 const userRole = ref('Trainee')
 const isSidebarCollapsed = ref(false)
 
-const slots = useSlots()
+const slots = useSlots() // 슬롯을 사용하는 경우에 필요합니다.
 
 const toggleSidebar = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value
@@ -89,15 +86,14 @@ onMounted(() => {
 })
 
 // TraineeTestSideBar에서 발생한 selectQuestion 이벤트를 받아서 부모 컴포넌트로 다시 emit
-const emit = defineEmits(['selectQuestionFromSidebar'])
+// sidebarComponent를 직접 사용하지 않으므로, 이와 관련된 emit 및 함수도 필요 없을 수 있습니다.
+// const emit = defineEmits(['selectQuestionFromSidebar'])
+// const handleSelectTestQuestion = (questionId) => {
+//   emit('selectQuestionFromSidebar', questionId)
+// }
 
-const handleSelectTestQuestion = (questionId) => {
-  emit('selectQuestionFromSidebar', questionId)
-}
-
-// --- 추가/수정된 부분 ---
-
-// 1. sidebarTitle computed 속성 추가: sidebarType에 따라 제목을 동적으로 변경합니다.
+// sidebarTitle computed 속성은 계속 사용하므로 유지합니다.
+// MainLayout에 sidebarType을 prop으로 전달하여 제목을 제어할 수 있습니다.
 const sidebarTitle = computed(() => {
   switch (props.sidebarType) {
     case 'test':
@@ -105,29 +101,17 @@ const sidebarTitle = computed(() => {
     case 'testResult':
       return '시험 결과' // 시험 결과 화면일 때 보여줄 제목
     default:
-      return '메뉴' // 기본 제목
+      return // 기본 제목
   }
 })
 
-// 2. sidebarComponent computed 속성 추가: sidebarType에 따라 렌더링할 컴포넌트를 결정합니다.
-const sidebarComponent = computed(() => {
-  if (!props.showSidebar) {
-    return null // 사이드바가 표시되지 않으면 아무것도 렌더링하지 않음
-  }
-  if (props.sidebarType === 'test') {
-    return TraineeTestSideBar
-  } else if (props.sidebarType === 'testResult') {
-    return TraineeTestResultSideBar // 'testResult'일 때 TraineeTestResultSideBar 렌더링
-  }
-  // 기본 슬롯 렌더링을 원한다면 여기에 slot을 반환하거나,
-  // slots.sidebar를 직접 렌더링하는 로직을 추가할 수 있습니다.
-  // 현재 구조에서는 slot name="sidebar"를 사용하는 대신 컴포넌트를 직접 지정하는 것이 더 명확합니다.
-  return null // 일치하는 타입이 없으면 아무것도 렌더링하지 않음
-})
+// sidebarComponent computed 속성은 더 이상 사용되지 않으므로 제거했습니다.
+// 이 로직으로 인해 TraineeMain.vue의 사이드바 내용이 렌더링되지 않았을 가능성이 높습니다.
+// const sidebarComponent = computed(() => { /* ... 기존 로직 ... */ });
 </script>
 
 <style scoped>
-/* 기존 스타일 유지 */
+/* 기존 스타일은 유지됩니다. */
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
 .main-layout {
