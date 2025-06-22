@@ -1,0 +1,23 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
+  "exclude": ["src/**/__tests__/*"],
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
+    "target": "es2020",
+    "module": "esnext",
+    "outDir": "../SKIB-FE-JS-output",
+    "declaration": false,
+    "noEmitOnError": false,
+    "strict": false,
+    "allowJs": true,
+    "checkJs": false,
+    "verbatimModuleSyntax": false,
+    "noEmit": false,
+    // --- TS5096 오류 해결을 위해 allowImportingTsExtensions 비활성화 ---
+    "allowImportingTsExtensions": false
+  }
+}
