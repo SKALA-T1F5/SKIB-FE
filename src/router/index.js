@@ -6,6 +6,7 @@ import Login from '@/pages/general/Login.vue'
 
 // Trainer Pages
 import TrainerMain from '@/pages/trainer/TrainerMain.vue'
+import TrainerDocumentManagement from '@/pages/trainer/TrainerDocumentManagement.vue'
 
 // Trainee Pages
 import TraineeMain from '@/pages/trainee/TraineeMain.vue'
@@ -23,6 +24,16 @@ const routes = [
 
   // Trainer Routes
   { path: '/trainer/main', name: 'TrainerMain', component: TrainerMain },
+  {
+    path: '/trainer/project/:projectId',
+    component: () => import('@/components/trainer/project/ProjectDetail.vue'),
+    children: [
+      { path: '', redirect: 'test' },
+      { path: 'document', component: TrainerDocumentManagement },
+      // { path: 'test', component: () => import('@/pages/trainer/TrainerTestManagement.vue') },
+      // { path: 'learner', component: () => import('@/components/trainer/project/ProjectLearner.vue') },
+    ]
+  },
 
   // Trainee Routes
   { path: '/trainee/main', name: 'TraineeMain', component: TraineeMain },
@@ -54,7 +65,7 @@ const routes = [
   // Admin Routes
 
   // Fall Back
-  { path: '/:pathMatch(.*)*', redirect: '/login' },
+  // { path: '/:pathMatch(.*)*', redirect: '/login' },
 ]
 
 const router = createRouter({
