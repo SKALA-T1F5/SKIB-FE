@@ -284,7 +284,7 @@ onMounted(() => {
 <style scoped>
 .common-container {
   padding: 24px;
-  max-width: 1150px; /* 고정 너비 */
+  max-width: 100%; /* 고정 너비 */
   margin: 0 auto; /* 중앙 정렬 */
   min-height: calc(100vh - 64px - 64px); /* 헤더, 푸터 높이 제외 */
 }
