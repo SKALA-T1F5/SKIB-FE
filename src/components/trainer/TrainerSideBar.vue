@@ -8,7 +8,7 @@
         :class="['project-item-sidebar', { active: project.id === currentProjectId }]"
         @click="selectProject(project.id)"
       >
-        <v-icon size="20" class="project-icon">mdi-folder-outline</v-icon>
+        <v-icon size="20" class="project-icon">mdi-folder-star-outline</v-icon>
         <span class="project-name">{{ project.name }}</span>
         <v-icon v-if="project.id === currentProjectId" size="20" class="current-project-indicator"
           >mdi-chevron-right</v-icon
@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, watch, ref, onMounted } from 'vue'
+import { defineProps, watch, ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/config/axios' // axios 설정을 가져옵니다.
 
@@ -37,7 +37,7 @@ const props = defineProps({
   isCollapsed: Boolean, // MainLayout에서 전달되는 사이드바 접힘 상태
 })
 
-const emit = defineEmits(['update:searchQuery', 'reset-filters'])
+// const emit = defineEmits(['update:searchQuery', 'reset-filters']) // 현재 사용되지 않으므로 제거
 
 const router = useRouter()
 const route = useRoute() // 현재 라우트 정보를 가져오기 위해 사용
@@ -48,19 +48,19 @@ const currentProjectId = ref(null) // 현재 활성화된 프로젝트 ID
 const exampleProjects = [
   {
     id: 901,
-    name: 'AI 기반 문서 분석 프로젝트',
+    name: 'AI 기반 문서 분석 프로젝트 (예시)',
     description: '이것은 AI 문서 분석을 위한 예시 프로젝트입니다.',
     startDate: '2024-01-15',
   },
   {
     id: 902,
-    name: '스마트 제조 공정 최적화',
+    name: '스마트 제조 공정 최적화 (예시)',
     description: '제조 공정 데이터 분석 및 최적화 프로젝트',
     startDate: '2024-03-01',
   },
   {
     id: 903,
-    name: '고객 행동 패턴 예측 시스템',
+    name: '고객 행동 패턴 예측 시스템 (예시)',
     description: '사용자 데이터 기반 행동 예측 시스템 구축',
     startDate: '2024-05-20',
   },
@@ -71,7 +71,7 @@ const fetchProjects = async () => {
   try {
     const userId = localStorage.getItem('userId')
     if (!userId) {
-      console.error('사용자 ID를 찾을 수 없습니다. 다시 로그인해주세요.')
+      console.error('사용자 ID를 찾을 수 없습니다. 다시 로그인해주세요. 예시 데이터를 로드합니다.')
       projects.value = exampleProjects // 개발 편의를 위해 예시 데이터 로드
       return
     }
@@ -99,7 +99,7 @@ const fetchProjects = async () => {
     console.log('로드된 프로젝트:', projects.value)
   } catch (error) {
     console.error('프로젝트 데이터를 불러오는 데 실패했습니다:', error)
-    projects.value = exampleProjects
+    projects.value = exampleProjects // API 호출 실패 시 예시 데이터 로드
   }
 }
 
@@ -109,6 +109,8 @@ const selectProject = (projectId) => {
     return // 이미 선택된 프로젝트면 아무것도 하지 않음
   }
   currentProjectId.value = projectId
+  // 로컬 스토리지에 projectId 저장 (TrainerTestManagement 등에서 사용)
+  localStorage.setItem('projectId', projectId)
   router.push(`/trainer/project/${projectId}`)
 }
 
@@ -118,8 +120,11 @@ watch(
   (newProjectId) => {
     if (newProjectId) {
       currentProjectId.value = parseInt(newProjectId) // 라우트 파라미터는 문자열이므로 숫자로 변환
+      // 라우트 변경 시 로컬 스토리지에 projectId 저장 (최초 로드 또는 직접 URL 접근 시)
+      localStorage.setItem('projectId', newProjectId)
     } else {
       currentProjectId.value = null // projectId가 없으면 null
+      localStorage.removeItem('projectId') // projectId가 없으면 로컬 스토리지에서도 제거
     }
   },
   { immediate: true }, // 컴포넌트 마운트 시 즉시 실행
@@ -168,7 +173,7 @@ onMounted(() => {
 }
 
 /* projects-title 스타일은 필요에 따라 제거하거나 유지할 수 있습니다.
-   지금은 주석 처리하여 삭제된 것으로 간주합니다. */
+    지금은 주석 처리하여 삭제된 것으로 간주합니다. */
 /* .projects-title {
   font-size: 16px;
   font-weight: bold;

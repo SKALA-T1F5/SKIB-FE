@@ -7,6 +7,7 @@ import Login from '@/pages/general/Login.vue'
 // Trainer Pages
 import TrainerMain from '@/pages/trainer/TrainerMain.vue'
 import TrainerDocumentManagement from '@/pages/trainer/TrainerDocumentManagement.vue'
+import TrainerTestManagement from '@/pages/trainer/TrainerTestManagement.vue'
 
 // Trainee Pages
 import TraineeMain from '@/pages/trainee/TraineeMain.vue'
@@ -30,7 +31,7 @@ const routes = [
     children: [
       { path: '', redirect: 'test' },
       { path: 'document', component: TrainerDocumentManagement },
-      // { path: 'test', component: () => import('@/pages/trainer/TrainerTestManagement.vue') },
+      { path: 'test', component: TrainerTestManagement },
       // { path: 'learner', component: () => import('@/components/trainer/project/ProjectLearner.vue') },
     ],
   },

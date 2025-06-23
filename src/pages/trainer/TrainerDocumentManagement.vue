@@ -131,8 +131,8 @@ function preview(doc) {
 }
 
 .subtitle {
-  font-size: 16px;
-  color: #666;
+  font-size: 12px;
+  color: #a1a1a1;
   font-weight: normal;
   margin-left: 18px;
   white-space: nowrap;
@@ -148,7 +148,7 @@ function preview(doc) {
 }
 
 .section-bg {
-  background: #f8f8f8;
+  background: #eef2f6;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
   padding: 24px 24px 24px 24px;
