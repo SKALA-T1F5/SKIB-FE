@@ -1,18 +1,14 @@
 <template>
   <div class="project-card">
-    <div :class="['status-tag', getStatusClass(project.status)]">
-      {{ project.status }}
-    </div>
-
     <h3 class="project-title">{{ project.name }}</h3>
     <p class="project-description">{{ project.description }}</p>
     <p class="project-start-date">시작일: {{ project.startDate }}</p>
 
     <div class="project-footer">
       <div class="project-actions">
-        <button class="action-button" @click="$emit('edit', project.id)">수정</button>
-        <button class="action-button" @click="$emit('delete', project.id)">삭제</button>
-        <button class="action-button manage-button" @click="$emit('manage', project.id)">관리</button>
+        <button class="action-button manage-button" @click="$emit('manage', project.id)">
+          관리
+        </button>
       </div>
     </div>
   </div>
@@ -28,21 +24,22 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['edit', 'delete', 'manage'])
+// 트레이너는 프로젝트를 수정하거나 삭제할 수 없으므로 'edit', 'delete' emit 제거
+const emit = defineEmits(['manage'])
 
-// Function to get appropriate class for status tag
-const getStatusClass = (status) => {
-  switch (status) {
-    case '진행 중':
-      return 'in-progress'
-    case '완료':
-      return 'completed'
-    case '대기 중':
-      return 'pending'
-    default:
-      return ''
-  }
-}
+// Project는 Status 속성을 가지고 있지 않으므로 getStatusClass 함수 제거
+// const getStatusClass = (status) => {
+//   switch (status) {
+//     case '진행 중':
+//       return 'in-progress'
+//     case '완료':
+//       return 'completed'
+//     case '대기 중':
+//       return 'pending'
+//     default:
+//       return ''
+//   }
+// }
 </script>
 
 <style scoped>
@@ -65,7 +62,8 @@ const getStatusClass = (status) => {
   flex-basis: auto;
 }
 
-/* Status Tag (PASS/FAIL equivalent) */
+/* Project는 Status 속성을 가지고 있지 않으므로 상태 태그 스타일 제거 */
+/*
 .status-tag {
   position: absolute;
   top: 18px;
@@ -75,28 +73,29 @@ const getStatusClass = (status) => {
   font-size: 12px;
   font-weight: bold;
   color: white;
-  text-transform: uppercase; /* Match uppercase of PASS/FAIL */
+  text-transform: uppercase;
   min-width: 60px;
   text-align: center;
 }
 
 .status-tag.in-progress {
-  background-color: #007bff; /* Blue for in progress */
+  background-color: #007bff;
 }
 
 .status-tag.completed {
-  background-color: #28a745; /* Green for completed */
+  background-color: #28a745;
 }
 
 .status-tag.pending {
-  background-color: #ffc107; /* Yellow/Orange for pending */
-  color: #333; /* Darker text for better contrast on yellow */
+  background-color: #ffc107;
+  color: #333;
 }
+*/
 
 .project-title {
   font-size: 18px; /* Same as test-title */
   font-weight: bold; /* Same as test-title */
-  margin-top: 20px; /* Same as test-title */
+  margin-top: 0px; /* Status tag 제거로 인해 margin-top 조정 */
   margin-bottom: 8px; /* Same as test-title */
   color: #333; /* Same as test-title */
 }

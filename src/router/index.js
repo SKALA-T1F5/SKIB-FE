@@ -32,7 +32,7 @@ const routes = [
       { path: 'document', component: TrainerDocumentManagement },
       // { path: 'test', component: () => import('@/pages/trainer/TrainerTestManagement.vue') },
       // { path: 'learner', component: () => import('@/components/trainer/project/ProjectLearner.vue') },
-    ]
+    ],
   },
 
   // Trainee Routes

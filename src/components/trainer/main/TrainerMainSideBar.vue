@@ -1,34 +1,6 @@
 <template>
   <div class="trainer-main-sidebar-content">
     <hr v-if="!isCollapsed" class="divider" />
-
-    <div v-if="!isCollapsed" class="filter-section">
-      <div class="filter-title">프로젝트 상태</div>
-      <label>
-        <input
-          type="checkbox"
-          :checked="statusFilters.inProgress"
-          @change="updateStatusFilter('inProgress', $event)"
-        />
-        진행 중
-      </label>
-      <label>
-        <input
-          type="checkbox"
-          :checked="statusFilters.completed"
-          @change="updateStatusFilter('completed', $event)"
-        />
-        완료
-      </label>
-      <label>
-        <input
-          type="checkbox"
-          :checked="statusFilters.pending"
-          @change="updateStatusFilter('pending', $event)"
-        />
-        대기 중
-      </label>
-    </div>
   </div>
 </template>
 
@@ -37,30 +9,30 @@ import { ref, watch, defineProps, defineEmits } from 'vue'
 
 const props = defineProps({
   searchQuery: String,
-  statusFilters: Object,
+  // Project는 Status 속성을 가지고 있지 않으므로 statusFilters props 제거
+  // statusFilters: Object,
   isCollapsed: Boolean,
 })
 
-const emit = defineEmits([
-  'update:searchQuery',
-  'update:statusFilters',
-  'reset-filters',
-])
+// Project는 Status 속성을 가지고 있지 않으므로 'update:statusFilters' emit 제거
+const emit = defineEmits(['update:searchQuery', 'reset-filters'])
 
 const internalSearchQuery = ref(props.searchQuery)
-const internalStatusFilters = ref({ ...props.statusFilters })
+// Project는 Status 속성을 가지고 있지 않으므로 internalStatusFilters 제거
+// const internalStatusFilters = ref({ ...props.statusFilters })
 
 watch(internalSearchQuery, (newValue) => {
   emit('update:searchQuery', newValue)
 })
 
-watch(
-  internalStatusFilters,
-  (newValue) => {
-    emit('update:statusFilters', newValue)
-  },
-  { deep: true },
-)
+// Project는 Status 속성을 가지고 있지 않으므로 watch(internalStatusFilters...) 제거
+// watch(
+//   internalStatusFilters,
+//   (newValue) => {
+//     emit('update:statusFilters', newValue)
+//   },
+//   { deep: true },
+// )
 
 watch(
   () => props.searchQuery,
@@ -69,18 +41,20 @@ watch(
   },
 )
 
-watch(
-  () => props.statusFilters,
-  (newValue) => {
-    internalStatusFilters.value = { ...newValue }
-  },
-  { deep: true },
-)
+// Project는 Status 속성을 가지고 있지 않으므로 watch(() => props.statusFilters...) 제거
+// watch(
+//   () => props.statusFilters,
+//   (newValue) => {
+//     internalStatusFilters.value = { ...newValue }
+//   },
+//   { deep: true },
+// )
 
-const updateStatusFilter = (key, event) => {
-  const newStatusFilters = { ...props.statusFilters, [key]: event.target.checked }
-  emit('update:statusFilters', newStatusFilters)
-}
+// Project는 Status 속성을 가지고 있지 않으므로 updateStatusFilter 함수 제거
+// const updateStatusFilter = (key, event) => {
+//   const newStatusFilters = { ...props.statusFilters, [key]: event.target.checked }
+//   emit('update:statusFilters', newStatusFilters)
+// }
 
 // Note: The resetFilters function is triggered from TrainerMain.vue
 // via the @reset-filters event, not directly from this component.
@@ -108,7 +82,8 @@ const updateStatusFilter = (key, event) => {
   margin: -10px 0;
 }
 
-/* 필터 섹션 */
+/* Project는 Status 속성을 가지고 있지 않으므로 필터 섹션 관련 스타일 제거 */
+/*
 .filter-section {
   margin-top: 14px;
   display: flex;
@@ -133,7 +108,6 @@ const updateStatusFilter = (key, event) => {
   cursor: pointer;
 }
 
-/* 커스텀 체크박스 스타일 */
 .filter-section input[type='checkbox'] {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -164,4 +138,5 @@ const updateStatusFilter = (key, event) => {
   font-size: 10px;
   line-height: 1;
 }
+*/
 </style>
