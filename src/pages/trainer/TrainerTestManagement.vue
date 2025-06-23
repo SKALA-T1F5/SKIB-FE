@@ -327,7 +327,8 @@ const handleCopyLink = (id) => {
 
 const handleGoToQuestions = (id) => {
   console.log(`문제 목록으로 이동: ${id}`)
-  // router.push(`/questions/${id}`); // 실제 라우팅 로직
+  // `index.js`에 정의된 'TrainerTestQuestion' 라우트의 이름과 testId 파라미터를 사용하여 이동합니다.
+  router.push({ name: 'TrainerTestQuestion', params: { testId: id } })
 }
 
 const handleGoToDashboard = (id) => {

@@ -9,6 +9,7 @@ import TrainerMain from '@/pages/trainer/TrainerMain.vue'
 import TrainerDocumentManagement from '@/pages/trainer/TrainerDocumentManagement.vue'
 import TrainerTestManagement from '@/pages/trainer/TrainerTestManagement.vue'
 import TrainerTraineeManagement from '@/pages/trainer/TrainerTraineeManagement.vue'
+import TrainerTestQuestion from '@/pages/trainer/TrainerTestQuestion.vue' // TrainerTestQuestion import 추가
 
 // Trainee Pages
 import TraineeMain from '@/pages/trainee/TraineeMain.vue'
@@ -35,6 +36,12 @@ const routes = [
       { path: 'test', component: TrainerTestManagement },
       { path: 'trainee', component: TrainerTraineeManagement },
     ],
+  },
+  {
+    path: '/trainer/test/questions/:testId', // 새로운 라우트 추가
+    name: 'TrainerTestQuestion',
+    component: TrainerTestQuestion,
+    props: true,
   },
 
   // Trainee Routes

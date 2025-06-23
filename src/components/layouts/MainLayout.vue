@@ -48,30 +48,38 @@ const props = defineProps({
     type: String,
     default: 'default', // 'test', 'testResult', 'project' 등으로 구분
   },
-  // MainLayout은 이제 직접 사이드바 컴포넌트의 props를 받지 않습니다.
-  // Sidebar 컴포넌트는 슬롯을 통해 주입되므로, 해당 컴포넌트의 props는
-  // 슬롯을 사용하는 부모 컴포넌트(ProjectDetail.vue)에서 직접 바인딩합니다.
+  // 새롭게 추가된 prop
+  sidebarTitle: {
+    type: String,
+    default: '',
+  },
 })
 
 const userName = ref('Guest')
 const userRole = ref('Trainee')
 const isSidebarCollapsed = ref(false)
 
-// sidebarTitle은 여전히 유용하므로 유지합니다.
-const sidebarTitle = computed(() => {
+// sidebarTitle prop을 사용하므로, computed 속성은 필요하지 않습니다.
+// 그러나 기존 switch-case 로직을 유지하고 싶다면 아래와 같이 수정할 수 있습니다.
+// props.sidebarTitle이 전달되면 그것을 사용하고, 아니면 기존 로직을 따릅니다.
+const resolvedSidebarTitle = computed(() => {
+  if (props.sidebarTitle) {
+    return props.sidebarTitle;
+  }
   switch (props.sidebarType) {
     case 'test':
-      return '문제 현황'
+      return '문제 현황';
     case 'testResult':
-      return '시험 결과'
-    case 'project': // 'project' 타입 추가
-      return '프로젝트 목록'
+      return '시험 결과';
+    case 'project':
+      return '프로젝트 목록';
     default:
-      return // 기본 제목 (비워둠)
+      return ''; // 기본 제목 (비워둠)
   }
-})
+});
 
-const slots = useSlots() // 슬롯을 사용하는 경우에 필요합니다.
+
+const slots = useSlots()
 
 const toggleSidebar = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value
