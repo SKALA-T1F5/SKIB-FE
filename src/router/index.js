@@ -8,6 +8,7 @@ import Login from '@/pages/general/Login.vue'
 import TrainerMain from '@/pages/trainer/TrainerMain.vue'
 import TrainerDocumentManagement from '@/pages/trainer/TrainerDocumentManagement.vue'
 import TrainerTestManagement from '@/pages/trainer/TrainerTestManagement.vue'
+import TrainerTraineeManagement from '@/pages/trainer/TrainerTraineeManagement.vue'
 
 // Trainee Pages
 import TraineeMain from '@/pages/trainee/TraineeMain.vue'
@@ -32,7 +33,7 @@ const routes = [
       { path: '', redirect: 'test' },
       { path: 'document', component: TrainerDocumentManagement },
       { path: 'test', component: TrainerTestManagement },
-      // { path: 'learner', component: () => import('@/components/trainer/project/ProjectLearner.vue') },
+      { path: 'learner', component: TrainerTraineeManagement },
     ],
   },
 
