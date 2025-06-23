@@ -1,5 +1,5 @@
 <template>
-  <div class="document-management-container">
+  <div class="common-container">
     <div class="header-section">
       <h2 class="section-title-main">문서 관리</h2>
       <p class="section-subtitle">관리 중인 문서 목록을 확인하고 새로 업로드 합니다.</p>
@@ -44,17 +44,14 @@ import DocumentFilters from '@/components/trainer/document/DocumentFilters.vue'
 import DocumentList from '@/components/trainer/document/DocumentList.vue'
 import DocumentPreviewDialog from '@/components/trainer/document/DocumentPreviewDialog.vue'
 
-// 문서 데이터 상태 관리
 const documents = ref([])
 const searchQuery = ref('')
 const filterType = ref('')
 const viewMode = ref('grid')
 
-// 미리보기 다이얼로그 상태 관리
 const previewDialog = ref(false)
 const selectedDocument = ref(null)
 
-// 문서 데이터 가져오는 함수 (실제 API 호출 로직으로 대체 필요)
 const fetchDocuments = async () => {
   documents.value = [
     {
@@ -100,18 +97,19 @@ function preview(doc) {
 </script>
 
 <style scoped>
-.document-management-container {
-  max-width: 1150px;
-  margin: 0 auto;
-  padding: 0 12px 32px 12px; /* 기본 패딩 조정 */
+/* 공통 컨테이너 스타일 */
+.common-container {
+  max-width: 100%; /* 모든 주요 콘텐츠 컨테이너의 최대 너비 */
+  margin: 0 auto; /* 가운데 정렬 */
+  padding: 24px 12px; /* 좌우 12px 패딩, 상하 24px 패딩 */
 }
 
-/* Common header styles (TestList.vue, TrainerTestManagement.vue와 동일하게 유지) */
+/* Common header styles (모든 관련 컴포넌트에 일관 적용) */
 .header-section {
   display: flex;
   align-items: flex-end; /* 제목과 부제목의 하단 정렬 */
   gap: 18px; /* 제목과 부제목 사이 간격 */
-  margin-bottom: 24px; /* 섹션 하단 여백을 조정하여 v-window-item 레벨에 맞춤 */
+  margin-bottom: 24px; /* 섹션 하단 여백 */
 }
 
 .section-title-main {

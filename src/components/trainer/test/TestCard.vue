@@ -2,7 +2,7 @@
   <v-card class="test-card-trainer" elevation="0">
     <div class="test-card-header">
       <h3 class="test-title">{{ test.name }}</h3>
-      <v-icon size="18" color="primary" @click.stop="copyLink(test.id)">mdi-link-variant</v-icon>
+      <v-icon size="18" color="#191d5a" @click.stop="copyLink(test.id)">mdi-link-variant</v-icon>
     </div>
 
     <p class="test-description">
@@ -15,23 +15,23 @@
 
     <div class="statistics-visual-section">
       <div class="visual-item">
-        <div class="doughnut-container">
-          <div class="doughnut-chart" :style="doughnutChartStyle">
-            <span class="doughnut-text">{{ passRatePercentage }}%</span>
-          </div>
-        </div>
-        <div class="visual-info">
+        <div class="progress-bar-label">
           <span class="visual-label">합격률</span>
-          <span class="visual-value">{{ test.passCount }}명 / {{ test.totalApplicants }}명</span>
+          <span class="visual-value"
+            >{{ test.passCount }}명 / {{ test.totalApplicants }}명 ({{ passRatePercentage }}%)</span
+          >
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar primary-bar" :style="{ width: passRatePercentage + '%' }"></div>
         </div>
       </div>
       <div class="visual-item">
-        <div class="progress-bar-container">
-          <div class="progress-bar" :style="{ width: test.averageScore + '%' }"></div>
-        </div>
-        <div class="visual-info">
+        <div class="progress-bar-label">
           <span class="visual-label">평균 점수</span>
           <span class="visual-value">{{ test.averageScore }}점</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar primary-bar" :style="{ width: test.averageScore + '%' }"></div>
         </div>
       </div>
     </div>
@@ -88,15 +88,6 @@ const passRatePercentage = computed(() => {
   if (props.test.totalApplicants === 0) return 0
   return ((props.test.passCount / props.test.totalApplicants) * 100).toFixed(0)
 })
-
-// 도넛 차트 스타일 계산 (CSS conic-gradient 사용)
-const doughnutChartStyle = computed(() => {
-  const percentage = passRatePercentage.value
-  const visualPercentage = percentage > 0 ? percentage : 0.1 // 0%일 때도 시각적으로 표현
-  return {
-    background: `conic-gradient(#4CAF50 ${visualPercentage}%, #ddd ${visualPercentage}%)`,
-  }
-})
 </script>
 
 <style scoped>
@@ -111,11 +102,9 @@ const doughnutChartStyle = computed(() => {
   flex-direction: column;
   justify-content: space-between;
 
-  min-width: 280px;
   width: 100%;
-
   height: 100%;
-  min-height: var(--test-card-min-height); /* 변수 사용 */
+  min-height: 380px;
   flex-grow: 1;
   flex-shrink: 1;
   flex-basis: auto;
@@ -148,16 +137,15 @@ const doughnutChartStyle = computed(() => {
 
 .difficulty-level {
   font-weight: bold;
-  color: #191d5a;
+  color: #191d5a; /* 강조 색상 적용 */
 }
 
-/* 통계 시각화 섹션 (가로 한 줄) */
 .statistics-visual-section {
-  display: flex; /* 가로 정렬 */
-  flex-direction: row; /* 명시적으로 가로 정렬 */
-  justify-content: space-around; /* 요소들을 균등하게 분배 */
-  align-items: center; /* 세로 중앙 정렬 */
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 15px;
   padding: 15px;
   background-color: #eef2f7;
   border-radius: 6px;
@@ -167,24 +155,23 @@ const doughnutChartStyle = computed(() => {
 
 .visual-item {
   display: flex;
-  flex-direction: column; /* 아이콘/바 아래로 텍스트 */
-  align-items: center; /* 가운데 정렬 */
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
   gap: 8px;
-  text-align: center; /* 텍스트 가운데 정렬 */
-  flex: 1; /* 가로 공간 균등 분배 */
 }
 
-.visual-info {
+.progress-bar-label {
   display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  text-align: center; /* 텍스트 가운데 정렬 */
+  justify-content: space-between;
+  width: 100%;
+  align-items: flex-end;
 }
 
 .visual-label {
   font-size: 13px;
   color: #777;
-  margin-bottom: 2px;
+  margin-bottom: 0;
 }
 
 .visual-value {
@@ -193,67 +180,25 @@ const doughnutChartStyle = computed(() => {
   color: #333;
 }
 
-/* 도넛 차트 (합격률) */
-.doughnut-container {
-  position: relative;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background-color: #ddd;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.doughnut-chart {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.doughnut-chart::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 70%;
-  height: 70%;
-  border-radius: 50%;
-  background-color: #f8f8f8;
-  z-index: 1;
-}
-
-.doughnut-text {
-  position: relative;
-  font-size: 12px;
-  font-weight: bold;
-  color: #333;
-  z-index: 2;
-}
-
-/* 진행 바 (평균 점수) */
 .progress-bar-container {
-  width: 60px;
+  width: 100%;
   height: 8px;
   background-color: #ddd;
   border-radius: 4px;
   overflow: hidden;
-  flex-shrink: 0;
 }
 
 .progress-bar {
   height: 100%;
-  background-color: #2196f3;
   border-radius: 4px;
   transition: width 0.5s ease-out;
 }
+
+.progress-bar.primary-bar {
+  /* 모든 프로그레스 바에 강조 색상 적용 */
+  background-color: #191d5a;
+}
+/* 기존 .green-bar, .blue-bar는 제거하거나 .primary-bar로 대체 */
 
 .test-footer-trainer {
   display: flex;
@@ -290,14 +235,14 @@ const doughnutChartStyle = computed(() => {
 }
 
 .action-button-trainer.primary-button {
-  background-color: #191d5a;
+  background-color: #191d5a; /* 강조 색상 적용 */
   color: white;
-  border-color: #191d5a;
+  border-color: #191d5a; /* 강조 색상 적용 */
 }
 
 .action-button-trainer.primary-button:hover {
-  background-color: #0c0f3c;
-  border-color: #0c0f3c;
+  background-color: #0c0f3c; /* 강조 색상에 맞춘 호버 색상 */
+  border-color: #0c0f3c; /* 강조 색상에 맞춘 호버 색상 */
 }
 
 .action-button-trainer .v-icon {
