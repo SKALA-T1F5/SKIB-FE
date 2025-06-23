@@ -1,6 +1,5 @@
 <template>
-  <v-row class="filters-row" align="center" justify="space-between" no-gutters>
-    <!-- 검색 -->
+  <v-row class="filters-row" align="center" justify="space-between">
     <v-col cols="12" md="4">
       <v-text-field
         :model-value="searchQuery"
@@ -14,7 +13,6 @@
       />
     </v-col>
 
-    <!-- 파일유형 필터 -->
     <v-col cols="12" md="3">
       <v-select
         :model-value="filterType"
@@ -30,7 +28,6 @@
       />
     </v-col>
 
-    <!-- 보기모드 전환 -->
     <v-col cols="12" md="3" class="d-flex justify-end">
       <v-btn-toggle
         :model-value="viewMode"
@@ -56,31 +53,40 @@ const props = defineProps({
   searchQuery: String,
   filterType: String,
   viewMode: String,
-});
+})
 
-const emit = defineEmits(['update:searchQuery', 'update:filterType', 'update:viewMode']);
+const emit = defineEmits(['update:searchQuery', 'update:filterType', 'update:viewMode'])
 
-const fileTypes = [
-  'PDF', 'DOC', 'DOCX', 'TXT', 'PNG', 'JPG'
-];
+const fileTypes = ['PDF', 'DOC', 'DOCX', 'TXT', 'PNG', 'JPG']
 
 const updateSearchQuery = (value) => {
-  emit('update:searchQuery', value);
-};
+  emit('update:searchQuery', value)
+}
 
 const updateFilterType = (value) => {
-  emit('update:filterType', value);
-};
+  emit('update:filterType', value)
+}
 
 const updateViewMode = (value) => {
-  emit('update:viewMode', value);
-};
+  emit('update:viewMode', value)
+}
 </script>
 
 <style scoped>
+/* Vuetify의 기본 gutter를 사용하기 위해 no-gutters 제거 */
 .filters-row {
   margin-bottom: 12px;
-  gap: 8px;
+  /* gap 대신 Vuetify 그리드 시스템의 패딩을 활용 */
+}
+
+/* md 이상에서 필터 요소 사이 간격 조정 */
+@media (min-width: 960px) {
+  .filters-row .v-col:nth-child(2) {
+    margin-left: 8px; /* 파일 유형 필터 왼쪽 마진 */
+  }
+  .filters-row .v-col:nth-child(3) {
+    margin-left: auto; /* 보기모드 전환 버튼을 오른쪽으로 밀기 */
+  }
 }
 
 .rounded-input :deep(.v-input__control) {

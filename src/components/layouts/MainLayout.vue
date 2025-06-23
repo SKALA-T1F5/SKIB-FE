@@ -38,10 +38,6 @@
 import { ref, onMounted, computed, useSlots, defineProps } from 'vue'
 import Header from './Header.vue'
 import Footer from './Footer.vue'
-// MainLayout에서 더 이상 직접 TraineeTestSideBar나 TraineeTestResultSideBar를 렌더링하지 않으므로
-// 아래 두 컴포넌트 임포트는 제거했습니다.
-// import TraineeTestSideBar from '@/components/trainee/test/TraineeTestSideBar.vue'
-// import TraineeTestResultSideBar from '@/components/trainee/result/TraineeTestResultSideBar.vue'
 
 const props = defineProps({
   showSidebar: {
@@ -50,23 +46,30 @@ const props = defineProps({
   },
   sidebarType: {
     type: String,
-    default: 'default', // 'test', 'testResult' 등으로 구분
+    default: 'default', // 'test', 'testResult', 'project' 등으로 구분
   },
-  // sidebarComponent를 직접 사용하지 않으므로, 이와 관련된 props는 더 이상 필요 없을 수 있습니다.
-  // 필요한 경우에만 유지하세요.
-  // testQuestions: {
-  //   type: Array,
-  //   default: () => [],
-  // },
-  // currentTestQuestionId: {
-  //   type: [Number, String, null],
-  //   default: null,
-  // },
+  // MainLayout은 이제 직접 사이드바 컴포넌트의 props를 받지 않습니다.
+  // Sidebar 컴포넌트는 슬롯을 통해 주입되므로, 해당 컴포넌트의 props는
+  // 슬롯을 사용하는 부모 컴포넌트(ProjectDetail.vue)에서 직접 바인딩합니다.
 })
 
 const userName = ref('Guest')
 const userRole = ref('Trainee')
 const isSidebarCollapsed = ref(false)
+
+// sidebarTitle은 여전히 유용하므로 유지합니다.
+const sidebarTitle = computed(() => {
+  switch (props.sidebarType) {
+    case 'test':
+      return '문제 현황'
+    case 'testResult':
+      return '시험 결과'
+    case 'project': // 'project' 타입 추가
+      return '프로젝트 목록'
+    default:
+      return // 기본 제목 (비워둠)
+  }
+})
 
 const slots = useSlots() // 슬롯을 사용하는 경우에 필요합니다.
 
@@ -84,30 +87,6 @@ onMounted(() => {
     userRole.value = storedRole
   }
 })
-
-// TraineeTestSideBar에서 발생한 selectQuestion 이벤트를 받아서 부모 컴포넌트로 다시 emit
-// sidebarComponent를 직접 사용하지 않으므로, 이와 관련된 emit 및 함수도 필요 없을 수 있습니다.
-// const emit = defineEmits(['selectQuestionFromSidebar'])
-// const handleSelectTestQuestion = (questionId) => {
-//   emit('selectQuestionFromSidebar', questionId)
-// }
-
-// sidebarTitle computed 속성은 계속 사용하므로 유지합니다.
-// MainLayout에 sidebarType을 prop으로 전달하여 제목을 제어할 수 있습니다.
-const sidebarTitle = computed(() => {
-  switch (props.sidebarType) {
-    case 'test':
-      return '문제 현황'
-    case 'testResult':
-      return '시험 결과' // 시험 결과 화면일 때 보여줄 제목
-    default:
-      return // 기본 제목
-  }
-})
-
-// sidebarComponent computed 속성은 더 이상 사용되지 않으므로 제거했습니다.
-// 이 로직으로 인해 TraineeMain.vue의 사이드바 내용이 렌더링되지 않았을 가능성이 높습니다.
-// const sidebarComponent = computed(() => { /* ... 기존 로직 ... */ });
 </script>
 
 <style scoped>
@@ -134,7 +113,6 @@ const sidebarTitle = computed(() => {
   color: #222;
   padding-top: 24px;
   border-top-right-radius: 24px;
-  border-bottom-right-radius: 24px;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;

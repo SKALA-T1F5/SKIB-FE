@@ -7,13 +7,11 @@
       </h2>
     </div>
 
-    <!-- 문서 업로드 카드 -->
     <section class="upload-section section-bg">
       <h4 class="section-title">문서 업로드</h4>
       <DocumentUpload @files-uploaded="fetchDocuments" />
     </section>
 
-    <!-- 문서 목록 카드 -->
     <section class="list-section section-bg">
       <div class="list-header">
         <h4 class="section-title">문서 목록</h4>
@@ -37,7 +35,6 @@
       </div>
     </section>
 
-    <!-- 미리보기 다이얼로그 -->
     <DocumentPreviewDialog v-model="previewDialog" :selected-document="selectedDocument" />
   </div>
 </template>
@@ -63,9 +60,27 @@ const selectedDocument = ref(null)
 const fetchDocuments = async () => {
   // 실제 API 연동 시 아래 예시 데이터 제거 및 API 호출로 대체
   documents.value = [
-    { id: 1, originalName: 'Aiper Front 개발환경 가이드', fileType: 'PDF', uploadDate: '2023-12-01', fileSize: 124580 },
-    { id: 2, originalName: 'alopex_UI_1.1.2_개발가이드', fileType: 'PDF', uploadDate: '2023-11-21', fileSize: 208470 },
-    { id: 3, originalName: '개발 Process 흐름도_sample', fileType: 'PDF', uploadDate: '2025-05-30', fileSize: 45200 },
+    {
+      id: 1,
+      originalName: 'Aiper Front 개발환경 가이드',
+      fileType: 'PDF',
+      uploadDate: '2023-12-01',
+      fileSize: 124580,
+    },
+    {
+      id: 2,
+      originalName: 'alopex_UI_1.1.2_개발가이드',
+      fileType: 'PDF',
+      uploadDate: '2023-11-21',
+      fileSize: 208470,
+    },
+    {
+      id: 3,
+      originalName: '개발 Process 흐름도_sample',
+      fileType: 'PDF',
+      uploadDate: '2025-05-30',
+      fileSize: 45200,
+    },
   ]
 }
 
@@ -74,7 +89,7 @@ onMounted(() => {
 })
 
 const filteredDocuments = computed(() => {
-  return documents.value.filter(doc => {
+  return documents.value.filter((doc) => {
     const matchesSearch = doc.originalName.toLowerCase().includes(searchQuery.value.toLowerCase())
     const matchesType = !filterType.value || doc.fileType === filterType.value
     return matchesSearch && matchesType
@@ -135,7 +150,7 @@ function preview(doc) {
 .section-bg {
   background: #f8f8f8;
   border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
   padding: 24px 24px 24px 24px;
   margin-bottom: 32px;
 }
