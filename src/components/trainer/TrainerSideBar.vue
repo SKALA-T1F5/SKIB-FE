@@ -111,7 +111,7 @@ const selectProject = (projectId) => {
   currentProjectId.value = projectId
   // 로컬 스토리지에 projectId 저장 (TrainerTestManagement 등에서 사용)
   localStorage.setItem('projectId', projectId)
-  router.push(`/trainer/project/${projectId}`)
+  router.push(`/trainer/project/${projectId}/test`)
 }
 
 // 현재 라우트의 projectId를 감지하여 currentProjectId 업데이트
