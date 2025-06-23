@@ -1,10 +1,8 @@
 <template>
   <div class="document-management-container">
     <div class="header-section">
-      <h2 class="title">
-        <span class="title-main">문서 관리</span>
-        <span class="subtitle">관리 중인 문서 목록을 확인하고 새로 업로드 합니다.</span>
-      </h2>
+      <h2 class="section-title-main">문서 관리</h2>
+      <p class="section-subtitle">관리 중인 문서 목록을 확인하고 새로 업로드 합니다.</p>
     </div>
 
     <section class="upload-section section-bg">
@@ -58,7 +56,6 @@ const selectedDocument = ref(null)
 
 // 문서 데이터 가져오는 함수 (실제 API 호출 로직으로 대체 필요)
 const fetchDocuments = async () => {
-  // 실제 API 연동 시 아래 예시 데이터 제거 및 API 호출로 대체
   documents.value = [
     {
       id: 1,
@@ -106,38 +103,33 @@ function preview(doc) {
 .document-management-container {
   max-width: 1150px;
   margin: 0 auto;
-  padding: 0 12px 32px 12px;
+  padding: 0 12px 32px 12px; /* 기본 패딩 조정 */
 }
 
+/* Common header styles (TestList.vue, TrainerTestManagement.vue와 동일하게 유지) */
 .header-section {
-  margin-bottom: 24px;
   display: flex;
-  align-items: flex-end;
+  align-items: flex-end; /* 제목과 부제목의 하단 정렬 */
+  gap: 18px; /* 제목과 부제목 사이 간격 */
+  margin-bottom: 24px; /* 섹션 하단 여백을 조정하여 v-window-item 레벨에 맞춤 */
 }
 
-.title {
+.section-title-main {
   font-size: 28px;
   font-weight: bold;
-  display: flex;
-  align-items: flex-end; /* 하단 정렬 */
-  gap: 18px;
+  line-height: 1; /* 높이를 정확히 맞춤 */
   margin: 0;
+  color: #333; /* 기본 색상 유지 */
 }
 
-.title-main {
-  font-size: 28px;
-  font-weight: bold;
-  line-height: 1;
-}
-
-.subtitle {
+.section-subtitle {
   font-size: 12px;
   color: #a1a1a1;
   font-weight: normal;
-  margin-left: 18px;
+  margin-left: 0; /* gap으로 간격 제어 */
   white-space: nowrap;
-  line-height: 1;
-  padding-bottom: 2px; /* 미세하게 맞추고 싶으면 조정 */
+  line-height: 1; /* 높이를 정확히 맞춤 */
+  padding-bottom: 2px; /* 미세 조정 */
 }
 
 .section-title {
