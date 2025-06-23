@@ -56,7 +56,7 @@ const tabLabels = ['문서 관리', '테스트 관리', '훈련생 관리']
 const tabRoutes = computed(() => [
   `/trainer/project/${currentProjectId.value}/document`,
   `/trainer/project/${currentProjectId.value}/test`,
-  `/trainer/project/${currentProjectId.value}/learner`,
+  `/trainer/project/${currentProjectId.value}/trainee`,
 ])
 
 // 현재 라우트 경로에 따라 초기 탭 설정

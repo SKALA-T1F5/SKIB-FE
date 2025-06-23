@@ -1,5 +1,4 @@
 <template>
-  <AILoading :show="isLoading" :message="loadingMessage" />
   <div class="common-container">
     <div class="header-section">
       <h2 class="section-title-main">연수생 관리</h2>
@@ -28,12 +27,10 @@
         :items-per-page="10"
         class="elevation-0 trainee-table"
         no-data-text="해당하는 연수생이 없습니다."
-        :loading="isLoading"
-        loading-text="연수생 목록을 불러오는 중입니다..."
         item-key="id"
         show-expand
         single-expand
-        :expanded.sync="expanded"
+        v-model:expanded="expanded"
       >
         <template v-slot:item.name="{ item }">
           <div class="trainee-info-cell">
@@ -41,21 +38,22 @@
             <strong>{{ item.name }}</strong>
           </div>
         </template>
-        <template v-slot:item.status="{ item }">
-          <v-chip
-            :color="item.status === 'Active' ? 'green darken-1' : 'orange darken-1'"
-            x-small
-            label
-            text-color="white"
-          >
-            {{ item.status === 'Active' ? '활동 중' : '비활성' }}
-          </v-chip>
+        <template v-slot:item.email="{ item }">
+          {{ item.email }}
         </template>
+        <template v-slot:item.affiliation="{ item }">
+          {{ item.affiliation }}
+        </template>
+        <template v-slot:item.assignedDate="{ item }">
+          {{ item.assignedDate }}
+        </template>
+
         <template v-slot:expanded-item="{ item }">
           <td :colspan="headers.length + 1" class="expanded-test-results-cell">
             <TraineeTestResults :trainee-id="item.id" />
           </td>
         </template>
+
         <template v-slot:no-data>
           <div class="no-results-table">
             <v-icon size="64" color="grey lighten-1">mdi-account-remove</v-icon>
@@ -74,23 +72,20 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import AILoading from '@/components/layouts/AiLoading.vue'
-import TraineeTestResults from '@/components/trainer/trainee/TraineeTestResults.vue' // 이 컴포넌트가 개별 테스트 목록을 담당
+import TraineeTestResults from '@/components/trainer/trainee/TraineeTestResults.vue'
 
 const route = useRoute()
 
-const isLoading = ref(true)
-const loadingMessage = ref('연수생 목록을 불러오는 중입니다...')
 const trainees = ref([])
 const searchQuery = ref('')
 const expanded = ref([]) // 확장된 행을 추적하기 위한 배열
 
+// 1. 인적사항 목록: 이름, 이메일, 소속, 배정일만 나타나도록 headers 정의
 const headers = [
   { title: '이름', value: 'name', align: 'start', sortable: true },
   { title: '이메일', value: 'email', sortable: true },
   { title: '소속', value: 'affiliation', sortable: true },
   { title: '배정일', value: 'assignedDate', sortable: true },
-  { title: '상태', value: 'status', sortable: true },
   { title: '', value: 'data-table-expand', sortable: false }, // 확장 아이콘을 위한 Vuetify 특수 헤더
 ]
 
@@ -109,67 +104,51 @@ const filteredTrainees = computed(() => {
 })
 
 const fetchTrainees = async () => {
-  isLoading.value = true
-  loadingMessage.value = '연수생 목록을 불러오는 중입니다...'
-  try {
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    trainees.value = [
-      {
-        id: 'T-001',
-        name: '김철수',
-        email: 'kim.cs@example.com',
-        affiliation: 'A팀',
-        assignedDate: '2024-01-15',
-        status: 'Active',
-      },
-      {
-        id: 'T-002',
-        name: '이영희',
-        email: 'lee.yh@example.com',
-        affiliation: 'B팀',
-        assignedDate: '2024-02-01',
-        status: 'Active',
-      },
-      {
-        id: 'T-003',
-        name: '박민수',
-        email: 'park.ms@example.com',
-        affiliation: 'A팀',
-        assignedDate: '2024-03-10',
-        status: 'Inactive',
-      },
-      {
-        id: 'T-004',
-        name: '최지영',
-        email: 'choi.jy@example.com',
-        affiliation: 'C팀',
-        assignedDate: '2024-03-22',
-        status: 'Active',
-      },
-      {
-        id: 'T-005',
-        name: '정대현',
-        email: 'jung.dh@example.com',
-        affiliation: 'B팀',
-        assignedDate: '2024-04-05',
-        status: 'Active',
-      },
-      {
-        id: 'T-006',
-        name: '홍길동',
-        email: 'hong.gd@example.com',
-        affiliation: 'C팀',
-        assignedDate: '2024-04-10',
-        status: 'Inactive',
-      },
-    ]
-  } catch (error) {
-    console.error('연수생 목록 가져오기 실패 (Mock):', error)
-    trainees.value = []
-  } finally {
-    isLoading.value = false
-    loadingMessage.value = '데이터 로딩 중입니다...'
-  }
+  // 실제 API 호출 대신 목업 데이터 사용
+  trainees.value = [
+    {
+      id: 'T-001',
+      name: '김철수',
+      email: 'kim.cs@example.com',
+      affiliation: 'A팀',
+      assignedDate: '2024-01-15',
+    },
+    {
+      id: 'T-002',
+      name: '이영희',
+      email: 'lee.yh@example.com',
+      affiliation: 'B팀',
+      assignedDate: '2024-02-01',
+    },
+    {
+      id: 'T-003',
+      name: '박민수',
+      email: 'park.ms@example.com',
+      affiliation: 'A팀',
+      assignedDate: '2024-03-10',
+    },
+    {
+      id: 'T-004',
+      name: '최지영',
+      email: 'choi.jy@example.com',
+      affiliation: 'C팀',
+      assignedDate: '2024-03-22',
+    },
+    {
+      id: 'T-005',
+      name: '정대현',
+      email: 'jung.dh@example.com',
+      affiliation: 'B팀',
+      assignedDate: '2024-04-05',
+    },
+    {
+      id: 'T-006',
+      name: '홍길동',
+      email: 'hong.gd@example.com',
+      affiliation: 'C팀',
+      assignedDate: '2024-04-10',
+    },
+  ]
 }
 
 onMounted(() => {
@@ -219,12 +198,12 @@ onMounted(() => {
   background: #eef2f6;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  padding: 24px; /* 원래 24px 24px 24px 24px 였지만, 아래에서 덮어쓸 여지를 남김 */
+  padding: 24px;
   margin-bottom: 32px;
 }
 
 .trainee-management-section {
-  padding: 24px; /* section-bg의 패딩을 명시적으로 적용 */
+  padding: 24px;
 }
 
 .section-header {
@@ -239,7 +218,7 @@ onMounted(() => {
 }
 
 .trainee-table {
-  background-color: #ffffff; /* 테이블 배경색 */
+  background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
@@ -265,8 +244,8 @@ onMounted(() => {
   padding: 50px 0;
   color: #aaa;
   font-size: 1.1rem;
-  background-color: #ffffff; /* 테이블 내부 배경색 */
-  border-radius: 0 0 8px 8px; /* 하단만 둥글게 */
+  background-color: #ffffff;
+  border-radius: 0 0 8px 8px;
 }
 
 .no-results-text {
@@ -277,7 +256,7 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding: 16px 0 0 0; /* 테이블 하단에 간격 추가 */
+  padding: 16px 0 0 0;
 }
 
 .total-count {
@@ -287,13 +266,13 @@ onMounted(() => {
 
 /* Vuetify 컴포넌트 오버라이드 */
 .v-data-table > .v-data-table__wrapper > table > thead > tr > th {
-  font-size: 1rem !important; /* 테이블 헤더 폰트 크기 */
+  font-size: 1rem !important;
   font-weight: 600 !important;
   color: #444 !important;
 }
 
 .v-data-table > .v-data-table__wrapper > table > tbody > tr > td {
-  font-size: 0.95rem !important; /* 테이블 셀 폰트 크기 */
+  font-size: 0.95rem !important;
   color: #555 !important;
 }
 

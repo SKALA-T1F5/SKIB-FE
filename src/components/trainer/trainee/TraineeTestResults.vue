@@ -1,37 +1,64 @@
 <template>
   <div class="test-results-container">
-    <div v-if="isLoading" class="loading-container">
-      <v-progress-circular indeterminate color="primary"></v-progress-circular>
-      <p class="loading-text">테스트 목록을 불러오는 중입니다...</p>
+    <div class="test-results-header">
+      <h4>응시 테스트 목록 ({{ traineeId }})</h4>
     </div>
-
-    <div v-else-if="testResults.length === 0" class="no-results-inner">
-      <v-icon size="48" color="grey lighten-1">mdi-inbox-remove</v-icon>
-      <p class="no-results-text">응시한 테스트가 없습니다.</p>
-    </div>
-
-    <v-expansion-panels v-else multiple class="test-results-panels-inner">
-      <v-expansion-panel v-for="test in testResults" :key="test.testId" class="mb-3 test-panel">
-        <v-expansion-panel-header class="test-header">
-          <div class="test-summary-info">
+    <v-expansion-panels flat>
+      <v-expansion-panel v-for="test in tests" :key="test.testId">
+        <v-expansion-panel-title>
+          <div class="test-title-summary">
+            <v-icon small class="mr-2">mdi-text-box-multiple-outline</v-icon>
             <strong>{{ test.testName }}</strong>
-            <span class="ml-4 text-caption grey--text">({{ test.testDate }})</span>
+            <v-spacer></v-spacer>
+            <v-chip
+              :color="test.status === 'Passed' ? 'green darken-1' : 'red darken-1'"
+              x-small
+              label
+              text-color="white"
+              class="ml-2"
+            >
+              {{ test.status === 'Passed' ? '합격' : '불합격' }}
+            </v-chip>
+            <span class="ml-3 text-subtitle-2 font-weight-bold">점수: {{ test.score }}점</span>
           </div>
-          <v-chip :color="test.passed ? 'success' : 'error'" small class="ml-auto">
-            {{ test.passed ? '합격' : '불합격' }}
-          </v-chip>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content class="test-content">
-          <TraineeFeedbackComponent :test-id="test.testId" />
-        </v-expansion-panel-content>
+        </v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <div class="test-detail-content">
+            <v-list dense>
+              <v-list-item>
+                <v-list-item-title>응시일: {{ test.submissionDate }}</v-list-item-title>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-title>응시 시간: {{ test.timeTaken }}분</v-list-item-title>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-title>
+                  문제 수: 객관식 {{ test.mcqCount }}개, 주관식 {{ test.saqCount }}개
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-title>합격 점수: {{ test.passingScore }}점</v-list-item-title>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-title
+                  >재응시 가능: {{ test.retakeable ? '예' : '아니오' }}</v-list-item-title
+                >
+              </v-list-item>
+            </v-list>
+            <v-btn small color="primary" class="mt-4">상세 결과 보기</v-btn>
+          </div>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
+    <div v-if="tests.length === 0" class="no-tests-message">
+      <v-icon size="48" color="grey lighten-1">mdi-text-box-remove-outline</v-icon>
+      <p>응시한 테스트가 없습니다.</p>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import TraineeFeedbackComponent from '@/components/trainer/trainee/TraineeFeedbackComponent.vue' // 새로 생성할 컴포넌트
+import { ref, onMounted, defineProps } from 'vue'
 
 const props = defineProps({
   traineeId: {
@@ -40,128 +67,141 @@ const props = defineProps({
   },
 })
 
-const isLoading = ref(true)
-const testResults = ref([])
+const tests = ref([])
 
-const fetchTraineeTestList = async (traineeId) => {
-  isLoading.value = true
-  testResults.value = []
-  try {
-    // Simulate API call to get a trainee's list of tests
-    await new Promise((resolve) => setTimeout(resolve, 600))
+const fetchTraineeTests = async () => {
+  // traineeId에 따라 해당 연수생의 테스트 목록을 가져오는 목업 데이터
+  // 실제 애플리케이션에서는 API 호출을 통해 데이터를 가져옵니다.
+  await new Promise((resolve) => setTimeout(resolve, 300)) // 로딩 지연 흉내
 
-    // Mock data for test list
-    if (traineeId === 'T-001') {
-      testResults.value = [
-        {
-          testId: 'test-101',
-          testName: 'Front-end 기초 평가',
-          testDate: '2024-05-10 14:30',
-          passed: true,
-        },
-        {
-          testId: 'test-102',
-          testName: '자료구조 및 알고리즘',
-          testDate: '2024-06-01 10:00',
-          passed: false,
-        },
-      ]
-    } else if (traineeId === 'T-002') {
-      testResults.value = [
-        {
-          testId: 'test-201',
-          testName: 'Database 기본 이해',
-          testDate: '2024-05-15 11:00',
-          passed: true,
-        },
-      ]
-    } else if (traineeId === 'T-003') {
-      testResults.value = [
-        {
-          testId: 'test-301',
-          testName: '네트워크 기초',
-          testDate: '2024-05-20 13:00',
-          passed: false,
-        },
-      ]
-    } else {
-      testResults.value = [] // No tests for other trainees
-    }
-  } catch (error) {
-    console.error(`Failed to fetch test list for trainee ${traineeId}:`, error)
-    testResults.value = []
-  } finally {
-    isLoading.value = false
+  const mockTests = {
+    'T-001': [
+      {
+        testId: 'TEST-001-A',
+        testName: '프로젝트 관리 기본 평가',
+        score: 85,
+        status: 'Passed',
+        submissionDate: '2024-05-20',
+        timeTaken: 45,
+        mcqCount: 10,
+        saqCount: 5,
+        passingScore: 60,
+        retakeable: true,
+      },
+      {
+        testId: 'TEST-001-B',
+        testName: 'Vue.js 기초',
+        score: 55,
+        status: 'Failed',
+        submissionDate: '2024-05-25',
+        timeTaken: 30,
+        mcqCount: 15,
+        saqCount: 0,
+        passingScore: 70,
+        retakeable: true,
+      },
+    ],
+    'T-002': [
+      {
+        testId: 'TEST-002-A',
+        testName: '데이터베이스 기초',
+        score: 92,
+        status: 'Passed',
+        submissionDate: '2024-06-01',
+        timeTaken: 60,
+        mcqCount: 20,
+        saqCount: 3,
+        passingScore: 65,
+        retakeable: false,
+      },
+    ],
+    'T-003': [], // 테스트 없음
+    'T-004': [
+      {
+        testId: 'TEST-004-A',
+        testName: 'Python 프로그래밍 심화',
+        score: 70,
+        status: 'Passed',
+        submissionDate: '2024-06-10',
+        timeTaken: 90,
+        mcqCount: 25,
+        saqCount: 5,
+        passingScore: 70,
+        retakeable: true,
+      },
+    ],
   }
+  tests.value = mockTests[props.traineeId] || []
 }
 
-watch(
-  () => props.traineeId,
-  (newId) => {
-    if (newId) {
-      fetchTraineeTestList(newId)
-    }
-  },
-  { immediate: true },
-)
+onMounted(() => {
+  fetchTraineeTests()
+})
 </script>
 
 <style scoped>
 .test-results-container {
-  padding: 20px; /* TraineeTestResults가 확장된 행 안에 있으므로 적절한 내부 패딩 */
+  padding: 24px;
+  background-color: #f7f9fc; /* 상위 expanded-item 배경색과 통일 */
+  border-top: 1px solid #e0e0e0;
 }
 
-.loading-container,
-.no-results-inner {
+.test-results-header {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #555;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.v-expansion-panels {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.v-expansion-panel {
+  border-bottom: 1px solid #eee !important;
+}
+
+.v-expansion-panel:last-child {
+  border-bottom: none !important;
+}
+
+.test-title-summary {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.test-detail-content {
+  padding: 10px 0 10px 20px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.v-list-item-title {
+  font-size: 0.9rem !important;
+}
+
+.no-tests-message {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 120px;
-  background-color: #ffffff; /* 내부 컨텐츠 배경색 */
-  border-radius: 8px;
-  padding: 20px;
-}
-
-.loading-text,
-.no-results-text {
-  margin-top: 10px;
-  font-size: 0.95rem;
-  color: #666;
-}
-
-.no-results-inner {
+  padding: 30px 0;
   color: #aaa;
-}
-
-.test-results-panels-inner {
-  box-shadow: none !important; /* 내부 패널이 이중 그림자를 만들지 않도록 */
-}
-
-.test-panel {
-  margin-bottom: 8px; /* 각 테스트 패널 사이 간격 */
-  border-radius: 6px !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important; /* 테스트 패널의 그림자 */
-  background-color: #ffffff;
-}
-
-.test-header {
-  padding: 12px 16px;
-  font-weight: bold;
   font-size: 1rem;
-  background-color: #f7f9fb; /* 헤더 배경색 */
-  border-radius: 6px 6px 0 0;
-}
-
-.test-summary-info {
-  display: flex;
-  align-items: baseline;
-}
-
-.test-content {
-  padding: 15px;
-  border-top: 1px solid #eee;
-  border-radius: 0 0 6px 6px;
   background-color: #ffffff;
+  border-radius: 8px;
+  margin-top: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.no-tests-message p {
+  margin-top: 10px;
 }
 </style>

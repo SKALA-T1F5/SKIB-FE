@@ -33,7 +33,7 @@ const routes = [
       { path: '', redirect: 'test' },
       { path: 'document', component: TrainerDocumentManagement },
       { path: 'test', component: TrainerTestManagement },
-      { path: 'learner', component: TrainerTraineeManagement },
+      { path: 'trainee', component: TrainerTraineeManagement },
     ],
   },
 
