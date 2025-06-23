@@ -107,7 +107,7 @@
   </v-row>
 
   <v-row class="bottom-fixed-actions">
-    <v-col cols="12" class="d-flex justify-space-between align-center">
+    <v-col cols="12" class="d-flex justify-space-between align-center px-0">
       <v-btn
         variant="flat"
         color="grey"
@@ -344,11 +344,10 @@ watch(
   padding: 16px 0;
   border-top: 1px solid #eee;
   z-index: 100;
-  margin-left: calc(-12px);
-  margin-right: calc(-12px);
-  padding-left: 12px;
-  padding-right: 12px;
   max-width: 1150px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
 }
 .bottom-fixed-actions .v-col {
   padding-top: 0;

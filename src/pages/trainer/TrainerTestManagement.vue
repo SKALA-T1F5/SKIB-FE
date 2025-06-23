@@ -458,12 +458,6 @@ onMounted(() => {
   margin-bottom: 32px;
 }
 
-/* TestList에서 가져온 스타일 + section-bg 적용 */
-.test-list-section {
-  /* section-bg 클래스가 이미 패딩을 제공하므로, 추가 패딩은 제거 */
-  /* margin-bottom은 section-bg에 이미 포함되어 있음 */
-}
-
 .test-cards-grid {
   margin: -8px !important;
 }
