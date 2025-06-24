@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:20-alpine'
-            args '--init'
-        }
-    }
+    agent any
 
     environment {
         GIT_URL = 'https://github.com/SKALA-T1F5/SKIB-FE.git'
