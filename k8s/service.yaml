@@ -12,10 +12,5 @@ spec:
   ports:
     - name: http
       protocol: TCP
-      port: 5173
-      targetPort: 5173
-    - name: mgmt
-      protocol: TCP
-      port: 5174
-      targetPort: 5174
-  type: ClusterIP
+      port: 80           
+      targetPort: 80     

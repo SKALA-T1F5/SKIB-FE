@@ -17,14 +17,7 @@ spec:
               service:
                 name: sk-team-09-frontend
                 port:
-                  number: 5173
-          - path: /actuator
-            pathType: Prefix
-            backend:
-              service:
-                name: sk-team-09-frontend
-                port:
-                  number: 5174
+                  number: 80      
   tls:
     - hosts:
         - skib-frontend.skala25a.project.skala-ai.com
