@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'node:20-alpine'
+            args '--init -v /root/.npm:/root/.npm'
+        }
+    }
 
     environment {
         GIT_URL = 'https://github.com/SKALA-T1F5/SKIB-FE.git'
@@ -18,7 +23,7 @@ pipeline {
             steps {
                 git branch: "${GIT_BRANCH}",
                     url: "${GIT_URL}",
-                    credentialsId: "${GIT_ID}"   // GitHub PAT credential ID
+                    credentialsId: "${GIT_ID}"
             }
         }
 
@@ -31,17 +36,14 @@ pipeline {
             }
         }
 
-
         stage('Docker Build & Push') {
             steps {
                 script {
-                    // 해시코드 12자리 생성
                     def hashcode = sh(
                         script: "date +%s%N | sha256sum | cut -c1-12",
                         returnStdout: true
                     ).trim()
 
-                    // Build Number + Hash Code 조합 (IMAGE_TAG는 유지)
                     def FINAL_IMAGE_TAG = "${IMAGE_TAG}-${BUILD_NUMBER}-${hashcode}"
                     echo "Final Image Tag: ${FINAL_IMAGE_TAG}"
 
@@ -50,13 +52,10 @@ pipeline {
                         appImage.push()
                     }
 
-                    // 최종 이미지 태그를 env에 등록 (나중에 deploy.yaml 수정에 사용)
                     env.FINAL_IMAGE_TAG = FINAL_IMAGE_TAG
                 }
             }
         }
-
-
 
         stage('Update deploy.yaml and Git Push') {
             steps {
@@ -75,7 +74,7 @@ pipeline {
                         git add ./k8s/deploy.yaml || true
                     """
 
-                    withCredentials([usernamePassword(credentialsId: "${env.GIT_ID}", usernameVariable: 'GIT_PUSH_USER', passwordVariable: 'GIT_PUSH_PASSWORD')]) {
+                    withCredentials([usernamePassword(credentialsId: "${GIT_ID}", usernameVariable: 'GIT_PUSH_USER', passwordVariable: 'GIT_PUSH_PASSWORD')]) {
                         sh """
                             if ! git diff --cached --quiet; then
                                 git commit -m "[AUTO] Update deploy.yaml with image ${env.FINAL_IMAGE_TAG}"
@@ -89,6 +88,5 @@ pipeline {
                 }
             }
         }
-
     }
 }
