@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker {
             image 'node:20-alpine'
-            args '--init -v /root/.npm:/root/.npm'
+            args '--init'
         }
     }
 
