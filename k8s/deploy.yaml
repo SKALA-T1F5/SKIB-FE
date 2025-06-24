@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sk-team-09-frontend
+  namespace: sk-team-09
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sk-team-09-frontend
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5714"
+        prometheus.io/path: "/actuator/prometheus"
+      labels:
+        app: sk-team-09-frontend
+    spec:
+      serviceAccountName: default
+      containers:
+        - name: sk-team-09-frontend
+          image: amdp-registry.skala-ai.com/skala25a/sk-team-09-frontend:1.0.0-x
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5173
+
+      imagePullSecrets:
+        - name: amdp-registry
