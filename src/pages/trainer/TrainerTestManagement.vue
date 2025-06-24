@@ -327,13 +327,14 @@ const handleCopyLink = (id) => {
 
 const handleGoToQuestions = (id) => {
   console.log(`문제 목록으로 이동: ${id}`)
-  // `index.js`에 정의된 'TrainerTestQuestion' 라우트의 이름과 testId 파라미터를 사용하여 이동합니다.
+  // TrainerTestQuestion 라우트의 name이 'TrainerTestQuestion'이므로, name을 사용하여 이동
   router.push({ name: 'TrainerTestQuestion', params: { testId: id } })
 }
 
 const handleGoToDashboard = (id) => {
   console.log(`응시 현황 대시보드로 이동: ${id}`)
-  // router.push(`/dashboard/${id}`); // 실제 라우팅 로직
+  // TrainerTestStatus 라우트의 name이 'TrainerTestStatus'이므로, name을 사용하여 이동
+  router.push({ name: 'TrainerTestStatus', params: { testId: id } })
 }
 
 // --- Data Fetching (Mock) for TestConfig content ---
@@ -403,10 +404,16 @@ const updateRevenues = (newVal) => {
 }
 
 onMounted(() => {
+  // `TrainerTestManagement.vue`가 프로젝트 라우트의 자식으로 설정되어 있다면,
+  // 새로고침 시에도 URL을 통해 올바른 테스트 ID를 가져올 수 있도록 라우트 파라미터를 확인합니다.
   if (route.query.step) {
     currentStep.value = route.query.step
   }
-  fetchTests()
+  // 만약 특정 테스트의 상세 페이지로 직접 라우팅된 경우,
+  // 해당 테스트 ID를 사용하여 필요한 데이터를 로드하거나 상태를 설정할 수 있습니다.
+  // 이 예시에서는 testId를 라우트에서 직접 받지 않으므로, TestCard에서 전달된 ID를 사용합니다.
+
+  fetchTests() // 컴포넌트 마운트 시 테스트 목록 로드
 })
 </script>
 

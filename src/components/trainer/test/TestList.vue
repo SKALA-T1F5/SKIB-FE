@@ -39,9 +39,11 @@
 
 <script setup>
 import { ref, onMounted, defineEmits } from 'vue'
+import { useRouter } from 'vue-router' // useRouter 임포트
 import TestCard from './TestCard.vue' // TestCard 컴포넌트 임포트
 
 const emit = defineEmits(['add-exam'])
+const router = useRouter() // useRouter 훅 사용
 
 const tests = ref([]) // 테스트 목록 데이터를 저장할 반응형 변수
 
@@ -63,12 +65,14 @@ const handleCopyLink = (id) => {
 
 const handleGoToQuestions = (id) => {
   console.log(`문제 목록으로 이동: ${id}`)
-  // router.push(`/questions/${id}`); // 실제 라우팅 로직
+  // TrainerTestQuestion 라우트의 name이 'TrainerTestQuestion'이므로, name을 사용하여 이동
+  router.push({ name: 'TrainerTestQuestion', params: { testId: id } })
 }
 
 const handleGoToDashboard = (id) => {
   console.log(`응시 현황 대시보드로 이동: ${id}`)
-  // router.push(`/dashboard/${id}`); // 실제 라우팅 로직
+  // TrainerTestStatus 라우트의 name이 'TrainerTestStatus'이므로, name을 사용하여 이동
+  router.push({ name: 'TrainerTestStatus', params: { testId: id } })
 }
 
 // 목업 데이터 로드
@@ -151,6 +155,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 기존 스타일 유지 */
 .common-container {
   max-width: 100%;
   margin: 0 auto;

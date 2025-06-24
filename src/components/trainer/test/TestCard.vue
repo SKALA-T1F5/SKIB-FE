@@ -91,6 +91,7 @@ const passRatePercentage = computed(() => {
 </script>
 
 <style scoped>
+/* 기존 스타일 유지 */
 .test-card-trainer {
   background-color: #f8f8f8;
   border: 1px solid #e0e0e0;
