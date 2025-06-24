@@ -45,21 +45,7 @@
 
               <section class="dashboard-card document-accuracy-card">
                 <h2 class="card-title">문서별 정답률</h2>
-                <ul class="score-list">
-                  <li
-                    v-for="(rate, doc) in feedbackData.documentAccuracy"
-                    :key="doc"
-                    class="score-item"
-                  >
-                    <span class="item-label">{{ doc }}</span>
-                    <div class="progress-info">
-                      <span class="item-value">{{ rate }}%</span>
-                      <div class="progress-bar-container">
-                        <div class="progress-bar" :style="{ width: rate + '%' }"></div>
-                      </div>
-                    </div>
-                  </li>
-                </ul>
+                <DocumentAccuracyChart :document-accuracy="feedbackData.documentAccuracy" />
               </section>
 
               <section class="dashboard-card tag-capacity-card">
@@ -90,23 +76,19 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
+// 컴포넌트 임포트 경로 확인 (프로젝트 구조에 맞게 필요시 수정)
 import MainLayout from '@/components/layouts/MainLayout.vue'
 import RadarChart from '@/components/trainee/feedback/RadarChart.vue'
 import LineAreaChart from '@/components/trainee/feedback/LineAreaChart.vue'
-import axios from '@/config/axios'
+import DocumentAccuracyChart from '@/components/trainee/feedback/DocumentAccuracyChart.vue'
+import axios from '@/config/axios' // axios 임포트 경로 확인 (프로젝트 구조에 맞게 필요시 수정)
 
 const route = useRoute()
 const testId = route.params.testId
 const myUserId = ref(localStorage.getItem('userId'))
 
-// 로딩 상태 및 에러 메시지 관리를 위한 ref 추가
 const isLoading = ref(true)
 const fetchError = ref(null)
-const hasData = computed(
-  () =>
-    feedbackData.value.totalCorrectRate > 0 ||
-    Object.keys(feedbackData.value.documentAccuracy).length > 0,
-)
 
 const feedbackData = ref({
   totalCorrectRate: 0,
@@ -127,6 +109,14 @@ const totalQuestions = computed(() => feedbackData.value.totalQuestions)
 const correctQuestions = computed(() => feedbackData.value.correctQuestions)
 const wrongQuestions = computed(() => feedbackData.value.wrongQuestions)
 
+const hasData = computed(() => {
+  return (
+    feedbackData.value.totalCorrectRate > 0 ||
+    Object.keys(feedbackData.value.documentAccuracy).length > 0 ||
+    Object.keys(feedbackData.value.tagAccuracy).length > 0
+  )
+})
+
 const topPercentage = computed(() => {
   if (totalParticipants.value <= 1) {
     return 0.0
@@ -136,8 +126,8 @@ const topPercentage = computed(() => {
 })
 
 const fetchFeedbackData = async () => {
-  isLoading.value = true // 데이터 로딩 시작
-  fetchError.value = null // 이전 에러 초기화
+  isLoading.value = true
+  fetchError.value = null
 
   if (!myUserId.value) {
     console.error('User ID not found in Local Storage. Cannot fetch feedback data.')
@@ -147,8 +137,6 @@ const fetchFeedbackData = async () => {
   }
 
   try {
-    // Promise.all을 사용하여 모든 API 요청을 동시에 보냅니다.
-    // 이렇게 하면 모든 데이터가 준비될 때까지 기다릴 수 있으며, 효율적입니다.
     const [totalAccuracyResponse, tagAccuracyResponse, docAccuracyResponse, distributionResponse] =
       await Promise.all([
         axios.get(`/feedback/all`, { params: { userId: myUserId.value, testId: testId } }),
@@ -159,62 +147,84 @@ const fetchFeedbackData = async () => {
         }),
       ])
 
-    // 1. 학습자별 총 정답률 조회
-    feedbackData.value.totalCorrectRate = totalAccuracyResponse.data.totalCorrectRate || 0
-    feedbackData.value.isPassed = totalAccuracyResponse.data.isPassed || false
-    feedbackData.value.totalQuestions = totalAccuracyResponse.data.totalQuestions || 0
-    feedbackData.value.correctQuestions = totalAccuracyResponse.data.correctQuestions || 0
-    feedbackData.value.wrongQuestions = totalAccuracyResponse.data.wrongQuestions || 0
+    feedbackData.value.totalCorrectRate = totalAccuracyResponse.data.resultData?.accuracyRate || 0
+    feedbackData.value.isPassed = totalAccuracyResponse.data.resultData?.isPassed || false
+    feedbackData.value.totalQuestions = totalAccuracyResponse.data.resultData?.totalCount || 0
+    feedbackData.value.correctQuestions = totalAccuracyResponse.data.resultData?.correctCount || 0
+    feedbackData.value.wrongQuestions =
+      (totalAccuracyResponse.data.resultData?.totalCount || 0) -
+      (totalAccuracyResponse.data.resultData?.correctCount || 0)
 
-    // 2. 학습자별 태그별 정답률 조회
-    feedbackData.value.tagAccuracy = tagAccuracyResponse.data.tagAccuracy || {}
+    const tagAccuracyMap = {}
+    if (Array.isArray(tagAccuracyResponse.data.resultData)) {
+      tagAccuracyResponse.data.resultData.forEach((item) => {
+        if (item.tagName && typeof item.accuracyRate === 'number') {
+          tagAccuracyMap[item.tagName] = item.accuracyRate
+        }
+      })
+    }
+    feedbackData.value.tagAccuracy = tagAccuracyMap
 
-    // 3. 학습자별 문서별 정답률 조회
-    feedbackData.value.documentAccuracy = docAccuracyResponse.data.documentAccuracy || {}
+    const documentAccuracyMap = {}
+    if (Array.isArray(docAccuracyResponse.data.resultData)) {
+      docAccuracyResponse.data.resultData.forEach((item) => {
+        if (item.documentName && typeof item.accuracyRate === 'number') {
+          documentAccuracyMap[item.documentName] = item.accuracyRate
+        }
+      })
+    }
+    feedbackData.value.documentAccuracy = documentAccuracyMap
 
-    // 4. 학습자별 위치 조회 (+점수 분포)
-    allParticipantScores.value = distributionResponse.data.allParticipantScores || []
+    const scoreDistribution = distributionResponse.data.resultData?.scoreDistribution || []
+    const simulatedAllParticipantScores = []
+    scoreDistribution.forEach((range) => {
+      const averageScore = Math.round((range.minScore + range.maxScore) / 2)
+      for (let i = 0; i < (range.userCount || 0); i++) {
+        simulatedAllParticipantScores.push({
+          userId: `simulated_user_${range.minScore}-${range.maxScore}_${i}`,
+          score: averageScore,
+        })
+      }
+    })
+    allParticipantScores.value = simulatedAllParticipantScores
 
-    calculateRank()
+    const myCurrentScore = distributionResponse.data.resultData?.myScore || 0
+    totalParticipants.value = distributionResponse.data.resultData?.totalUserCount || 0
+
+    feedbackData.value.totalCorrectRate = myCurrentScore
+
+    calculateRank(myCurrentScore)
   } catch (error) {
     console.error('피드백 데이터를 불러오는 데 실패했습니다:', error)
-    fetchError.value = error // 에러 객체를 저장
+    fetchError.value = error
   } finally {
-    isLoading.value = false // 데이터 로딩 완료 (성공 또는 실패)
+    isLoading.value = false
   }
 }
 
-const calculateRank = () => {
-  if (allParticipantScores.value.length === 0) {
+const calculateRank = (myScore) => {
+  if (totalParticipants.value === 0) {
     myRank.value = 0
-    totalParticipants.value = 0
     return
   }
 
-  const myScore = feedbackData.value.totalCorrectRate
-
   const sortedScores = allParticipantScores.value.map((p) => p.score).sort((a, b) => b - a)
 
-  totalParticipants.value = sortedScores.length
-
   let currentRank = 1
-  let rankSet = false
+  let foundMyRank = false
 
   for (let i = 0; i < sortedScores.length; i++) {
     if (i > 0 && sortedScores[i] < sortedScores[i - 1]) {
       currentRank = i + 1
     }
-
-    const myParticipant = allParticipantScores.value.find((p) => p.userId === myUserId.value)
-    if (myParticipant && myParticipant.score === sortedScores[i] && !rankSet) {
+    if (sortedScores[i] === myScore && !foundMyRank) {
       myRank.value = currentRank
-      rankSet = true
+      foundMyRank = true
     }
   }
 
-  if (!rankSet && myScore !== undefined) {
-    const higherScoresCount = sortedScores.filter((score) => score > myScore).length
-    myRank.value = higherScoresCount + 1
+  if (!foundMyRank) {
+    myRank.value = totalParticipants.value
   }
 }
 
@@ -224,7 +234,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 기존 스타일은 변경 사항이 없으므로 그대로 유지합니다. */
 .feedback-main-content {
   flex-grow: 1;
   max-width: 1200px;
@@ -237,21 +246,24 @@ onMounted(() => {
   font-size: 36px;
   font-weight: 700;
   color: #2c3e50;
-  margin-bottom: 30px;
+  /* 3. 전체 헤더와 메인 콘텐츠 간의 간격 좁히기 */
+  margin-bottom: 15px; /* 기존 30px에서 15px로 더 줄였습니다. */
   text-align: center;
   padding-bottom: 20px;
 }
 
 .feedback-dashboard-layout {
   display: grid;
-  gap: 25px;
+  /* 2. 각 카드 간의 가로 세로 간격 동일하게 조정 */
+  gap: 25px; /* 통일된 간격 */
   grid-template-rows: auto auto;
 }
 
 .top-row-grid {
   display: grid;
   grid-template-columns: 1fr 1.5fr 1fr;
-  gap: 25px;
+  /* 2. 각 카드 간의 가로 세로 간격 동일하게 조정 */
+  gap: 25px; /* 통일된 간격 */
 }
 
 .dashboard-card {
@@ -271,12 +283,17 @@ onMounted(() => {
   padding-bottom: 10px;
   border-bottom: 1px solid #e0e0e0;
   text-align: center;
+  /* 1. 종합 평가 헤더 아래 라인의 길이 조정:
+     .card-title는 기본적으로 block 레벨 요소이며 width: 100%를 차지합니다.
+     따라서 border-bottom은 padding을 제외한 부모 요소의 전체 너비에 그려집니다.
+     text-align: center는 텍스트에만 영향을 미치므로, 이 부분은 별도 수정 없이도
+     다른 카드들과 동일하게 헤더 아래 라인의 길이가 카드 너비에 맞춰 조정됩니다. */
 }
 
 /* 1. 종합 평가 카드 */
 .summary-card {
-  align-items: center;
-  text-align: center;
+  align-items: center; /* 카드 내용(제목 제외) 중앙 정렬 */
+  text-align: center; /* 카드 내 텍스트 중앙 정렬 */
 }
 
 .summary-content {
@@ -319,7 +336,7 @@ onMounted(() => {
   color: #495057;
   text-align: left;
   width: 100%;
-  max-width: 180px;
+  max-width: 180px; /* 상세 정보 블록의 최대 너비 */
 }
 
 .summary-details p {
@@ -338,68 +355,12 @@ onMounted(() => {
 
 /* 2. 문서별 정답률 카드 */
 .document-accuracy-card {
-  justify-content: center;
-}
-
-.score-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-}
-
-.score-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0;
-  font-size: 15px;
-  color: #495057;
-  flex-wrap: nowrap;
-}
-
-.score-item .item-label {
-  font-weight: 600;
-  flex-basis: 30%;
-  min-width: 80px;
-  text-align: left;
-}
-
-.score-item .progress-info {
-  flex-grow: 1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.score-item .item-value {
-  font-weight: 700;
-  color: #007bff;
-  width: 50px;
-  text-align: right;
-  flex-shrink: 0;
-}
-
-.progress-bar-container {
-  flex-grow: 1;
-  height: 8px;
-  background-color: #e9ecef;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-bar {
-  height: 100%;
-  background-color: #28a745;
-  border-radius: 4px;
-  transition: width 0.5s ease-in-out;
+  justify-content: flex-start; /* 카드 내용 상단 정렬 */
 }
 
 /* 3. 문제 Tag별 역량 카드 (Radar Chart) */
 .tag-capacity-card {
-  justify-content: center;
+  justify-content: center; /* 카드 내용 수직 중앙 정렬 */
 }
 
 /* 4. 현재 나의 레벨 카드 (Line Area Chart) */
@@ -429,6 +390,7 @@ onMounted(() => {
 @media (max-width: 1024px) {
   .top-row-grid {
     grid-template-columns: 1fr;
+    gap: 25px; /* 통일된 간격 */
   }
 }
 
@@ -438,7 +400,7 @@ onMounted(() => {
   }
   .dashboard-title {
     font-size: 28px;
-    margin-bottom: 25px;
+    margin-bottom: 15px; /* 모바일에서도 간격 유지 */
   }
   .dashboard-card {
     padding: 20px;
@@ -456,20 +418,6 @@ onMounted(() => {
     max-width: none;
   }
 
-  /* 문서별 정답률 */
-  .score-item {
-    font-size: 14px;
-  }
-  .score-item .item-label {
-    min-width: 100px;
-  }
-  .score-item .item-value {
-    width: 40px;
-  }
-  .progress-bar-container {
-    height: 6px;
-  }
-
   /* 차트 높이 조정 */
   .tag-capacity-card .chart-container-wrapper {
     height: 250px;
@@ -483,7 +431,7 @@ onMounted(() => {
   }
 }
 
-/* 추가된 스타일 */
+/* 로딩/에러/데이터 없음 메시지 스타일 */
 .loading-indicator,
 .error-message,
 .no-data-message {
@@ -493,7 +441,7 @@ onMounted(() => {
   color: #555;
   background-color: #f8f8f8;
   border-radius: 12px;
-  margin-top: 25px;
+  margin-top: 25px; /* 카드 간 간격과 동일하게 유지 */
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
