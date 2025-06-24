@@ -46,14 +46,6 @@ const chartOptions = {
     legend: {
       display: false, // 단일 데이터셋이므로 범례 숨김
     },
-    title: {
-      display: true,
-      text: '문항별 정답률',
-      color: '#333',
-      font: {
-        size: 16,
-      },
-    },
     tooltip: {
       callbacks: {
         label: function (context) {
