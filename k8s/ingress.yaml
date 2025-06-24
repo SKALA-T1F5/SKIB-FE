@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sk-team-09-frontend
+  namespace: sk-team-09
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: public-nginx
+  rules:
+    - host: skib-frontend.skala25a.project.skala-ai.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sk-team-09-frontend
+                port:
+                  number: 80      
+  tls:
+    - hosts:
+        - skib-frontend.skala25a.project.skala-ai.com
+      secretName: skib-frontend-tls-cert
