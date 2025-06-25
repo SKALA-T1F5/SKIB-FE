@@ -189,7 +189,7 @@ const handleProjectAction = (project, actionType) => {
   if (actionType === 'manage') {
     localStorage.setItem('projectId', project.id)
     // TrainerDocumentManagement.vue 페이지로 이동하도록 경로를 수정합니다.
-    router.push(`/trainer/project/${project.id}/document`)
+    router.push(`/trainer/project/${project.id}/test`)
   }
   // 트레이너는 프로젝트를 수정하거나 삭제할 수 없으므로 해당 로직 제거
   // else if (actionType === 'edit') {
