@@ -83,10 +83,23 @@
       @next-step="handleQuickConfigNext"
     />
 
-    <TestQuestion
-      v-else-if="currentStep === 'question'"
+    <TestQuestionReviewAI
+      v-else-if="currentStep === 'question' && testCreationType === 'ai'"
       :test-id="testId"
       :is-loading="isLoading"
+      :selected-document="selectedDocument"
+      :revenues="revenues"
+      :exam-goal="examPrompt"
+      @update:isLoading="(val) => (isLoading = val)"
+      @prev-step="goToConfigOrQuickConfig"
+      @next-step="handleQuestionNext"
+    />
+    <TestQuestionReviewQuick
+      v-else-if="currentStep === 'question' && testCreationType === 'quick'"
+      :test-id="testId"
+      :is-loading="isLoading"
+      :revenues="revenues"
+      @update:isLoading="(val) => (isLoading = val)"
       @prev-step="goToConfigOrQuickConfig"
       @next-step="handleQuestionNext"
     />
@@ -105,11 +118,13 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AILoading from '@/components/layouts/AiLoading.vue'
 import TestCard from '@/components/trainer/test/TestCard.vue'
-import TestTypeSelection from '@/components/trainer/test/TestTypeSelection.vue' // 새 컴포넌트 임포트
+import TestTypeSelection from '@/components/trainer/test/TestTypeSelection.vue'
 import TestPrompt from '@/components/trainer/test/TestPrompt.vue'
 import TestConfig from '@/components/trainer/test/TestConfig.vue'
 import TestQuickConfig from '@/components/trainer/test/TestQuickConfig.vue'
-import TestQuestion from '@/components/trainer/test/TestQuestion.vue'
+// 기존 TestQuestion 대신 새로 분리된 컴포넌트 임포트
+import TestQuestionReviewAI from '@/components/trainer/test/TestQuestionReviewAI.vue'
+import TestQuestionReviewQuick from '@/components/trainer/test/TestQuestionReviewQuick.vue'
 import TestGenerate from '@/components/trainer/test/TestGenerate.vue'
 
 const router = useRouter()
@@ -150,7 +165,7 @@ const currentProjectId = computed(
 // --- Step Navigation Functions ---
 
 const goToList = () => {
-  currentStep.value = 'list'
+  router.push({ query: {} }).catch(() => {}) // 쿼리 파라미터 제거하여 'list' 상태로 간주
   // 상태 초기화
   examPrompt.value = ''
   testId.value = null
@@ -171,11 +186,11 @@ const goToList = () => {
 
 // "새 테스트 생성" 버튼 클릭 시 호출될 함수
 const goToTestTypeSelection = () => {
-  currentStep.value = 'type-selection' // 새로운 컴포넌트로 이동
+  router.push({ query: { step: 'type-selection' } }).catch(() => {})
 }
 
 const goToPrompt = () => {
-  currentStep.value = 'prompt'
+  router.push({ query: { step: 'prompt' } }).catch(() => {})
   testCreationType.value = 'ai' // AI 기반 생성으로 설정
   // prompt로 이동 시 로딩 메시지 초기화
   loadingMessage.value = '테스트 목표를 입력해주세요.'
@@ -183,22 +198,22 @@ const goToPrompt = () => {
 }
 
 const goToQuickConfig = async () => {
-  currentStep.value = 'quick-config'
+  router.push({ query: { step: 'quick-config' } }).catch(() => {})
   testCreationType.value = 'quick' // 빠른 생성으로 설정
   await fetchDocuments()
 }
 
 const goToConfig = async () => {
-  currentStep.value = 'config'
+  router.push({ query: { step: 'config' } }).catch(() => {})
 }
 
 const goToQuestion = () => {
-  currentStep.value = 'question'
+  router.push({ query: { step: 'question' } }).catch(() => {})
   isLoading.value = false
 }
 
 const goToGenerate = () => {
-  currentStep.value = 'generate'
+  router.push({ query: { step: 'generate' } }).catch(() => {})
   isLoading.value = false
   testLink.value = `${window.location.origin}/exam/${testId.value || 'mock-test-id-123'}`
 }
@@ -495,11 +510,53 @@ const updateRevenues = (newVal) => {
 }
 
 onMounted(() => {
-  if (route.query.step) {
-    currentStep.value = route.query.step
+  // 컴포넌트 마운트 시 URL 쿼리에서 currentStep을 초기화합니다.
+  currentStep.value = route.query.step || 'list'
+
+  // 현재 라우트 쿼리에서 testCreationType을 설정합니다.
+  // 이 값은 TestPrompt, TestQuickConfig 등 이전 단계에서 설정될 수 있습니다.
+  // 새로고침 시 이 값을 유지하여 올바른 TestQuestionReview 컴포넌트를 렌더링하도록 합니다.
+  if (route.query.step === 'question') {
+    // 실제 testCreationType은 이전에 설정된 값이나, testId에서 유추해야 할 수도 있습니다.
+    // 여기서는 간단히 mocking 된 testId 접두사로 판단합니다.
+    if (testId.value && testId.value.startsWith('quick-test-')) {
+      testCreationType.value = 'quick'
+    } else {
+      testCreationType.value = 'ai' // 기본값 또는 다른 로직으로 AI로 설정
+    }
   }
 
   fetchTests()
+})
+
+// route.query.step 변경을 감지하여 currentStep 업데이트 (브라우저 뒤로/앞으로 가기 등)
+watch(
+  () => route.query.step,
+  (newStep) => {
+    if (newStep) {
+      currentStep.value = newStep
+    } else {
+      currentStep.value = 'list' // step 쿼리 파라미터가 없으면 'list'로 간주
+    }
+    // URL 쿼리 변경 시 testCreationType도 업데이트할 필요가 있다면 여기에 로직 추가
+    // 예: if (newStep === 'question' && route.query.type) testCreationType.value = route.query.type;
+  },
+)
+
+// currentStep 변경을 감지하여 URL 쿼리 업데이트 (내부 버튼 클릭 등)
+watch(currentStep, (newStep) => {
+  const currentQueryStep = route.query.step
+  if (newStep === 'list') {
+    // 'list' 단계일 때는 쿼리 파라미터를 제거합니다.
+    if (currentQueryStep !== undefined) {
+      router.push({ query: {} }).catch(() => {})
+    }
+  } else {
+    // 그 외의 단계에서는 쿼리 파라미터 업데이트
+    if (currentQueryStep !== newStep) {
+      router.push({ query: { step: newStep } }).catch(() => {})
+    }
+  }
 })
 </script>
 
