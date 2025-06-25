@@ -6,48 +6,57 @@
       <p class="section-subtitle">프로젝트 내 테스트를 확인하고 관리합니다.</p>
     </div>
 
-    <section class="test-list-section section-bg" v-if="currentStep === 'list'">
-      <div class="list-header">
-        <h4 class="section-title">생성된 테스트 목록</h4>
-      </div>
-      <v-row dense class="test-cards-grid">
-        <v-col cols="12" sm="6" md="4" lg="3" class="d-flex pa-2">
-          <v-card
-            class="add-new-test-card d-flex flex-column justify-center align-center pa-4"
-            outlined
-            @click="goToPrompt"
-          >
-            <v-icon size="48" color="#191d5a">mdi-plus-circle-outline</v-icon>
-            <span class="mt-2 text-h6" style="color: #191d5a">새 테스트 생성</span>
-          </v-card>
-        </v-col>
+    <template v-if="currentStep === 'list'">
+      <section class="test-list-section section-bg">
+        <div class="list-header">
+          <h4 class="section-title">생성된 테스트 목록</h4>
+        </div>
+        <v-row dense class="test-cards-grid">
+          <v-col cols="12" sm="6" md="4" lg="3" class="d-flex pa-2">
+            <v-card
+              class="add-new-test-card d-flex flex-column justify-center align-center pa-4"
+              outlined
+              @click="goToTestTypeSelection"
+            >
+              <v-icon size="48" color="#191d5a">mdi-plus-circle-outline</v-icon>
+              <span class="mt-2 text-h6" style="color: #191d5a">새 테스트 생성</span>
+            </v-card>
+          </v-col>
 
-        <v-col
-          v-for="test in tests"
-          :key="test.id"
-          cols="12"
-          sm="6"
-          md="4"
-          lg="3"
-          class="d-flex pa-2"
-        >
-          <TestCard
-            :test="test"
-            @copy-link="handleCopyLink"
-            @go-to-questions="handleGoToQuestions"
-            @go-to-dashboard="handleGoToDashboard"
-          />
-        </v-col>
-      </v-row>
-      <div class="list-footer">
-        <span class="total-count">총 {{ tests.length }}개 테스트</span>
-      </div>
-    </section>
+          <v-col
+            v-for="test in tests"
+            :key="test.id"
+            cols="12"
+            sm="6"
+            md="4"
+            lg="3"
+            class="d-flex pa-2"
+          >
+            <TestCard
+              :test="test"
+              @copy-link="handleCopyLink"
+              @go-to-questions="handleGoToQuestions"
+              @go-to-dashboard="handleGoToDashboard"
+            />
+          </v-col>
+        </v-row>
+        <div class="list-footer">
+          <span class="total-count">총 {{ tests.length }}개 테스트</span>
+        </div>
+      </section>
+    </template>
+
+    <TestTypeSelection
+      v-else-if="currentStep === 'type-selection'"
+      :is-loading="isLoading"
+      @prev-step="goToList"
+      @next-step="handleTypeSelectionNext"
+    />
 
     <TestPrompt
       v-else-if="currentStep === 'prompt'"
       :is-loading="isLoading"
-      @prev-step="goToList"
+      @prev-step="goToTestTypeSelection"
       @next-step="handlePromptNext"
     />
 
@@ -65,11 +74,20 @@
       @next-step="handleConfigNext"
     />
 
+    <TestQuickConfig
+      v-else-if="currentStep === 'quick-config'"
+      :revenues="revenues"
+      :is-loading="isLoading"
+      @update:revenues="updateRevenues"
+      @prev-step="goToTestTypeSelection"
+      @next-step="handleQuickConfigNext"
+    />
+
     <TestQuestion
       v-else-if="currentStep === 'question'"
       :test-id="testId"
       :is-loading="isLoading"
-      @prev-step="goToConfig"
+      @prev-step="goToConfigOrQuickConfig"
       @next-step="handleQuestionNext"
     />
 
@@ -87,8 +105,10 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AILoading from '@/components/layouts/AiLoading.vue'
 import TestCard from '@/components/trainer/test/TestCard.vue'
+import TestTypeSelection from '@/components/trainer/test/TestTypeSelection.vue' // 새 컴포넌트 임포트
 import TestPrompt from '@/components/trainer/test/TestPrompt.vue'
 import TestConfig from '@/components/trainer/test/TestConfig.vue'
+import TestQuickConfig from '@/components/trainer/test/TestQuickConfig.vue'
 import TestQuestion from '@/components/trainer/test/TestQuestion.vue'
 import TestGenerate from '@/components/trainer/test/TestGenerate.vue'
 
@@ -99,11 +119,12 @@ const currentStep = ref('list')
 const isLoading = ref(false)
 const loadingMessage = ref('데이터 로딩 중입니다...')
 
-const tests = ref([]) // 테스트 목록 데이터를 저장할 반응형 변수
+const tests = ref([])
 
 const examPrompt = ref('')
 const testId = ref(null)
 const testLink = ref('')
+const testCreationType = ref(null) // 'ai' 또는 'quick'
 
 const selectedDocument = ref({
   title: '',
@@ -113,7 +134,7 @@ const selectedDocument = ref({
   retakeAllowed: true,
 })
 
-const revenues = ref([]) // 문서 목록
+const revenues = ref([])
 
 const totalMcqCount = computed(() =>
   revenues.value.reduce((sum, doc) => sum + (doc.selected ? doc.mcSet : 0), 0),
@@ -144,17 +165,31 @@ const goToList = () => {
   revenues.value = []
   loadingMessage.value = '데이터 로딩 중입니다...'
   isLoading.value = false
+  testCreationType.value = null // 생성 유형 초기화
   fetchTests() // 목록으로 돌아올 때 테스트 목록 다시 로드
+}
+
+// "새 테스트 생성" 버튼 클릭 시 호출될 함수
+const goToTestTypeSelection = () => {
+  currentStep.value = 'type-selection' // 새로운 컴포넌트로 이동
 }
 
 const goToPrompt = () => {
   currentStep.value = 'prompt'
+  testCreationType.value = 'ai' // AI 기반 생성으로 설정
+  // prompt로 이동 시 로딩 메시지 초기화
+  loadingMessage.value = '테스트 목표를 입력해주세요.'
   isLoading.value = false
+}
+
+const goToQuickConfig = async () => {
+  currentStep.value = 'quick-config'
+  testCreationType.value = 'quick' // 빠른 생성으로 설정
+  await fetchDocuments()
 }
 
 const goToConfig = async () => {
   currentStep.value = 'config'
-  await fetchDocuments()
 }
 
 const goToQuestion = () => {
@@ -168,12 +203,34 @@ const goToGenerate = () => {
   testLink.value = `${window.location.origin}/exam/${testId.value || 'mock-test-id-123'}`
 }
 
+const goToConfigOrQuickConfig = async () => {
+  if (testCreationType.value === 'ai') {
+    // AI 기반 테스트의 이전 단계는 TestConfig
+    await goToConfig()
+  } else if (testCreationType.value === 'quick') {
+    // 빠른 테스트의 이전 단계는 TestQuickConfig
+    await goToQuickConfig()
+  } else {
+    // 예외 처리 또는 기본 동작 (예: 목록으로 돌아가기)
+    goToList()
+  }
+}
+
 // --- Event Handlers from Child Components ---
+
+// TestTypeSelection 컴포넌트에서 'next-step' 이벤트 발생 시 호출
+const handleTypeSelectionNext = (selectedType) => {
+  if (selectedType === 'ai') {
+    goToPrompt()
+  } else if (selectedType === 'quick') {
+    goToQuickConfig()
+  }
+}
 
 const handlePromptNext = async (prompt) => {
   examPrompt.value = prompt
   loadingMessage.value = '테스트 세팅 중입니다...'
-  isLoading.value = true
+  isLoading.value = true // 로딩 시작
 
   try {
     await new Promise((resolve) => setTimeout(resolve, 1500))
@@ -182,12 +239,15 @@ const handlePromptNext = async (prompt) => {
     testId.value = createdTestId
     selectedDocument.value.title = examPrompt.value
 
-    await goToConfig()
+    // TestConfig로 이동하기 전에 fetchDocuments를 여기서 호출합니다.
+    await fetchDocuments() // TestConfig로 넘어가기 전에 문서 목록을 미리 불러옴
+    goToConfig() // TestConfig로 이동
   } catch (error) {
     console.error('시험 생성 중 오류 발생 (Mock):', error)
     alert('시험 생성 중 오류가 발생했습니다. (Mock)')
   } finally {
-    // isLoading은 goToConfig() 내부의 fetchDocuments()에서 관리
+    isLoading.value = false // 로딩 종료
+    loadingMessage.value = '데이터 로딩 중입니다...' // 메시지 초기화
   }
 }
 
@@ -214,6 +274,39 @@ const handleConfigNext = async (configData) => {
   } catch (error) {
     console.error('시험 설정 저장 중 오류 발생 (Mock):', error)
     alert('시험 설정 저장 중 오류가 발생했습니다. (Mock)')
+  } finally {
+    isLoading.value = false
+    loadingMessage.value = '데이터 로딩 중입니다...'
+  }
+}
+
+const handleQuickConfigNext = async (updatedRevenues) => {
+  // 로딩 메시지 수정: "문제를 찾아오는 중입니다."
+  loadingMessage.value = '문제를 찾아오는 중입니다.'
+  isLoading.value = true
+  try {
+    revenues.value = updatedRevenues
+
+    const selectedDocs = revenues.value.filter(
+      (doc) => doc.selected && (doc.mcSet > 0 || doc.sqSet > 0),
+    )
+    if (selectedDocs.length === 0) {
+      alert('문서를 선택하고 생성할 문제 수를 설정해주세요.')
+      isLoading.value = false
+      loadingMessage.value = '데이터 로딩 중입니다...'
+      return
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 3000))
+
+    // 빠른 생성 시에도 testId를 생성해야 TestQuestion으로 넘어갈 수 있음
+    testId.value = 'quick-test-' + Date.now()
+    selectedDocument.value.title = '빠른 생성 테스트' // 빠른 생성 테스트 이름 설정 (선택사항)
+
+    goToQuestion()
+  } catch (error) {
+    console.error('빠른 시험 설정 저장 중 오류 발생 (Mock):', error)
+    alert('빠른 시험 설정 저장 중 오류가 발생했습니다. (Mock)')
   } finally {
     isLoading.value = false
     loadingMessage.value = '데이터 로딩 중입니다...'
@@ -327,13 +420,11 @@ const handleCopyLink = (id) => {
 
 const handleGoToQuestions = (id) => {
   console.log(`문제 목록으로 이동: ${id}`)
-  // TrainerTestQuestion 라우트의 name이 'TrainerTestQuestion'이므로, name을 사용하여 이동
   router.push({ name: 'TrainerTestQuestion', params: { testId: id } })
 }
 
 const handleGoToDashboard = (id) => {
   console.log(`응시 현황 대시보드로 이동: ${id}`)
-  // TrainerTestStatus 라우트의 name이 'TrainerTestStatus'이므로, name을 사용하여 이동
   router.push({ name: 'TrainerTestStatus', params: { testId: id } })
 }
 
@@ -404,16 +495,11 @@ const updateRevenues = (newVal) => {
 }
 
 onMounted(() => {
-  // `TrainerTestManagement.vue`가 프로젝트 라우트의 자식으로 설정되어 있다면,
-  // 새로고침 시에도 URL을 통해 올바른 테스트 ID를 가져올 수 있도록 라우트 파라미터를 확인합니다.
   if (route.query.step) {
     currentStep.value = route.query.step
   }
-  // 만약 특정 테스트의 상세 페이지로 직접 라우팅된 경우,
-  // 해당 테스트 ID를 사용하여 필요한 데이터를 로드하거나 상태를 설정할 수 있습니다.
-  // 이 예시에서는 testId를 라우트에서 직접 받지 않으므로, TestCard에서 전달된 ID를 사용합니다.
 
-  fetchTests() // 컴포넌트 마운트 시 테스트 목록 로드
+  fetchTests()
 })
 </script>
 
