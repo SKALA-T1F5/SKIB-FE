@@ -1,7 +1,6 @@
 <template>
   <div :class="['trainer-sidebar-content', { 'is-collapsed': isCollapsed }]">
     <div class="project-list-wrapper" v-if="!isCollapsed">
-      <div class="sidebar-header"></div>
       <div
         v-for="project in projects"
         :key="project.id"
@@ -36,8 +35,6 @@ import api from '@/config/axios' // axios 설정을 가져옵니다.
 const props = defineProps({
   isCollapsed: Boolean, // MainLayout에서 전달되는 사이드바 접힘 상태
 })
-
-// const emit = defineEmits(['update:searchQuery', 'reset-filters']) // 현재 사용되지 않으므로 제거
 
 const router = useRouter()
 const route = useRoute() // 현재 라우트 정보를 가져오기 위해 사용
@@ -161,24 +158,15 @@ onMounted(() => {
   /* margin-top: 10px; // 이 부분을 제거하거나 0으로 설정하여 상단 여백을 줄입니다. */
 }
 
-.sidebar-header {
+/* MainLayout에서 헤더 타이틀이 관리되므로, TrainerSideBar 내부의 이 스타일은 더 이상 필요 없습니다. */
+/* .sidebar-header {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 0 12px; /* 상하 패딩을 8px에서 4px로 줄였습니다. */
-  /* margin-bottom: 5px; // 이 부분을 제거하거나 0으로 설정하여 헤더 아래 여백을 줄입니다. */
+  padding: 0 12px;
   color: #333;
   border-bottom: 1px solid #eee;
-  flex-shrink: 0; /* 헤더는 크기가 줄어들지 않도록 */
-}
-
-/* projects-title 스타일은 필요에 따라 제거하거나 유지할 수 있습니다.
-    지금은 주석 처리하여 삭제된 것으로 간주합니다. */
-/* .projects-title {
-  font-size: 16px;
-  font-weight: bold;
-  color: #191d5a;
-  margin: 0;
+  flex-shrink: 0;
 } */
 
 .project-item-sidebar {
@@ -270,6 +258,7 @@ onMounted(() => {
 .collapsed-project-count {
   font-weight: bold;
   font-size: 16px;
-  color: white;
+  /* 이전에는 white였으나, collapsed sidebar의 배경색을 따르도록 inherit으로 변경 */
+  color: inherit; /* 변경: collapsed sidebar의 색상과 일치하도록 */
 }
 </style>

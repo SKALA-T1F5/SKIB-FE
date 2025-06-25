@@ -7,7 +7,7 @@
         <div class="sidebar-header">
           <div class="sidebar-header-content">
             <h3 class="sidebar-title" v-if="!isSidebarCollapsed">
-              {{ sidebarTitle }}
+              {{ resolvedSidebarTitle }}
             </h3>
             <slot name="sidebar-header-content" :is-collapsed="isSidebarCollapsed"></slot>
           </div>
@@ -48,8 +48,8 @@ const props = defineProps({
     type: String,
     default: 'default', // 'test', 'testResult', 'project' 등으로 구분
   },
-  // 새롭게 추가된 prop
   sidebarTitle: {
+    // 이 prop은 이제 선택적으로 사용됩니다.
     type: String,
     default: '',
   },
@@ -59,25 +59,22 @@ const userName = ref('Guest')
 const userRole = ref('Trainee')
 const isSidebarCollapsed = ref(false)
 
-// sidebarTitle prop을 사용하므로, computed 속성은 필요하지 않습니다.
-// 그러나 기존 switch-case 로직을 유지하고 싶다면 아래와 같이 수정할 수 있습니다.
-// props.sidebarTitle이 전달되면 그것을 사용하고, 아니면 기존 로직을 따릅니다.
+// sidebarTitle prop이 전달되면 그것을 사용하고, 아니면 기존 로직을 따릅니다.
 const resolvedSidebarTitle = computed(() => {
   if (props.sidebarTitle) {
-    return props.sidebarTitle;
+    return props.sidebarTitle
   }
   switch (props.sidebarType) {
     case 'test':
-      return '문제 현황';
+      return '문제 현황'
     case 'testResult':
-      return '시험 결과';
+      return '시험 결과'
     case 'project':
-      return '프로젝트 목록';
+      return '프로젝트 현황'
     default:
-      return ''; // 기본 제목 (비워둠)
+      return '' // 기본 제목 (비워둠)
   }
-});
-
+})
 
 const slots = useSlots()
 
@@ -98,7 +95,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 기존 스타일은 유지됩니다. */
+/* (이전과 동일한 스타일) */
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
 .main-layout {

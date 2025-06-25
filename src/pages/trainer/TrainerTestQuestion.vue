@@ -1,15 +1,15 @@
 <template>
   <MainLayout
     :show-sidebar="allQuestions.length > 0"
-    sidebar-type="trainerTestQuestion"
-    sidebar-title="문제 현황"
+    sidebar-type="project"
+    :project="associatedProject"
   >
     <template #sidebar="{ isCollapsed }">
-      <TrainerTestQuestionSideBar
+      <TrainerSideBar
         :is-collapsed="isCollapsed"
-        :questions="allQuestions"
-        :current-question-id="currentQuestionId"
-        @select-question="handleQuestionSelectFromSidebar"
+        :projects="userProjects"
+        :current-project-id="associatedProject ? associatedProject.id : null"
+        @select-project="handleProjectSelectFromSidebar"
       />
     </template>
 
@@ -18,9 +18,7 @@
         <div class="trainer-test-question-main-content">
           <div class="trainer-test-question-container-inner">
             <div class="top-nav">
-              <h3 class="question-number-top" v-if="currentQuestion">
-                {{ currentQuestion.id }}.
-              </h3>
+              <h3 class="question-number-top" v-if="currentQuestion">{{ currentQuestion.id }}.</h3>
               <div class="nav-buttons-wrapper">
                 <button
                   class="nav-button"
@@ -29,11 +27,7 @@
                 >
                   <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> 이전 문제
                 </button>
-                <button
-                  class="nav-button"
-                  @click="goToNextQuestion"
-                  :disabled="!hasNextQuestion"
-                >
+                <button class="nav-button" @click="goToNextQuestion" :disabled="!hasNextQuestion">
                   다음 문제 <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
                 </button>
               </div>
@@ -69,18 +63,27 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import MainLayout from '@/components/layouts/MainLayout.vue'
-import TrainerTestQuestionSideBar from '@/components/trainer/test/TrainerTestQuestionSideBar.vue'
+// TrainerTestQuestionSideBar 대신 TrainerSideBar를 임포트합니다.
+import TrainerSideBar from '@/components/trainer/TrainerSideBar.vue' // ProjectDetail.vue와 동일한 사이드바
+
 import TrainerQuestionArea from '@/components/trainer/test/TrainerQuestionArea.vue'
 import TrainerSolutionArea from '@/components/trainer/test/TrainerSolutionArea.vue'
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js'
 
 const router = useRouter()
+const route = useRoute()
 
 const allQuestions = ref([])
 const currentQuestionId = ref(null)
+
+// 이 시험과 연관된 (또는 현재 페이지의) 프로젝트 정보
+const associatedProject = ref(null)
+
+// TrainerSideBar에 전달할 사용자 전체 프로젝트 목록
+const userProjects = ref([])
 
 const currentQuestion = computed(() => {
   if (!currentQuestionId.value || allQuestions.value.length === 0) {
@@ -99,8 +102,23 @@ const hasNextQuestion = computed(() => currentQuestionIndex.value < allQuestions
 
 onMounted(() => {
   fetchTestQuestions()
+
+  // `ProjectDetail.vue`에서처럼 프로젝트 ID를 라우트 파라미터로 받을 수 있다고 가정
+  const projectIdFromRoute = route.params.projectId
+  if (projectIdFromRoute) {
+    // 해당 프로젝트 상세 정보를 가져와 associatedProject에 설정
+    fetchAssociatedProject(projectIdFromRoute)
+    // TrainerSideBar에 표시할 전체 프로젝트 목록도 가져옵니다.
+    fetchUserProjects()
+  } else {
+    // projectId가 없는 경우, 기본 프로젝트를 설정하거나 에러 처리
+    console.warn('라우트 파라미터에 projectId가 없습니다. 기본 프로젝트를 로드합니다.')
+    fetchUserProjects() // 전체 목록은 로드
+    // associatedProject를 첫 번째 프로젝트로 설정하거나 기본값 유지
+  }
 })
 
+// 샘플 API 데이터 (문제 데이터는 기존과 동일)
 const sampleApiData = [
   {
     type: 'OBJECTIVE',
@@ -262,6 +280,54 @@ const fetchTestQuestions = async () => {
   }
 }
 
+// 이 함수를 통해 해당 시험과 연결된 프로젝트 정보를 가져옵니다.
+const fetchAssociatedProject = async (projectId) => {
+  // 실제 API 호출 로직을 여기에 구현합니다.
+  // 예: const response = await axios.get(`/api/projects/${projectId}`);
+  // const projectData = response.data;
+
+  // 임시 데이터 (실제 프로젝트 정보라고 가정)
+  const sampleProjectData = {
+    id: parseInt(projectId),
+    projectName: `데모 프로젝트 ${projectId}: 신입 역량 평가`, // `MainLayout`이 이 이름을 사용할 수 있도록
+    description: '신입 트레이니의 기본 역량 평가를 위한 프로젝트입니다.',
+  }
+  associatedProject.value = sampleProjectData
+  console.log('연결된 프로젝트 정보:', associatedProject.value)
+}
+
+// TrainerSideBar에 표시할 사용자 전체 프로젝트 목록을 가져옵니다.
+const fetchUserProjects = async () => {
+  // 실제 API 호출 로직을 여기에 구현합니다.
+  // 예: const response = await axios.get('/api/users/current/projects');
+  // userProjects.value = response.data;
+
+  // 임시 데이터
+  const dummyProjects = [
+    { id: 1, name: '프로젝트 A: AI 기반 추천 시스템' },
+    { id: 2, name: '프로젝트 B: 웹 서비스 성능 개선' },
+    { id: 3, name: '프로젝트 C: 모바일 앱 UI/UX 리뉴얼' },
+    { id: 123, name: '데모 프로젝트: 신입 역량 평가' }, // 현재 페이지와 연관된 프로젝트도 포함
+  ]
+  userProjects.value = dummyProjects
+  console.log('사용자 프로젝트 목록:', userProjects.value)
+}
+
+// TrainerSideBar에서 프로젝트 선택 시 처리하는 함수
+const handleProjectSelectFromSidebar = (projectId) => {
+  console.log(`사이드바에서 프로젝트 ID ${projectId} 선택됨`)
+  // TrainerTestQuestion 페이지 내에서 다른 프로젝트의 시험을 볼 수 있도록 라우팅 변경
+  // 예: /trainer/project/:projectId/test/:testId
+  // 현재는 `currentQuestionId`를 변경하는 로직이 없으므로,
+  // 프로젝트 변경 시 시험 목록 자체를 변경하는 로직이 필요할 수 있습니다.
+  router.push({
+    name: 'TrainerTestQuestion',
+    params: { projectId: projectId, testId: route.params.testId },
+  }) // 예시 라우트 이름
+  // 또는 현재 페이지에서 프로젝트 데이터만 변경하여 UI를 업데이트할 수도 있습니다.
+  fetchAssociatedProject(projectId)
+}
+
 const handleQuestionSelectFromSidebar = (questionId) => {
   currentQuestionId.value = questionId
 }
@@ -289,6 +355,7 @@ const exitPage = () => {
 </script>
 
 <style scoped>
+/* 기존 스타일은 변경 없습니다. */
 .trainer-test-question-content-wrapper {
   display: flex;
   flex: 1;
