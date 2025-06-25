@@ -53,6 +53,7 @@
                   (v) =>
                     v <= totalAvailableQuestions ||
                     `총 문제 수는 저장된 총 문제 수 (${totalAvailableQuestions}개)를 초과할 수 없습니다.`,
+                  (v) => v !== '' || '총 문제 수를 입력해주세요.',
                 ]"
                 bg-color="white"
               ></v-text-field>
@@ -89,6 +90,7 @@
                   (v) =>
                     (v !== null && v !== undefined && v !== '') || '합격 기준 점수를 입력해주세요.',
                   (v) => (v >= 0 && v <= 100) || '합격 기준 점수는 0점에서 100점 사이여야 합니다.',
+                  (v) => v !== '' || '합격 기준 점수를 입력해주세요.',
                 ]"
                 bg-color="white"
               ></v-text-field>
@@ -131,17 +133,17 @@
         color="grey"
         class="force-white"
         @click="emitPrevStep"
-        :disabled="isLoading"
+        :disabled="props.isLoading"
         >이전 단계</v-btn
       >
       <v-tooltip :text="disabledReason" location="top" :disabled="isFormValid">
-        <template v-slot:activator="{ props }">
+        <template v-slot:activator="{ props: tooltipProps }">
           <v-btn
-            v-bind="props"
+            v-bind="tooltipProps"
             variant="flat"
             color="#191d5a"
             @click="emitNextStep"
-            :disabled="isLoading || !isFormValid"
+            :disabled="props.isLoading || !isFormValid"
             >다음 단계</v-btn
           >
         </template>
@@ -151,7 +153,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits, computed, watch } from 'vue'
+import { ref, defineProps, defineEmits, computed, watch, onMounted } from 'vue'
 
 const props = defineProps({
   revenues: {
@@ -203,24 +205,20 @@ const totalAvailableQuestions = computed(() =>
 
 // 버튼 활성화를 위한 조건 확인
 const isFormValid = computed(() => {
-  // 1. 테스트명이 공란이 아닐 경우
   if (!testName.value.trim()) {
     return false
   }
-  // 2. 생성할 테스트의 총 문제 수가 1 이상일 경우
-  // number 타입 입력 필드에 빈 문자열이 들어올 경우 0으로 처리되므로, null/undefined/빈 문자열 검사 추가
   if (
     totalTestQuestions.value === null ||
     totalTestQuestions.value === undefined ||
-    totalTestQuestions.value < 1
+    totalTestQuestions.value < 1 ||
+    totalTestQuestions.value === ''
   ) {
     return false
   }
-  // 3. 응시 제한 시간이 1 이상일 경우
   if (testDuration.value === null || testDuration.value === undefined || testDuration.value < 1) {
     return false
   }
-  // 4. 합격 기준 점수가 공란이 아닐 경우 (null, undefined, 빈 문자열 모두 포함)
   if (
     passingScore.value === null ||
     passingScore.value === undefined ||
@@ -229,12 +227,20 @@ const isFormValid = computed(() => {
     return false
   }
 
+  if (totalTestQuestions.value > totalAvailableQuestions.value) {
+    return false
+  }
+  if (passingScore.value < 0 || passingScore.value > 100) {
+    return false
+  }
+
   return true
 })
 
 // 버튼 비활성화 이유를 제공하는 computed 속성
 const disabledReason = computed(() => {
-  if (isLoading.value) {
+  if (props.isLoading) {
+    // 이 부분을 props.isLoading으로 수정했습니다.
     return '로딩 중입니다.'
   }
   if (!testName.value.trim()) {
@@ -243,7 +249,8 @@ const disabledReason = computed(() => {
   if (
     totalTestQuestions.value === null ||
     totalTestQuestions.value === undefined ||
-    totalTestQuestions.value < 1
+    totalTestQuestions.value < 1 ||
+    totalTestQuestions.value === ''
   ) {
     return '총 문제 수는 1개 이상이어야 합니다.'
   }
@@ -260,12 +267,11 @@ const disabledReason = computed(() => {
   ) {
     return '합격 기준 점수를 입력해주세요.'
   }
-  // isFormValid에서 확인하지 않지만, Vuetify rules에서 추가로 검사하는 조건도 포함 가능 (선택 사항)
   if (passingScore.value < 0 || passingScore.value > 100) {
     return '합격 기준 점수는 0점에서 100점 사이여야 합니다.'
   }
 
-  return '모든 정보를 입력해주세요.' // 기본 폴백 메시지 (이 메시지가 보이면 isFormValid 로직 재검토 필요)
+  return '모든 정보를 입력해주세요.'
 })
 
 const emitPrevStep = () => {
@@ -273,7 +279,6 @@ const emitPrevStep = () => {
 }
 
 const emitNextStep = async () => {
-  // 폼 유효성 검사 (버튼이 활성화된 후에도 유효하지 않은 값이 들어올 경우 메시지 표시)
   const { valid } = await form.value.validate()
 
   if (!valid) {
@@ -281,7 +286,6 @@ const emitNextStep = async () => {
     return
   }
 
-  emit('update:revenues', internalRevenues.value)
   emit(
     'next-step',
     internalRevenues.value,
@@ -291,6 +295,10 @@ const emitNextStep = async () => {
     passingScore.value,
   )
 }
+
+onMounted(() => {
+  console.log('TestQuickConfig mounted!')
+})
 </script>
 
 <style scoped>
@@ -298,7 +306,6 @@ const emitNextStep = async () => {
   color: white !important;
 }
 
-/* Common header styles */
 .header-section {
   display: flex;
   align-items: flex-end;
@@ -324,9 +331,8 @@ const emitNextStep = async () => {
   padding-bottom: 2px;
 }
 
-/* 새로 추가된 섹션 배경 스타일 */
 .section-bg {
-  background: #eef2f6; /* 회색 배경 */
+  background: #eef2f6;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
   padding: 24px;
@@ -339,35 +345,30 @@ const emitNextStep = async () => {
   font-family: inherit;
 }
 
-/* 문서 목록 섹션의 높이를 고정하고 스크롤바 추가 */
 .document-list-section .document-table-container {
-  max-height: 400px; /* 원하는 높이로 조절 */
-  overflow-y: auto; /* 세로 스크롤바 */
-  overflow-x: hidden; /* 가로 스크롤바 숨김 */
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  background-color: white; /* 테이블 배경색 */
+  background-color: white;
 }
 
-/* 데이터 테이블의 기본 배경색을 투명하게 설정하여 부모의 배경색을 따르도록 함 */
 .v-data-table {
   background-color: transparent !important;
 }
 
-/* 테이블 셀 내 텍스트 줄바꿈 방지 */
 .v-data-table :deep(td),
 .v-data-table :deep(th) {
   white-space: nowrap;
-  overflow: hidden; /* 내용이 넘칠 경우 숨김 */
-  text-overflow: ellipsis; /* 넘치는 텍스트를 ...으로 표시 */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* input 숫자 가운데 정렬 (현재 테이블에는 숫자 입력 필드가 없지만 스타일 유지를 위해 남겨둠) */
 .centered-input :deep(input) {
   text-align: center;
 }
 
-/* 하단 고정 버튼을 위한 스타일 */
 .bottom-fixed-actions {
   position: sticky;
   bottom: 0;
@@ -386,9 +387,8 @@ const emitNextStep = async () => {
   padding-bottom: 0;
 }
 
-/* 테스트 설정 섹션 스타일 */
 .test-config-section {
-  padding-bottom: 24px; /* 적절한 하단 패딩 */
+  padding-bottom: 24px;
 }
 
 .fill-height {
@@ -397,12 +397,11 @@ const emitNextStep = async () => {
   flex-direction: column;
 }
 
-/* 저장된 총 문제 수 표시를 위한 스타일 */
 .total-available-questions-info {
-  text-align: left; /* 왼쪽 정렬 */
-  margin-bottom: 16px; /* 아래 여백 */
+  text-align: left;
+  margin-bottom: 16px;
   color: #191d5a;
   font-size: 1rem;
-  padding-left: 8px; /* 왼쪽 여백 */
+  padding-left: 8px;
 }
 </style>
