@@ -41,6 +41,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MainLayout from '@/components/layouts/MainLayout.vue'
 import TrainerSideBar from '@/components/trainer/TrainerSideBar.vue'
+import axios from '@/config/axios' // axios 설정을 가져옵니다.
 
 const route = useRoute()
 const router = useRouter()
@@ -107,26 +108,22 @@ onMounted(() => {
   // 추가적으로 필요한 초기 로직이 있다면 여기에 추가합니다.
 })
 
-// 프로젝트 이름을 불러오는 더미 함수 (실제 API 연동 필요)
+// 프로젝트 이름을 불러오는 함수 (실제 API 연동)
 async function fetchProjectName(id) {
   try {
-    // 실제 API 호출 (예: axios.get(`/api/projects/${id}`))
-    // const response = await fetch(`/api/projects/${id}`);
-    // const data = await response.json();
-    // projectName.value = data.name;
-
-    // 임시 데이터
-    const exampleProjects = [
-      { id: '901', name: 'AI 기반 문서 분석 프로젝트' },
-      { id: '902', name: '스마트 제조 공정 최적화' },
-      { id: '903', name: '고객 행동 패턴 예측 시스템' },
-      // route.params.projectId에 오는 값이 123일 수도 있으니 추가
-      { id: '123', name: '데모 프로젝트: 신입 역량 평가' },
-    ]
-    const foundProject = exampleProjects.find((p) => p.id === id.toString()) // id를 문자열로 비교
-    projectName.value = foundProject ? foundProject.name : `프로젝트 ${id}` // 찾지 못하면 기본값
+    const response = await axios.get('/project/getProject', {
+      params: {
+        projectId: id,
+      },
+    })
+    if (response.data?.statusCode === 'OK' && response.data?.resultData) {
+      projectName.value = response.data.resultData.projectName
+    } else {
+      console.error('API 응답에 오류가 있거나 resultData가 없습니다.', response.data)
+      projectName.value = `프로젝트 ${id}` // 에러 발생 시 폴백
+    }
   } catch (error) {
-    console.error('Failed to fetch project name:', error)
+    console.error('프로젝트 이름을 불러오는 데 실패했습니다:', error)
     projectName.value = `프로젝트 ${id}` // 에러 발생 시 폴백
   }
 }
