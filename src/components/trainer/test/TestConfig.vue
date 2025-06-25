@@ -30,7 +30,7 @@
           <v-data-table
             :headers="headers"
             :items="internalRevenues"
-            item-value="name"
+            item-value="id"
             class="elevation-0"
             hide-default-footer
             disable-pagination
@@ -183,14 +183,12 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits, watch } from 'vue'
+import { ref, defineProps, defineEmits, watch, computed } from 'vue'
 
 const props = defineProps({
   examGoal: String,
   selectedDocument: Object,
   revenues: Array,
-  totalMcqCount: Number,
-  totalSaqCount: Number,
   isLoading: Boolean,
 })
 
@@ -204,40 +202,59 @@ const headers = [
   { title: '주관식', key: 'sqSet', sortable: false, align: 'center', width: '15%' },
 ]
 
+// props로 받은 객체와 배열은 직접 변경하지 않고 내부 ref에 복사하여 사용합니다.
+// 이렇게 하면 부모 컴포넌트의 props가 직접적으로 변경되지 않아 데이터 흐름을 명확히 할 수 있습니다.
 const internalSelectedDocument = ref({ ...props.selectedDocument })
 const internalRevenues = ref([...props.revenues])
 
+// props.selectedDocument가 변경될 때 internalSelectedDocument를 업데이트합니다.
 watch(
   () => props.selectedDocument,
   (newVal) => {
     internalSelectedDocument.value = { ...newVal }
   },
-  { deep: true },
+  { deep: true }, // 객체 내부의 변경까지 감지
 )
 
+// props.revenues가 변경될 때 internalRevenues를 업데이트합니다.
 watch(
   () => props.revenues,
   (newVal) => {
     internalRevenues.value = [...newVal]
   },
-  { deep: true },
+  { deep: true }, // 배열 내부 객체의 변경까지 감지
 )
+
+// totalMcqCount와 totalSaqCount를 internalRevenues 배열을 기반으로 계산합니다.
+// `computed` 속성은 의존하는 데이터(internalRevenues)가 변경될 때마다 자동으로 값을 재계산합니다.
+const totalMcqCount = computed(() => {
+  return internalRevenues.value.reduce((sum, doc) => sum + (doc.selected ? doc.mcSet : 0), 0)
+})
+
+const totalSaqCount = computed(() => {
+  return internalRevenues.value.reduce((sum, doc) => sum + (doc.selected ? doc.sqSet : 0), 0)
+})
 
 const emitPrevStep = () => {
   emit('prev-step')
 }
 
 const emitNextStep = () => {
+  // 다음 단계로 넘어가기 전에 현재 설정된 데이터들을 상위 컴포넌트로 전달합니다.
   emit('next-step', {
     selectedDocument: internalSelectedDocument.value,
     revenues: internalRevenues.value,
+    totalMcqCount: totalMcqCount.value, // 계산된 값 전달
+    totalSaqCount: totalSaqCount.value, // 계산된 값 전달
   })
 }
 
+// selectedDocument 변경 시 상위 컴포넌트로 이벤트를 발생시킵니다.
 const emitUpdateSelectedDocument = () => {
   emit('update:selected-document', internalSelectedDocument.value)
 }
 
+// revenues 배열 변경 시 상위 컴포넌트로 이벤트를 발생시킵니다.
 const emitUpdateRevenues = () => {
   emit('update:revenues', internalRevenues.value)
 }

@@ -70,16 +70,26 @@
       <v-btn
         variant="flat"
         color="#191d5a"
-        @click="emitNextStep"
+        @click="sendPromptAndProceed"
         :disabled="isLoading || !internalExamPrompt.trim()"
-        >다음 단계</v-btn
       >
+        <v-progress-circular
+          v-if="isLoading"
+          indeterminate
+          color="white"
+          size="20"
+          class="mr-2"
+        ></v-progress-circular>
+        다음 단계
+      </v-btn>
     </v-col>
   </v-row>
 </template>
 
 <script setup>
 import { ref, defineProps, defineEmits } from 'vue'
+import { useRoute } from 'vue-router'
+import axios from '@/config/axios' // axios 설정을 가져옵니다.
 
 const props = defineProps({
   isLoading: {
@@ -88,7 +98,10 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['prev-step', 'next-step'])
+// update:loading 이벤트를 통해 부모 컴포넌트의 isLoading 상태를 업데이트합니다.
+const emit = defineEmits(['prev-step', 'next-step', 'update:loading'])
+
+const route = useRoute()
 
 const internalExamPrompt = ref('')
 const examplePrompts = ref([
@@ -101,19 +114,78 @@ const emitPrevStep = () => {
   emit('prev-step')
 }
 
-const emitNextStep = () => {
-  // 디버깅을 위해 internalExamPrompt의 현재 값을 콘솔에 출력합니다.
-  console.log('emitNextStep called. internalExamPrompt:', internalExamPrompt.value)
-  console.log('Is internalExamPrompt trimmed empty?', !internalExamPrompt.value.trim())
-
-  // 실제로 다음 단계로 넘어가기 전에 다시 한번 유효성 검사를 수행할 수 있습니다.
+const sendPromptAndProceed = async () => {
   if (!internalExamPrompt.value.trim()) {
     console.warn('Prompt is empty or contains only whitespace. Cannot proceed to next step.')
-    // 사용자에게 경고 메시지를 표시할 수도 있습니다.
-    // alert('테스트 목표를 입력해주세요.');
-    return // 유효하지 않으면 함수 종료
+    return
   }
-  emit('next-step', internalExamPrompt.value)
+
+  // 요청 시작 시 isLoading을 true로 설정하여 로딩 인디케이터를 표시합니다.
+  emit('update:loading', true)
+
+  try {
+    const projectId = route.params.projectId || localStorage.getItem('projectId')
+    if (!projectId) {
+      console.error('Project ID is not available. Cannot create test.')
+      alert('프로젝트 ID를 찾을 수 없습니다. 다시 시도해주세요.')
+      emit('update:loading', false)
+      return
+    }
+
+    const parsedProjectId = parseInt(projectId)
+    if (isNaN(parsedProjectId)) {
+      console.error('Project ID is not a valid number.', projectId)
+      alert('유효하지 않은 프로젝트 ID입니다. 다시 시도해주세요.')
+      emit('update:loading', false)
+      return
+    }
+
+    const response = await axios.post('/test/createByLLM', null, {
+      params: {
+        userInput: internalExamPrompt.value,
+        projectId: parsedProjectId,
+      },
+    })
+
+    console.log('API 응답:', response.data)
+
+    if (response.data.statusCode === 'OK' && response.data.resultData) {
+      const parsedData = JSON.parse(response.data.resultData)
+      console.log('파싱된 데이터:', parsedData)
+
+      const testConfigData = {
+        examGoal: parsedData.summary,
+        selectedDocument: {
+          title: parsedData.name,
+          examTime: parsedData.limitedTime,
+          difficulty: parsedData.difficultyLevel,
+          passScore: parsedData.passScore,
+          retakeAllowed: parsedData.isRetake,
+        },
+        revenues: parsedData.documentConfigs.map((doc) => ({
+          id: doc.document_id,
+          name: `문서 ${doc.document_id}`,
+          keyword: doc.keywords.join(', '),
+          mcSet: doc.configuredObjectiveCount,
+          sqSet: doc.configuredSubjectiveCount,
+          selected: true,
+        })),
+      }
+
+      emit('next-step', testConfigData)
+    } else {
+      console.error('API 응답이 실패했거나 데이터가 유효하지 않습니다.', response.data)
+      alert('테스트 생성에 실패했습니다. 다시 시도해주세요.')
+    }
+  } catch (error) {
+    console.error('API 호출 중 오류 발생:', error)
+    alert(
+      '테스트 생성 중 오류가 발생했습니다. 네트워크 연결을 확인하거나 나중에 다시 시도해주세요.',
+    )
+  } finally {
+    // 요청 완료 시 (성공 또는 실패) isLoading을 false로 설정하여 로딩 인디케이터를 숨깁니다.
+    emit('update:loading', false)
+  }
 }
 </script>
 

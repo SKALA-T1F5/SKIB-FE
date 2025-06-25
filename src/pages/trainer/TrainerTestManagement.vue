@@ -58,6 +58,7 @@
       :is-loading="isLoading"
       @prev-step="goToTestTypeSelection"
       @next-step="handlePromptNext"
+      @update:loading="(val) => (isLoading = val)"
     />
 
     <TestConfig
@@ -116,7 +117,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import AILoading from '@/components/layouts/AiLoading.vue'
+import AILoading from '@/components/layouts/AiLoading.vue' // AILoading 컴포넌트 임포트
 import TestCard from '@/components/trainer/test/TestCard.vue'
 import TestTypeSelection from '@/components/trainer/test/TestTypeSelection.vue'
 import TestPrompt from '@/components/trainer/test/TestPrompt.vue'
@@ -244,8 +245,8 @@ const handleTypeSelectionNext = (selectedType) => {
 
 const handlePromptNext = async (prompt) => {
   examPrompt.value = prompt
+  // TestPrompt에서 이미 isLoading을 true로 설정했으므로 여기서 다시 설정할 필요 없음
   loadingMessage.value = '테스트 세팅 중입니다...'
-  isLoading.value = true // 로딩 시작
 
   try {
     // 실제 API 호출 로직을 여기에 추가 (예: 테스트 생성 API)
@@ -308,7 +309,7 @@ const handleQuickConfigNext = async (updatedRevenues) => {
     if (selectedDocs.length === 0) {
       alert('문서를 선택하고 생성할 문제 수를 설정해주세요.')
       isLoading.value = false
-      loadingMessage.value = '데이터 로딩 중입니다...'
+      loadingMessage.value = '데이터 로딩 중입니다.'
       return
     }
 
@@ -324,7 +325,7 @@ const handleQuickConfigNext = async (updatedRevenues) => {
     alert('빠른 시험 설정 저장 중 오류가 발생했습니다.')
   } finally {
     isLoading.value = false
-    loadingMessage.value = '데이터 로딩 중입니다...'
+    loadingMessage.value = '데이터 로딩 중입니다.'
   }
 }
 
