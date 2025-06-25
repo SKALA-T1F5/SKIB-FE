@@ -68,8 +68,8 @@ import MainLayout from '@/components/layouts/MainLayout.vue'
 // TrainerTestQuestionSideBar 대신 TrainerSideBar를 임포트합니다.
 import TrainerSideBar from '@/components/trainer/TrainerSideBar.vue' // ProjectDetail.vue와 동일한 사이드바
 
-import TrainerQuestionArea from '@/components/trainer/test/TrainerQuestionArea.vue'
-import TrainerSolutionArea from '@/components/trainer/test/TrainerSolutionArea.vue'
+import TrainerQuestionArea from '@/components/trainer/question/TrainerQuestionArea.vue'
+import TrainerSolutionArea from '@/components/trainer/question/TrainerSolutionArea.vue'
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js'
 
