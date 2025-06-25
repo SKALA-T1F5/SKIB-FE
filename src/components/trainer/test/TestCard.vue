@@ -9,8 +9,8 @@
       난이도: <span class="difficulty-level">{{ test.difficulty }}</span>
     </p>
     <p class="test-description">제한 시간: {{ test.timeLimit }}분</p>
-    <p class="test-description">PASS 점수: {{ test.passingScore }}점</p>
-    <p class="test-description">생성일: {{ test.createdAt }}</p>
+    <p class="test-description">합격 기준 점수: {{ test.passingScore }}점</p>
+    <p class="test-description">생성일: {{ formattedCreatedAt }}</p>
     <p class="test-description">재응시 여부: {{ test.retakeable ? '가능' : '불가능' }}</p>
 
     <div class="statistics-visual-section">
@@ -60,7 +60,7 @@ const props = defineProps({
       difficulty: 'NORMAL', // EASY, NORMAL, HARD 중 하나
       timeLimit: 0,
       passingScore: 0,
-      createdAt: 'yyyy-mm-dd',
+      createdAt: 'yyyy-mm-dd', // 이 형식으로 들어올 것을 가정합니다.
       retakeable: false,
       passCount: 0,
       totalApplicants: 0,
@@ -87,6 +87,21 @@ const goToDashboard = (id) => {
 const passRatePercentage = computed(() => {
   if (props.test.totalApplicants === 0) return 0
   return ((props.test.passCount / props.test.totalApplicants) * 100).toFixed(0)
+})
+
+// formattedCreatedAt computed 속성 추가
+const formattedCreatedAt = computed(() => {
+  if (!props.test.createdAt) {
+    return '' // test.createdAt이 없을 경우 빈 문자열 반환
+  }
+  const dateParts = props.test.createdAt.split('-') // "YYYY-MM-DD"를 "-" 기준으로 분리
+  if (dateParts.length === 3) {
+    const year = dateParts[0]
+    const month = dateParts[1]
+    const day = dateParts[2]
+    return `${year}년 ${month}월 ${day}일`
+  }
+  return props.test.createdAt // 형식이 맞지 않을 경우 원본 반환
 })
 </script>
 

@@ -122,10 +122,10 @@ import TestTypeSelection from '@/components/trainer/test/TestTypeSelection.vue'
 import TestPrompt from '@/components/trainer/test/TestPrompt.vue'
 import TestConfig from '@/components/trainer/test/TestConfig.vue'
 import TestQuickConfig from '@/components/trainer/test/TestQuickConfig.vue'
-// 기존 TestQuestion 대신 새로 분리된 컴포넌트 임포트
 import TestQuestionReviewAI from '@/components/trainer/test/TestQuestionReviewAI.vue'
 import TestQuestionReviewQuick from '@/components/trainer/test/TestQuestionReviewQuick.vue'
 import TestGenerate from '@/components/trainer/test/TestGenerate.vue'
+import axios from '@/config/axios' // axios 임포트
 
 const router = useRouter()
 const route = useRoute()
@@ -248,9 +248,10 @@ const handlePromptNext = async (prompt) => {
   isLoading.value = true // 로딩 시작
 
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    // 실제 API 호출 로직을 여기에 추가 (예: 테스트 생성 API)
+    await new Promise((resolve) => setTimeout(resolve, 1500)) // 실제 API 호출로 대체
 
-    const createdTestId = 'test-' + Date.now()
+    const createdTestId = 'test-' + Date.now() // 임시 ID
     testId.value = createdTestId
     selectedDocument.value.title = examPrompt.value
 
@@ -258,8 +259,8 @@ const handlePromptNext = async (prompt) => {
     await fetchDocuments() // TestConfig로 넘어가기 전에 문서 목록을 미리 불러옴
     goToConfig() // TestConfig로 이동
   } catch (error) {
-    console.error('시험 생성 중 오류 발생 (Mock):', error)
-    alert('시험 생성 중 오류가 발생했습니다. (Mock)')
+    console.error('시험 생성 중 오류 발생:', error)
+    alert('시험 생성 중 오류가 발생했습니다.')
   } finally {
     isLoading.value = false // 로딩 종료
     loadingMessage.value = '데이터 로딩 중입니다...' // 메시지 초기화
@@ -283,12 +284,12 @@ const handleConfigNext = async (configData) => {
       return
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    await new Promise((resolve) => setTimeout(resolve, 3000)) // 실제 API 호출로 대체
 
     goToQuestion()
   } catch (error) {
-    console.error('시험 설정 저장 중 오류 발생 (Mock):', error)
-    alert('시험 설정 저장 중 오류가 발생했습니다. (Mock)')
+    console.error('시험 설정 저장 중 오류 발생:', error)
+    alert('시험 설정 저장 중 오류가 발생했습니다.')
   } finally {
     isLoading.value = false
     loadingMessage.value = '데이터 로딩 중입니다...'
@@ -296,7 +297,6 @@ const handleConfigNext = async (configData) => {
 }
 
 const handleQuickConfigNext = async (updatedRevenues) => {
-  // 로딩 메시지 수정: "문제를 찾아오는 중입니다."
   loadingMessage.value = '문제를 찾아오는 중입니다.'
   isLoading.value = true
   try {
@@ -312,7 +312,7 @@ const handleQuickConfigNext = async (updatedRevenues) => {
       return
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    await new Promise((resolve) => setTimeout(resolve, 3000)) // 실제 API 호출로 대체
 
     // 빠른 생성 시에도 testId를 생성해야 TestQuestion으로 넘어갈 수 있음
     testId.value = 'quick-test-' + Date.now()
@@ -320,8 +320,8 @@ const handleQuickConfigNext = async (updatedRevenues) => {
 
     goToQuestion()
   } catch (error) {
-    console.error('빠른 시험 설정 저장 중 오류 발생 (Mock):', error)
-    alert('빠른 시험 설정 저장 중 오류가 발생했습니다. (Mock)')
+    console.error('빠른 시험 설정 저장 중 오류 발생:', error)
+    alert('빠른 시험 설정 저장 중 오류가 발생했습니다.')
   } finally {
     isLoading.value = false
     loadingMessage.value = '데이터 로딩 중입니다...'
@@ -332,88 +332,37 @@ const handleQuestionNext = () => {
   goToGenerate()
 }
 
-// --- Data Fetching (Mock) for TestList content ---
+// --- Data Fetching for TestList content ---
 const fetchTests = async () => {
   isLoading.value = true
   loadingMessage.value = '테스트 목록을 불러오는 중입니다...'
   try {
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    tests.value = [
-      {
-        id: 'test-1',
-        name: '프로젝트 관리 기본 이해도 평가',
-        difficulty: 'NORMAL',
-        timeLimit: 60,
-        passingScore: 70,
-        createdAt: '2024-05-10',
-        retakeable: true,
-        passCount: 15,
-        totalApplicants: 20,
-        averageScore: 82,
-      },
-      {
-        id: 'test-2',
-        name: 'Vue.js 프론트엔드 심화 과정',
-        difficulty: 'HARD',
-        timeLimit: 90,
-        passingScore: 80,
-        createdAt: '2024-05-15',
-        retakeable: false,
-        passCount: 8,
-        totalApplicants: 12,
-        averageScore: 75,
-      },
-      {
-        id: 'test-3',
-        name: '데이터베이스 설계 원칙',
-        difficulty: 'EASY',
-        timeLimit: 45,
-        passingScore: 60,
-        createdAt: '2024-05-20',
-        retakeable: true,
-        passCount: 25,
-        totalApplicants: 30,
-        averageScore: 90,
-      },
-      {
-        id: 'test-4',
-        name: '클라우드 컴퓨팅 기초',
-        difficulty: 'NORMAL',
-        timeLimit: 50,
-        passingScore: 75,
-        createdAt: '2024-05-22',
-        retakeable: false,
-        passCount: 10,
-        totalApplicants: 15,
-        averageScore: 68,
-      },
-      {
-        id: 'test-5',
-        name: 'Python 프로그래밍 입문',
-        difficulty: 'EASY',
-        timeLimit: 40,
-        passingScore: 65,
-        createdAt: '2024-05-25',
-        retakeable: true,
-        passCount: 18,
-        totalApplicants: 22,
-        averageScore: 88,
-      },
-      {
-        id: 'test-6',
-        name: '머신러닝 알고리즘 분석',
-        difficulty: 'HARD',
-        timeLimit: 120,
-        passingScore: 85,
-        createdAt: '2024-05-28',
-        retakeable: true,
-        passCount: 5,
-        totalApplicants: 10,
-        averageScore: 72,
-      },
-    ]
+    // API 호출: projectId를 쿼리 파라미터로 전달
+    const response = await axios.get('/test/getTests', {
+      params: { projectId: currentProjectId.value },
+    })
+
+    if (response.data.statusCode === 'OK' && response.data.resultData) {
+      // API 응답 데이터를 TestCard 컴포넌트가 사용하는 형식으로 매핑
+      tests.value = response.data.resultData.tests.map((test) => ({
+        id: test.testId, // testId를 id로 매핑
+        name: test.name,
+        difficulty: 'NORMAL', // API에 없는 필드는 기본값 또는 목업 데이터 유지
+        timeLimit: test.limitedTime, // limitedTime을 timeLimit으로 매핑
+        passingScore: test.passScore || 60, // passScore가 null이면 기본값 60
+        createdAt: test.createdAt.split('T')[0], // 'YYYY-MM-DD' 형식으로 변환
+        retakeable: true, // API에 없는 필드는 기본값 또는 목업 데이터 유지
+        passCount: 0, // API에 없는 필드는 기본값 또는 목업 데이터 유지
+        totalApplicants: 0, // API에 없는 필드는 기본값 또는 목업 데이터 유지
+        averageScore: 0, // API에 없는 필드는 기본값 또는 목업 데이터 유지
+      }))
+    } else {
+      console.error('API 응답 오류:', response.data.resultMsg)
+      tests.value = []
+    }
   } catch (error) {
-    console.error('테스트 목록 가져오기 실패 (Mock):', error)
+    console.error('테스트 목록 가져오기 실패:', error)
+    alert('테스트 목록을 불러오는 데 실패했습니다.')
     tests.value = []
   } finally {
     isLoading.value = false
@@ -514,19 +463,15 @@ onMounted(() => {
   currentStep.value = route.query.step || 'list'
 
   // 현재 라우트 쿼리에서 testCreationType을 설정합니다.
-  // 이 값은 TestPrompt, TestQuickConfig 등 이전 단계에서 설정될 수 있습니다.
-  // 새로고침 시 이 값을 유지하여 올바른 TestQuestionReview 컴포넌트를 렌더링하도록 합니다.
   if (route.query.step === 'question') {
-    // 실제 testCreationType은 이전에 설정된 값이나, testId에서 유추해야 할 수도 있습니다.
-    // 여기서는 간단히 mocking 된 testId 접두사로 판단합니다.
-    if (testId.value && testId.value.startsWith('quick-test-')) {
+    if (testId.value && String(testId.value).startsWith('quick-test-')) {
       testCreationType.value = 'quick'
     } else {
       testCreationType.value = 'ai' // 기본값 또는 다른 로직으로 AI로 설정
     }
   }
 
-  fetchTests()
+  fetchTests() // 컴포넌트 마운트 시 테스트 목록 로드
 })
 
 // route.query.step 변경을 감지하여 currentStep 업데이트 (브라우저 뒤로/앞으로 가기 등)
