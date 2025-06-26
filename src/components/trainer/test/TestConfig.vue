@@ -18,13 +18,13 @@
   </v-row>
 
   <v-row class="mt-4">
-    <v-col cols="12" sm="8">
+    <v-col cols="12" sm="6" class="d-flex flex-column">
       <div class="section-bg mb-4">
         <h4 class="section-title">테스트 목표</h4>
         <p class="text-body-1 text-medium-emphasis">{{ examGoal }}</p>
       </div>
 
-      <div class="section-bg document-list-section">
+      <div class="section-bg document-list-section flex-grow-1">
         <h4 class="section-title">문서 목록</h4>
         <div class="document-table-container">
           <v-data-table
@@ -35,24 +35,25 @@
             hide-default-footer
             disable-pagination
           >
-            <template v-slot:item.selected="{ item }">
-              <v-checkbox
-                v-model="item.selected"
-                density="compact"
-                hide-details
-                color="#191d5a"
-                @update:model-value="emitUpdateRevenues"
-              ></v-checkbox>
-            </template>
             <template v-slot:item.name="{ item }">
               <h6 class="text-body-2 text-medium-emphasis font-weight-bold">
                 {{ item.name }}
               </h6>
             </template>
             <template v-slot:item.keyword="{ item }">
-              <v-chip size="small" color="blue-grey" variant="tonal" rounded="lg">
-                {{ item.keyword }}
-              </v-chip>
+              <div class="d-flex flex-wrap gap-2">
+                <v-chip
+                  v-for="(keyword, kIndex) in item.keyword.slice(0, 1)"
+                  :key="kIndex"
+                  size="small"
+                  color="blue-grey"
+                  variant="tonal"
+                  rounded="lg"
+                  class="mr-1 mb-1"
+                >
+                  {{ keyword }}
+                </v-chip>
+              </div>
             </template>
             <template v-slot:item.sqSet="{ item }">
               <v-text-field
@@ -61,9 +62,10 @@
                 variant="outlined"
                 density="compact"
                 hide-details
-                style="width: 70px"
+                style="width: 60px"
                 min="0"
                 @update:model-value="emitUpdateRevenues"
+                class="hide-number-spinners text-center-input"
               ></v-text-field>
             </template>
             <template v-slot:item.mcSet="{ item }">
@@ -73,9 +75,10 @@
                 variant="outlined"
                 density="compact"
                 hide-details
-                style="width: 70px"
+                style="width: 60px"
                 min="0"
                 @update:model-value="emitUpdateRevenues"
+                class="hide-number-spinners text-center-input"
               ></v-text-field>
             </template>
           </v-data-table>
@@ -83,7 +86,7 @@
       </div>
     </v-col>
 
-    <v-col cols="12" sm="4">
+    <v-col cols="12" sm="6">
       <div class="section-bg h-100">
         <h4 class="section-title">테스트 세팅</h4>
         <v-form class="mt-4">
@@ -105,7 +108,7 @@
             bg-color="white"
             min="1"
             @update:model-value="emitUpdateSelectedDocument"
-            class="mb-4"
+            class="mb-4 hide-number-spinners"
           ></v-text-field>
           <v-select
             v-model="internalSelectedDocument.difficulty"
@@ -125,7 +128,7 @@
               variant="outlined"
               rounded="lg"
               bg-color="white"
-              class="mr-2"
+              class="mr-2 hide-number-spinners"
               style="width: 150px"
               min="0"
               max="100"
@@ -195,44 +198,37 @@ const props = defineProps({
 const emit = defineEmits(['prev-step', 'next-step', 'update:selected-document', 'update:revenues'])
 
 const headers = [
-  { title: '선택', key: 'selected', sortable: false, width: '50px' }, // 선택 체크박스 컬럼 추가
   { title: '문서명', key: 'name', sortable: false, width: '35%' },
   { title: 'Keyword', key: 'keyword', sortable: false, align: 'center', width: '30%' },
   { title: '객관식', key: 'mcSet', sortable: false, align: 'center', width: '15%' },
   { title: '주관식', key: 'sqSet', sortable: false, align: 'center', width: '15%' },
 ]
 
-// props로 받은 객체와 배열은 직접 변경하지 않고 내부 ref에 복사하여 사용합니다.
-// 이렇게 하면 부모 컴포넌트의 props가 직접적으로 변경되지 않아 데이터 흐름을 명확히 할 수 있습니다.
 const internalSelectedDocument = ref({ ...props.selectedDocument })
 const internalRevenues = ref([...props.revenues])
 
-// props.selectedDocument가 변경될 때 internalSelectedDocument를 업데이트합니다.
 watch(
   () => props.selectedDocument,
   (newVal) => {
     internalSelectedDocument.value = { ...newVal }
   },
-  { deep: true }, // 객체 내부의 변경까지 감지
+  { deep: true },
 )
 
-// props.revenues가 변경될 때 internalRevenues를 업데이트합니다.
 watch(
   () => props.revenues,
   (newVal) => {
     internalRevenues.value = [...newVal]
   },
-  { deep: true }, // 배열 내부 객체의 변경까지 감지
+  { deep: true },
 )
 
-// totalMcqCount와 totalSaqCount를 internalRevenues 배열을 기반으로 계산합니다.
-// `computed` 속성은 의존하는 데이터(internalRevenues)가 변경될 때마다 자동으로 값을 재계산합니다.
 const totalMcqCount = computed(() => {
-  return internalRevenues.value.reduce((sum, doc) => sum + (doc.selected ? doc.mcSet : 0), 0)
+  return internalRevenues.value.reduce((sum, doc) => sum + doc.mcSet, 0)
 })
 
 const totalSaqCount = computed(() => {
-  return internalRevenues.value.reduce((sum, doc) => sum + (doc.selected ? doc.sqSet : 0), 0)
+  return internalRevenues.value.reduce((sum, doc) => sum + doc.sqSet, 0)
 })
 
 const emitPrevStep = () => {
@@ -240,21 +236,18 @@ const emitPrevStep = () => {
 }
 
 const emitNextStep = () => {
-  // 다음 단계로 넘어가기 전에 현재 설정된 데이터들을 상위 컴포넌트로 전달합니다.
   emit('next-step', {
     selectedDocument: internalSelectedDocument.value,
     revenues: internalRevenues.value,
-    totalMcqCount: totalMcqCount.value, // 계산된 값 전달
-    totalSaqCount: totalSaqCount.value, // 계산된 값 전달
+    totalMcqCount: totalMcqCount.value,
+    totalSaqCount: totalSaqCount.value,
   })
 }
 
-// selectedDocument 변경 시 상위 컴포넌트로 이벤트를 발생시킵니다.
 const emitUpdateSelectedDocument = () => {
   emit('update:selected-document', internalSelectedDocument.value)
 }
 
-// revenues 배열 변경 시 상위 컴포넌트로 이벤트를 발생시킵니다.
 const emitUpdateRevenues = () => {
   emit('update:revenues', internalRevenues.value)
 }
@@ -296,8 +289,7 @@ const emitUpdateRevenues = () => {
   background: #eef2f6; /* 회색 배경 */
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  padding: 24px;
-  /* margin-bottom은 v-col에 의해 처리되므로 여기서는 제거하거나 필요에 따라 조정 */
+  padding: 24px; /* 통일된 패딩 */
 }
 
 .section-title {
@@ -309,7 +301,7 @@ const emitUpdateRevenues = () => {
 
 /* 문서 목록 섹션의 높이를 고정하고 스크롤바 추가 */
 .document-list-section .document-table-container {
-  max-height: 400px; /* 원하는 높이로 조절 */
+  max-height: 400px; /* 원하는 높이로 조절 (flex-grow-1과 함께 사용 시 동적으로 변경됨) */
   overflow-y: auto; /* 세로 스크롤바 */
   border: 1px solid #e0e0e0;
   border-radius: 8px;
@@ -344,5 +336,21 @@ const emitUpdateRevenues = () => {
 .v-text-field :deep(.v-field__field),
 .v-select :deep(.v-field__field) {
   background-color: white !important;
+}
+
+/* 숫자 입력 필드의 스피너 버튼 숨기기 */
+.hide-number-spinners :deep(input[type='number']::-webkit-outer-spin-button),
+.hide-number-spinners :deep(input[type='number']::-webkit-inner-spin-button) {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.hide-number-spinners :deep(input[type='number']) {
+  -moz-appearance: textfield; /* Firefox */
+}
+
+/* 숫자 입력 필드 텍스트 가운데 정렬 */
+.text-center-input :deep(input) {
+  text-align: center;
 }
 </style>

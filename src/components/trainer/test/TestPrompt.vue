@@ -73,13 +73,6 @@
         @click="sendPromptAndProceed"
         :disabled="isLoading || !internalExamPrompt.trim()"
       >
-        <v-progress-circular
-          v-if="isLoading"
-          indeterminate
-          color="white"
-          size="20"
-          class="mr-2"
-        ></v-progress-circular>
         다음 단계
       </v-btn>
     </v-col>
@@ -150,26 +143,28 @@ const sendPromptAndProceed = async () => {
     console.log('API 응답:', response.data)
 
     if (response.data.statusCode === 'OK' && response.data.resultData) {
-      const parsedData = JSON.parse(response.data.resultData)
-      console.log('파싱된 데이터:', parsedData)
+      const resultData = response.data.resultData
+      console.log('파싱된 데이터:', resultData)
 
       const testConfigData = {
-        examGoal: parsedData.summary,
+        testId: resultData.testId,
+        examGoal: resultData.summary,
         selectedDocument: {
-          title: parsedData.name,
-          examTime: parsedData.limitedTime,
-          difficulty: parsedData.difficultyLevel,
-          passScore: parsedData.passScore,
-          retakeAllowed: parsedData.isRetake,
+          title: resultData.name,
+          examTime: resultData.limitedTime,
+          difficulty: resultData.difficultyLevel,
+          passScore: resultData.passScore,
+          retakeAllowed: resultData.isRetake,
         },
-        revenues: parsedData.documentConfigs.map((doc) => ({
-          id: doc.document_id,
-          name: `문서 ${doc.document_id}`,
-          keyword: doc.keywords.join(', '),
-          mcSet: doc.configuredObjectiveCount,
-          sqSet: doc.configuredSubjectiveCount,
-          selected: true,
-        })),
+        revenues:
+          resultData.documentConfigs?.map((doc) => ({
+            id: doc.documentId,
+            name: doc.documentName,
+            keyword: doc.keywords, // keywords 배열 그대로 전달
+            mcSet: doc.configuredObjectiveCount,
+            sqSet: doc.configuredSubjectiveCount,
+            selected: true,
+          })) || [],
       }
 
       emit('next-step', testConfigData)

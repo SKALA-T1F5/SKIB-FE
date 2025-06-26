@@ -243,21 +243,19 @@ const handleTypeSelectionNext = (selectedType) => {
   }
 }
 
-const handlePromptNext = async (prompt) => {
-  examPrompt.value = prompt
-  // TestPrompt에서 이미 isLoading을 true로 설정했으므로 여기서 다시 설정할 필요 없음
+// TestPrompt 컴포넌트에서 'next-step' 이벤트 발생 시 호출
+// 인자로 받은 configData를 사용하여 상태 업데이트
+const handlePromptNext = async (configData) => {
+  examPrompt.value = configData.examGoal
+  testId.value = configData.testId // API 응답에서 받은 testId 설정
+  selectedDocument.value = configData.selectedDocument
+  revenues.value = configData.revenues
+
   loadingMessage.value = '테스트 세팅 중입니다...'
+  isLoading.value = true // TestPrompt에서 isLoading을 제어하지만, 혹시 몰라 한 번 더 설정
 
   try {
-    // 실제 API 호출 로직을 여기에 추가 (예: 테스트 생성 API)
-    await new Promise((resolve) => setTimeout(resolve, 1500)) // 실제 API 호출로 대체
-
-    const createdTestId = 'test-' + Date.now() // 임시 ID
-    testId.value = createdTestId
-    selectedDocument.value.title = examPrompt.value
-
-    // TestConfig로 이동하기 전에 fetchDocuments를 여기서 호출합니다.
-    await fetchDocuments() // TestConfig로 넘어가기 전에 문서 목록을 미리 불러옴
+    // API 호출 대신 TestConfig로 바로 이동
     goToConfig() // TestConfig로 이동
   } catch (error) {
     console.error('시험 생성 중 오류 발생:', error)
