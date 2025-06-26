@@ -56,9 +56,10 @@
     <TestPrompt
       v-else-if="currentStep === 'prompt'"
       :is-loading="isLoading"
+      :exam-prompt="examPrompt"
       @prev-step="goToTestTypeSelection"
       @next-step="handlePromptNext"
-      @update:loading="(val) => (isLoading = val)"
+      @update:exam-prompt="(val) => (examPrompt = val)"
     />
 
     <TestConfig
@@ -117,7 +118,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import AILoading from '@/components/layouts/AiLoading.vue' // AILoading 컴포넌트 임포트
+import AILoading from '@/components/layouts/AiLoading.vue'
 import TestCard from '@/components/trainer/test/TestCard.vue'
 import TestTypeSelection from '@/components/trainer/test/TestTypeSelection.vue'
 import TestPrompt from '@/components/trainer/test/TestPrompt.vue'
@@ -126,7 +127,7 @@ import TestQuickConfig from '@/components/trainer/test/TestQuickConfig.vue'
 import TestQuestionReviewAI from '@/components/trainer/test/TestQuestionReviewAI.vue'
 import TestQuestionReviewQuick from '@/components/trainer/test/TestQuestionReviewQuick.vue'
 import TestGenerate from '@/components/trainer/test/TestGenerate.vue'
-import axios from '@/config/axios' // axios 임포트
+import axios from '@/config/axios'
 
 const router = useRouter()
 const route = useRoute()
@@ -243,35 +244,68 @@ const handleTypeSelectionNext = (selectedType) => {
   }
 }
 
-// TestPrompt 컴포넌트에서 'next-step' 이벤트 발생 시 호출
-// 인자로 받은 configData를 사용하여 상태 업데이트
-const handlePromptNext = async (configData) => {
-  examPrompt.value = configData.examGoal
-  testId.value = configData.testId // API 응답에서 받은 testId 설정
-  selectedDocument.value = configData.selectedDocument
-  revenues.value = configData.revenues
-
-  loadingMessage.value = '테스트 세팅 중입니다...'
-  isLoading.value = true // TestPrompt에서 isLoading을 제어하지만, 혹시 몰라 한 번 더 설정
+// TestPrompt 컴포넌트에서 'next-step' 이벤트 발생 시 호출 (프롬프트 전달)
+const handlePromptNext = async (prompt) => {
+  examPrompt.value = prompt // TrainerTestManagement에 프롬프트 저장
+  loadingMessage.value = 'AI가 테스트를 생성 중입니다...'
+  isLoading.value = true // 중앙 로딩 시작
 
   try {
-    // API 호출 대신 TestConfig로 바로 이동
-    goToConfig() // TestConfig로 이동
+    const response = await axios.post('/test/createByLLM', null, {
+      // 요청 본문은 null
+      params: {
+        userInput: prompt, // userInput을 쿼리 파라미터로 전달
+        projectId: currentProjectId.value, // projectId를 쿼리 파라미터로 전달
+      },
+    })
+
+    console.log('API 응답 (createByLLM):', response.data)
+
+    if (response.data.statusCode === 'OK' && response.data.resultData) {
+      // API 응답 데이터를 TrainerTestManagement의 상태에 업데이트
+      // API 응답의 resultData에 직접 필드가 있으므로, examSetting 객체 없이 직접 매핑
+      selectedDocument.value = {
+        title: response.data.resultData.name, // API 응답의 'name' 사용
+        examTime: response.data.resultData.limitedTime,
+        difficulty: response.data.resultData.difficultyLevel,
+        passScore: response.data.resultData.passScore,
+        retakeAllowed: response.data.resultData.isRetake,
+      }
+      revenues.value = response.data.resultData.documentConfigs.map((doc) => ({
+        id: doc.documentId,
+        name: doc.documentName,
+        keyword: doc.keywords || [], // 수정: keywords를 배열 그대로 사용
+        selected: true,
+        mcSet: doc.configuredObjectiveCount,
+        sqSet: doc.configuredSubjectiveCount,
+      }))
+      testId.value = response.data.resultData.testId // testId 설정
+
+      goToConfig() // TestConfig 단계로 이동
+    } else {
+      alert('테스트 생성 중 오류가 발생했습니다: ' + response.data.resultMsg)
+    }
   } catch (error) {
-    console.error('시험 생성 중 오류 발생:', error)
-    alert('시험 생성 중 오류가 발생했습니다.')
+    console.error('API 통신 오류 (createByLLM):', error)
+    alert(
+      '테스트 생성 중 오류가 발생했습니다. 네트워크 연결을 확인하거나 나중에 다시 시도해주세요.',
+    )
   } finally {
-    isLoading.value = false // 로딩 종료
+    isLoading.value = false // 중앙 로딩 종료
     loadingMessage.value = '데이터 로딩 중입니다...' // 메시지 초기화
   }
 }
 
+// TestConfig 컴포넌트에서 'next-step' 이벤트 발생 시 호출
 const handleConfigNext = async (configData) => {
   loadingMessage.value = '문제 생성 중입니다...'
   isLoading.value = true
   try {
-    selectedDocument.value = configData.selectedDocument
-    revenues.value = configData.revenues
+    // selectedDocument.value 및 revenues.value는 TestConfig 컴포넌트에서
+    // update:selected-document 및 update:revenues 이벤트를 통해 이미 업데이트되었으므로
+    // 여기서 configData를 다시 할당할 필요 없이 직접 참조할 수 있습니다.
+    // selectedDocument.value = configData.selectedDocument;
+    // revenues.value = configData.revenues;
 
     const selectedDocs = revenues.value.filter(
       (doc) => doc.selected && (doc.mcSet > 0 || doc.sqSet > 0),
@@ -283,12 +317,52 @@ const handleConfigNext = async (configData) => {
       return
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 3000)) // 실제 API 호출로 대체
+    const documentConfigsForApi = revenues.value
+      .filter((doc) => doc.selected && (doc.mcSet > 0 || doc.sqSet > 0))
+      .map((doc) => ({
+        documentId: doc.id,
+        documentName: doc.name,
+        keywords: doc.keyword ? doc.keyword.map((k) => k.trim()) : [], // 배열 그대로 사용
+        configuredObjectiveCount: doc.mcSet,
+        configuredSubjectiveCount: doc.sqSet,
+      }))
 
-    goToQuestion()
+    const requestBody = {
+      name: selectedDocument.value.title, // TestConfig에서 설정된 테스트 이름
+      summary: examPrompt.value, // TestPrompt에서 설정된 테스트 목표
+      difficultyLevel: selectedDocument.value.difficulty,
+      limitedTime: selectedDocument.value.examTime,
+      passScore: selectedDocument.value.passScore,
+      isRetake: selectedDocument.value.retakeAllowed,
+      documentConfigs: documentConfigsForApi,
+    }
+
+    console.log('API Request Body:', requestBody)
+
+    const response = await axios.post('/test/create', requestBody, {
+      params: {
+        projectId: currentProjectId.value,
+      },
+    })
+
+    console.log('API 응답:', response.data)
+
+    if (
+      response.data.statusCode === 'OK' &&
+      response.data.resultData &&
+      response.data.resultData.testId
+    ) {
+      testId.value = response.data.resultData.testId // API 응답에서 실제 testId 설정
+      goToQuestion() // 문제 검토 단계로 이동
+    } else {
+      console.error('API 응답이 실패했거나 데이터가 유효하지 않습니다.', response.data)
+      alert('테스트 생성에 실패했습니다. 다시 시도해주세요.')
+    }
   } catch (error) {
-    console.error('시험 설정 저장 중 오류 발생:', error)
-    alert('시험 설정 저장 중 오류가 발생했습니다.')
+    console.error('시험 설정 저장 및 생성 중 오류 발생:', error)
+    alert(
+      '시험 설정 저장 및 생성 중 오류가 발생했습니다. 네트워크 연결을 확인하거나 나중에 다시 시도해주세요.',
+    )
   } finally {
     isLoading.value = false
     loadingMessage.value = '데이터 로딩 중입니다...'
@@ -401,7 +475,7 @@ const fetchDocuments = async () => {
       {
         id: 101,
         name: 'Aiper Front 개발환경 가이드.pdf',
-        keyword: 'React, Vue, Webpack',
+        keyword: ['React', 'Vue', 'Webpack'], // 수정: 배열로 유지
         selected: true,
         mcSet: 3,
         sqSet: 2,
@@ -409,7 +483,7 @@ const fetchDocuments = async () => {
       {
         id: 102,
         name: 'alopex_UI_1.1.2_개발가이드.pdf',
-        keyword: 'UI Component, CSS, JS',
+        keyword: ['UI Component', 'CSS', 'JS'], // 수정: 배열로 유지
         selected: true,
         mcSet: 2,
         sqSet: 1,
@@ -417,7 +491,7 @@ const fetchDocuments = async () => {
       {
         id: 103,
         name: '개발 Process 흐름도_sample.pptx',
-        keyword: 'Agile, Scrum, Git',
+        keyword: ['Agile', 'Scrum', 'Git'], // 수정: 배열로 유지
         selected: false,
         mcSet: 0,
         sqSet: 0,
@@ -425,7 +499,7 @@ const fetchDocuments = async () => {
       {
         id: 104,
         name: 'Vue.js 완벽 가이드.pdf',
-        keyword: 'Vuex, Pinia, Composition API',
+        keyword: ['Vuex', 'Pinia', 'Composition API'], // 수정: 배열로 유지
         selected: true,
         mcSet: 4,
         sqSet: 3,
@@ -433,7 +507,7 @@ const fetchDocuments = async () => {
       {
         id: 105,
         name: 'Spring Boot 시작하기.docx',
-        keyword: 'Spring, Java, Backend',
+        keyword: ['Spring', 'Java', 'Backend'], // 수정: 배열로 유지
         selected: false,
         mcSet: 0,
         sqSet: 0,

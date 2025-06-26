@@ -158,7 +158,7 @@
               class="font-weight-bold"
               style="color: #191d5a"
               >{{ totalSaqCount }}</span
-            >&nbsp;&nbsp;|&nbsp;&nbsp;Total:&nbsp;<span
+            >&nbsp;&nbsp;|&nbsp;&nbsp;총 문제 수:&nbsp;<span
               class="font-weight-bold"
               style="color: #191d5a"
               >{{ totalMcqCount + totalSaqCount }}</span

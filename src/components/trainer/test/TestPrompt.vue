@@ -29,6 +29,7 @@
           clearable
           :rules="[(v) => !!v.trim() || '테스트 목표를 입력해주세요.']"
           class="h-100"
+          @update:model-value="emitUpdateExamPrompt"
         ></v-textarea>
       </div>
     </v-col>
@@ -41,7 +42,7 @@
           elevation="0"
           class="example-prompt-card pa-4 d-flex flex-column align-start cursor-pointer"
           outlined
-          @click="internalExamPrompt = prompt"
+          @click="selectExamplePrompt(prompt)"
           max-width="calc(33.333% - 10.666px)"
           min-width="250px"
           flex-grow="1"
@@ -80,23 +81,30 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits } from 'vue'
-import { useRoute } from 'vue-router'
-import axios from '@/config/axios' // axios 설정을 가져옵니다.
+import { ref, defineProps, defineEmits, watch } from 'vue'
 
 const props = defineProps({
   isLoading: {
     type: Boolean,
     default: false,
   },
+  examPrompt: {
+    type: String,
+    default: '',
+  },
 })
 
-// update:loading 이벤트를 통해 부모 컴포넌트의 isLoading 상태를 업데이트합니다.
-const emit = defineEmits(['prev-step', 'next-step', 'update:loading'])
+const emit = defineEmits(['prev-step', 'next-step', 'update:loading', 'update:exam-prompt'])
 
-const route = useRoute()
+const internalExamPrompt = ref(props.examPrompt) // props에서 받은 값을 초기값으로 설정
 
-const internalExamPrompt = ref('')
+watch(
+  () => props.examPrompt,
+  (newVal) => {
+    internalExamPrompt.value = newVal
+  },
+)
+
 const examplePrompts = ref([
   'UI 컴포넌트 개발 원칙과 활용 방법에 대한 실무 중심의 객관식 시험을 출제해주세요.',
   '프론트엔드 개발 환경 구축에 대한 이해도를 평가하는 시험을 만들어주세요. (난이도 중간, 객관식)',
@@ -107,80 +115,22 @@ const emitPrevStep = () => {
   emit('prev-step')
 }
 
-const sendPromptAndProceed = async () => {
+const emitUpdateExamPrompt = () => {
+  emit('update:exam-prompt', internalExamPrompt.value)
+}
+
+// 새로운 메서드: 예시 프롬프트를 선택하고 부모에게 변경사항을 알림
+const selectExamplePrompt = (prompt) => {
+  internalExamPrompt.value = prompt
+  emitUpdateExamPrompt()
+}
+
+const sendPromptAndProceed = () => {
   if (!internalExamPrompt.value.trim()) {
     console.warn('Prompt is empty or contains only whitespace. Cannot proceed to next step.')
     return
   }
-
-  // 요청 시작 시 isLoading을 true로 설정하여 로딩 인디케이터를 표시합니다.
-  emit('update:loading', true)
-
-  try {
-    const projectId = route.params.projectId || localStorage.getItem('projectId')
-    if (!projectId) {
-      console.error('Project ID is not available. Cannot create test.')
-      alert('프로젝트 ID를 찾을 수 없습니다. 다시 시도해주세요.')
-      emit('update:loading', false)
-      return
-    }
-
-    const parsedProjectId = parseInt(projectId)
-    if (isNaN(parsedProjectId)) {
-      console.error('Project ID is not a valid number.', projectId)
-      alert('유효하지 않은 프로젝트 ID입니다. 다시 시도해주세요.')
-      emit('update:loading', false)
-      return
-    }
-
-    const response = await axios.post('/test/createByLLM', null, {
-      params: {
-        userInput: internalExamPrompt.value,
-        projectId: parsedProjectId,
-      },
-    })
-
-    console.log('API 응답:', response.data)
-
-    if (response.data.statusCode === 'OK' && response.data.resultData) {
-      const resultData = response.data.resultData
-      console.log('파싱된 데이터:', resultData)
-
-      const testConfigData = {
-        testId: resultData.testId,
-        examGoal: resultData.summary,
-        selectedDocument: {
-          title: resultData.name,
-          examTime: resultData.limitedTime,
-          difficulty: resultData.difficultyLevel,
-          passScore: resultData.passScore,
-          retakeAllowed: resultData.isRetake,
-        },
-        revenues:
-          resultData.documentConfigs?.map((doc) => ({
-            id: doc.documentId,
-            name: doc.documentName,
-            keyword: doc.keywords, // keywords 배열 그대로 전달
-            mcSet: doc.configuredObjectiveCount,
-            sqSet: doc.configuredSubjectiveCount,
-            selected: true,
-          })) || [],
-      }
-
-      emit('next-step', testConfigData)
-    } else {
-      console.error('API 응답이 실패했거나 데이터가 유효하지 않습니다.', response.data)
-      alert('테스트 생성에 실패했습니다. 다시 시도해주세요.')
-    }
-  } catch (error) {
-    console.error('API 호출 중 오류 발생:', error)
-    alert(
-      '테스트 생성 중 오류가 발생했습니다. 네트워크 연결을 확인하거나 나중에 다시 시도해주세요.',
-    )
-  } finally {
-    // 요청 완료 시 (성공 또는 실패) isLoading을 false로 설정하여 로딩 인디케이터를 숨깁니다.
-    emit('update:loading', false)
-  }
+  emit('next-step', internalExamPrompt.value)
 }
 </script>
 
