@@ -153,9 +153,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits, computed, watch, onMounted } from 'vue'
-import axios from '@/config/axios'
-import { useRoute } from 'vue-router'
+import { ref, defineProps, defineEmits, computed, watch } from 'vue' // onMounted, axios, useRoute 제거
 
 const props = defineProps({
   revenues: {
@@ -167,7 +165,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:revenues', 'prev-step', 'next-step'])
 
-const route = useRoute()
+// const route = useRoute(); // 사용하지 않으므로 제거
 
 const internalRevenues = ref([])
 
@@ -179,77 +177,26 @@ const passingScore = ref(60)
 const form = ref(null)
 const formValid = ref(false)
 
-const currentProjectId = computed(
-  () => route.params.projectId || localStorage.getItem('projectId') || 'mock-project-123',
-)
+// currentProjectId는 TestQuickConfig에서 직접 사용하지 않으므로 제거
+// const currentProjectId = computed(
+//   () => route.params.projectId || localStorage.getItem('projectId') || 'mock-project-123',
+// );
 
-const fetchDocumentQuestionCounts = async () => {
-  emit('update:isLoading', true) // 로딩 시작
-  try {
-    const response = await axios.get('/test/document-question-counts', {
-      params: { projectId: currentProjectId.value },
-    })
+// fetchDocumentQuestionCounts 함수 제거
+// const fetchDocumentQuestionCounts = async () => { /* ... */ };
 
-    if (response.data.statusCode === 'OK' && response.data.resultData) {
-      internalRevenues.value = response.data.resultData.map((doc) => ({
-        id: doc.documentId,
-        name: doc.documentName,
-        questionCount: doc.questionCount, // API에서 받은 questionCount를 사용
-        // 이 외에 필요한 필드가 있다면 여기에 추가 (예: keyword, selected, mcSet, sqSet 등)
-        // 현재 API 응답에는 keyword 정보가 없으므로 빈 배열로 초기화하거나 백엔드에서 제공하도록 요청해야 합니다.
-        keyword: [],
-        selected: true, // 기본적으로 선택된 상태로 가정
-        mcSet: 0, // 빠른 생성에서는 mcCount/sqCount 대신 questionCount로 총 문제를 다루므로 0으로 설정
-        sqSet: 0,
-      }))
-      // TestQuickConfig에서는 이전에 revenues prop을 받아서 사용했지만, 이제는 API에서 직접 데이터를 가져오므로
-      // 부모 컴포넌트의 revenues 상태를 여기서 업데이트 해줄 필요가 있습니다.
-      // 하지만 현재 `emit('update:revenues', internalRevenues.value)`를 호출하면
-      // TrainerTestManagement의 revenues가 TestQuickConfig의 internalRevenues와 동일한 구조로 업데이트됩니다.
-      // 추후 이 revenues 데이터가 TestQuestionReviewQuick으로 넘어가서 사용될 때 문제가 없는지 확인이 필요합니다.
-      // 만약 `mcSet`과 `sqSet`이 `TestQuestionReviewQuick`에서 필요하다면,
-      // `internalRevenues`에 해당 필드를 추가하고 초기화하는 로직이 필요합니다.
-      emit(
-        'update:revenues',
-        internalRevenues.value.map((doc) => ({
-          id: doc.id,
-          name: doc.name,
-          keyword: doc.keyword, // 현재는 빈 배열
-          selected: doc.selected,
-          mcSet: doc.questionCount, // 빠른 생성에서는 전체 문제를 mcSet으로 임시 설정
-          sqSet: 0,
-        })),
-      )
-    } else {
-      console.error('API 응답 오류:', response.data.resultMsg)
-      internalRevenues.value = []
-    }
-  } catch (error) {
-    console.error('문서별 문제 수 가져오기 실패:', error)
-    alert('문서 목록을 불러오는 데 실패했습니다.')
-    internalRevenues.value = []
-  } finally {
-    emit('update:isLoading', false) // 로딩 종료
-  }
-}
-
+// props.revenues를 직접 watch하여 internalRevenues 업데이트
 watch(
   () => props.revenues,
   (newVal) => {
-    // 이 watch는 TestQuickConfig가 외부에서 revenues prop을 받을 때 초기화하는 용도였으나,
-    // 이제 내부에서 API를 호출하므로 그 필요성이 줄어들었습니다.
-    // 하지만 혹시 다른 경로를 통해 revenues가 전달될 경우를 대비해 유지할 수 있습니다.
-    // 여기서는 API 호출로 데이터를 초기화하므로, 이 watch의 immediate: true는 제거합니다.
-    // API 호출로 초기화된 데이터가 있다면 해당 데이터를 사용하고, 없다면 props.revenues를 참조합니다.
-    if (newVal.length > 0 && internalRevenues.value.length === 0) {
-      internalRevenues.value = newVal.map((item) => ({
-        ...item,
-        mcCount: item.mcCount || 0,
-        sqCount: item.sqCount || 0,
-      }))
-    }
+    internalRevenues.value = newVal.map((item) => ({
+      ...item,
+      // mcCount, sqCount는 부모에서 이미 적절히 설정되어 넘어올 것으로 가정
+      // 만약 필요하다면 여기에 기본값 설정 로직 추가
+      questionCount: item.questionCount || 0, // ensure questionCount is present
+    }))
   },
-  { deep: true },
+  { deep: true, immediate: true }, // immediate: true로 설정하여 초기 props 값으로 즉시 반영
 )
 
 const headers = [
@@ -281,6 +228,9 @@ const isFormValid = computed(() => {
   ) {
     return false
   }
+  if (totalTestQuestions.value > totalAvailableQuestions.value) {
+    return false
+  }
   if (testDuration.value === null || testDuration.value === undefined || testDuration.value < 1) {
     return false
   }
@@ -292,9 +242,6 @@ const isFormValid = computed(() => {
     return false
   }
 
-  if (totalTestQuestions.value > totalAvailableQuestions.value) {
-    return false
-  }
   if (passingScore.value < 0 || passingScore.value > 100) {
     return false
   }
@@ -352,7 +299,7 @@ const emitNextStep = async () => {
 
   emit(
     'next-step',
-    internalRevenues.value,
+    internalRevenues.value, // 업데이트된 revenues 데이터 전달
     testName.value,
     totalTestQuestions.value,
     testDuration.value,
@@ -360,16 +307,17 @@ const emitNextStep = async () => {
   )
 }
 
-onMounted(() => {
-  console.log('TestQuickConfig mounted!')
-  fetchDocumentQuestionCounts()
-})
+// onMounted와 currentProjectId watch는 TestQuickConfig에서 필요 없으므로 제거
+// onMounted(() => {
+//   console.log('TestQuickConfig mounted!');
+//   fetchDocumentQuestionCounts();
+// });
 
-watch(currentProjectId, (newProjectId, oldProjectId) => {
-  if (newProjectId && newProjectId !== oldProjectId) {
-    fetchDocumentQuestionCounts()
-  }
-})
+// watch(currentProjectId, (newProjectId, oldProjectId) => {
+//   if (newProjectId && newProjectId !== oldProjectId) {
+//     fetchDocumentQuestionCounts();
+//   }
+// });
 </script>
 
 <style scoped>

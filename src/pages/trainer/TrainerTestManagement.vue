@@ -211,7 +211,7 @@ const goToPrompt = () => {
 const goToQuickConfig = async () => {
   router.push({ query: { step: 'quick-config' } }).catch(() => {})
   testCreationType.value = 'quick' // 빠른 생성으로 설정
-  await fetchDocuments()
+  await fetchDocuments() // 빠른 생성 시 문서 목록 미리 가져오기
 }
 
 const goToConfig = async () => {
@@ -392,114 +392,59 @@ const handleConfigNext = async (configData) => {
   }
 }
 
-const handleQuickConfigNext = async (updatedRevenues) => {
+// TestQuickConfig 컴포넌트에서 'next-step' 이벤트 발생 시 호출
+const handleQuickConfigNext = async (
+  updatedRevenues,
+  testName,
+  totalTestQuestions,
+  testDuration,
+  passingScore,
+) => {
   loadingMessage.value = '문제를 찾아오는 중입니다.'
   isLoading.value = true
   try {
-    revenues.value = updatedRevenues
-
-    const selectedDocs = revenues.value.filter(
-      (doc) => doc.selected && (doc.mcSet > 0 || doc.sqSet > 0),
-    )
-    if (selectedDocs.length === 0) {
-      alert('문서를 선택하고 생성할 문제 수를 설정해주세요.')
-      isLoading.value = false
-      loadingMessage.value = '데이터 로딩 중입니다.'
-      return
+    // TestQuickConfig에서 받은 데이터를 사용하여 API 요청 바디 구성
+    const requestBody = {
+      name: testName,
+      limitedTime: testDuration,
+      passScore: passingScore,
+      totalQuestionCount: totalTestQuestions,
+      // revenues에서 필요한 정보 (documentId, questionCount)만 추출
+      documentConfigs: revenues.value.map((doc) => ({
+        documentId: doc.id,
+        questionCount: doc.questionCount, // TestQuickConfig에서 받아온 questionCount 사용
+      })),
     }
+    console.log('Quick Test API Request Body:', requestBody)
 
-    // 실제 API 호출로 대체되어야 합니다.
-    // 현재는 TestQuestionReviewAI가 기대하는 mock 데이터 구조를 따릅니다.
-    // TODO: 빠른 생성 문제 가져오는 API 호출 로직 추가
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    const response = await axios.post('/test/quick', requestBody, {
+      params: {
+        projectId: currentProjectId.value,
+      },
+    })
 
-    testId.value = 'quick-test-' + Date.now()
-    selectedDocument.value.title = '빠른 생성 테스트' // 빠른 생성 테스트 이름 설정 (선택사항)
+    console.log('Quick Test API 응답:', response.data)
 
-    // TODO: 실제 API 응답에서 questionsData를 받아오는 로직으로 교체 필요
-    questionsData.value = [
-      {
-        id: 'q1-quick',
-        question:
-          'Vue.js의 라이프사이클 훅 중 컴포넌트가 마운트된 후 한 번 호출되는 훅은 무엇인가요?',
-        type: 'MCQ', // 'MULTIPLE_CHOICE'에서 'MCQ'로 통일
-        options: ['created', 'mounted', 'updated', 'unmounted'],
-        answer: 'mounted',
-        explanation: 'Vue.js 컴포넌트가 DOM에 마운트된 후 호출되는 훅입니다.',
-        documentName: 'Vue.js 완벽 가이드.pdf',
-        documentId: 104,
-        tags: ['Vue.js', 'LifeCycle'],
-        difficultyLevel: 'NORMAL',
-        generationType: 'BASIC',
-      },
-      {
-        id: 'q2-quick',
-        question:
-          'Spring Boot에서 RESTful API를 만들 때 사용하는 주요 어노테이션 두 가지를 설명하세요.',
-        type: 'Subjective', // 'SHORT_ANSWER'에서 'Subjective'로 통일
-        answer: '@RestController, @RequestMapping',
-        explanation: 'RESTful 웹 서비스를 개발할 때 주로 사용되는 어노테이션입니다.',
-        gradingCriteria: [
-          {
-            score: 5,
-            criteria: '두 가지 어노테이션을 모두 정확히 언급하고 각각의 역할을 설명함.',
-            example:
-              'RestController는 해당 클래스를 REST API의 컨트롤러로 지정하고, RequestMapping은 요청 URL과 메서드를 매핑합니다.',
-          },
-          {
-            score: 3,
-            criteria: '한 가지 어노테이션만 정확히 언급하거나 역할 설명이 부족함.',
-            example: 'RestController만 언급하고 설명이 부족함.',
-          },
-        ],
-        documentName: 'Spring Boot 시작하기.docx',
-        documentId: 105,
-        tags: ['Spring Boot', 'REST API'],
-        difficultyLevel: 'HARD',
-        generationType: 'BASIC',
-      },
-      {
-        id: 'q3-quick',
-        question:
-          '프론트엔드 개발에서 번들러(예: Webpack)를 사용하는 주된 이유는 무엇인가요? (객관식)',
-        type: 'MCQ',
-        options: [
-          '코드 압축 및 최적화',
-          '모듈 의존성 관리',
-          '브라우저 호환성 확보 (Babel 등)',
-          '위의 모든 응답',
-        ],
-        answer: '위의 모든 응답',
-        explanation:
-          '번들러는 여러 파일을 하나로 묶고, 코드 최적화, 의존성 관리, 트랜스파일링을 통해 브라우저 호환성을 높이는 등 다양한 역할을 합니다.',
-        documentName: 'Aiper Front 개발환경 가이드.pdf',
-        documentId: 101,
-        tags: ['Frontend', 'Webpack'],
-        difficultyLevel: 'EASY',
-        generationType: 'BASIC',
-      },
-      {
-        id: 'q4-quick-extra',
-        question: 'Vue.js에서 컴포넌트 간 데이터 전달 시 가장 일반적인 방법은 무엇인가요? (EXTRA)',
-        type: 'MCQ',
-        options: [
-          'Props를 통한 하향식 전달',
-          'Event Bus를 통한 통신',
-          'Vuex/Pinia와 같은 상태 관리 라이브러리 사용',
-          '전역 변수 사용',
-        ],
-        answer: 'Props를 통한 하향식 전달',
-        explanation:
-          '부모에서 자식으로 데이터를 전달할 때는 props를 사용하는 것이 Vue.js의 기본적이고 권장되는 방식입니다.',
-        documentName: 'Vue.js 완벽 가이드.pdf',
-        documentId: 104,
-        tags: ['Vue.js', 'Props'],
-        difficultyLevel: 'NORMAL',
-        generationType: 'EXTRA', // EXTRA 문제 예시
-      },
-    ]
+    if (
+      response.data.statusCode === 'OK' &&
+      response.data.resultData &&
+      response.data.resultData.testId
+    ) {
+      testId.value = response.data.resultData.testId
+      // selectedDocument.value.title = testName; // 빠른 생성 테스트 이름 설정
 
-    goToQuestion()
+      if (response.data.resultData.questions) {
+        questionsData.value = response.data.resultData.questions
+      } else {
+        questionsData.value = []
+        console.warn("API 응답에 'questions' 데이터가 포함되어 있지 않습니다.")
+      }
+
+      goToQuestion() // 문제 검토 단계로 이동
+    } else {
+      console.error('Quick Test API 응답 실패:', response.data)
+      alert('빠른 테스트 생성에 실패했습니다: ' + response.data.resultMsg)
+    }
   } catch (error) {
     console.error('빠른 시험 설정 저장 중 오류 발생:', error)
     alert('빠른 시험 설정 저장 중 오류가 발생했습니다.')
@@ -647,56 +592,32 @@ const handleDeleteTest = async (testIdToDelete) => {
   }
 }
 
-// --- Data Fetching (Mock) for TestConfig content ---
+// 문서 목록을 가져오는 함수 (TestQuickConfig에서 사용)
 const fetchDocuments = async () => {
   isLoading.value = true
   loadingMessage.value = '문서 목록을 불러오는 중입니다...'
   try {
-    await new Promise((resolve) => setTimeout(resolve, 300))
-    revenues.value = [
-      {
-        id: 101,
-        name: 'Aiper Front 개발환경 가이드.pdf',
-        keyword: ['React', 'Vue', 'Webpack'], // 수정: 배열로 유지
-        selected: true,
-        mcSet: 3,
-        sqSet: 2,
-      },
-      {
-        id: 102,
-        name: 'alopex_UI_1.1.2_개발가이드.pdf',
-        keyword: ['UI Component', 'CSS', 'JS'], // 수정: 배열로 유지
-        selected: true,
-        mcSet: 2,
-        sqSet: 1,
-      },
-      {
-        id: 103,
-        name: '개발 Process 흐름도_sample.pptx',
-        keyword: ['Agile', 'Scrum', 'Git'], // 수정: 배열로 유지
-        selected: false,
-        mcSet: 0,
+    const response = await axios.get('/test/document-question-counts', {
+      params: { projectId: currentProjectId.value },
+    })
+
+    if (response.data.statusCode === 'OK' && response.data.resultData) {
+      revenues.value = response.data.resultData.map((doc) => ({
+        id: doc.documentId,
+        name: doc.documentName,
+        questionCount: doc.questionCount, // API에서 받은 questionCount를 사용
+        keyword: [], // 현재 API 응답에는 keyword 정보가 없으므로 빈 배열로 초기화
+        selected: true, // 기본적으로 선택된 상태로 가정
+        mcSet: doc.questionCount, // 빠른 생성에서는 전체 문제를 mcSet으로 임시 설정
         sqSet: 0,
-      },
-      {
-        id: 104,
-        name: 'Vue.js 완벽 가이드.pdf',
-        keyword: ['Vuex', 'Pinia', 'Composition API'], // 수정: 배열로 유지
-        selected: true,
-        mcSet: 4,
-        sqSet: 3,
-      },
-      {
-        id: 105,
-        name: 'Spring Boot 시작하기.docx',
-        keyword: ['Spring', 'Java', 'Backend'], // 수정: 배열로 유지
-        selected: false,
-        mcSet: 0,
-        sqSet: 0,
-      },
-    ]
+      }))
+    } else {
+      console.error('API 응답 오류:', response.data.resultMsg)
+      revenues.value = []
+    }
   } catch (error) {
-    console.error('문서 목록 가져오기 실패 (Mock):', error)
+    console.error('문서별 문제 수 가져오기 실패:', error)
+    alert('문서 목록을 불러오는 데 실패했습니다.')
     revenues.value = []
   } finally {
     isLoading.value = false
