@@ -89,18 +89,33 @@
                 {{ currentQuestion.documentName }}
               </span>
               <v-chip
-                v-for="(keyword, kIdx) in currentQuestion.tags"
+                v-for="(tag, kIdx) in currentQuestion.tags"
                 :key="kIdx"
-                size="x-small"
-                color="blue-grey-lighten-4"
-                variant="tonal"
+                size="small"
+                color="primary"
+                variant="flat"
                 rounded="lg"
-                class="ml-1 mr-1 my-1"
+                class="ml-1 mr-1 my-1 enhanced-tag"
               >
-                {{ keyword }}
+                {{ tag }}
               </v-chip>
-              <span class="text-h8 mt-1 ml-2" style="color: grey"> | {{ difficultyStars }} </span>
+              <span class="text-h8 mt-1 ml-2 difficulty-text" :class="getDifficultyClass()">
+                {{ getDifficultyText() }}
+              </span>
               <v-spacer></v-spacer>
+
+              <!-- 모든 BASIC 문제에 교체 버튼 표시 -->
+              <v-btn
+                variant="flat"
+                color="orange"
+                size="small"
+                class="ml-2"
+                @click="refreshQuestion"
+                :loading="isRefreshing"
+              >
+                <v-icon start>mdi-refresh</v-icon>
+                문제 교체
+              </v-btn>
             </div>
 
             <h4 class="text-h8 mt-1 font-weight-bold mb-2">문제</h4>
@@ -220,8 +235,11 @@ function prevStep() {
 
 const documents = ref([])
 const questions = ref([])
+const extraQuestions = ref([]) // EXTRA 문제들을 별도로 저장
 const selectedQuestionIndex = ref(0)
 const isFetchingQuestions = ref(false) // Prop으로 전달받은 isLoading을 따르도록 설정
+const isRefreshing = ref(false) // EXTRA 문제 새로고침 로딩 상태
+
 const currentQuestion = computed(() => {
   return questions.value[selectedQuestionIndex.value]
 })
@@ -241,20 +259,118 @@ const currentQuestionAndOptions = computed(() => {
 
 const currentAnswerAndExplanation = computed(() => {
   if (!currentQuestion.value) return ''
-  return `정답: ${currentQuestion.value.answer}\n\n해설: ${currentQuestion.value.explanation}`
+
+  let result = `정답: ${currentQuestion.value.answer}\n\n해설: ${currentQuestion.value.explanation}`
+
+  // 주관식 문제의 경우 채점기준 추가
+  if (currentQuestion.value.type === 'Subjective' && currentQuestion.value.gradingCriteria) {
+    result += '\n\n채점 기준:'
+    currentQuestion.value.gradingCriteria.forEach((criteria, index) => {
+      result += `\n${criteria.score}점: ${criteria.criteria}`
+      if (criteria.example) {
+        result += `\n  예시: ${criteria.example}`
+      }
+      if (criteria.note) {
+        result += `\n  비고: ${criteria.note}`
+      }
+    })
+  }
+
+  return result
 })
 
-const difficultyStars = computed(() => {
-  if (!currentQuestion.value || typeof currentQuestion.value.difficulty !== 'number') return ''
-  return (
-    '★'.repeat(currentQuestion.value.difficulty) + '☆'.repeat(5 - currentQuestion.value.difficulty)
-  )
-})
+// 난이도를 텍스트로 변환하는 함수
+const getDifficultyText = () => {
+  if (!currentQuestion.value || !currentQuestion.value.difficultyLevel) return 'NORMAL'
+
+  return currentQuestion.value.difficultyLevel // 이미 문자열로 제공됨 (EASY, NORMAL, HARD)
+}
+
+// 난이도별 CSS 클래스 반환
+const getDifficultyClass = () => {
+  const difficultyText = getDifficultyText()
+  return `difficulty-${difficultyText.toLowerCase()}`
+}
+
+// BASIC 문제를 EXTRA 문제로 교체하는 함수
+const refreshQuestion = () => {
+  if (!currentQuestion.value || extraQuestions.value.length === 0) {
+    console.warn('교체할 수 있는 EXTRA 문제가 없습니다.')
+    return
+  }
+
+  isRefreshing.value = true
+
+  try {
+    // 현재 문제와 같은 문서의 EXTRA 문제들을 필터링
+    const sameDocumentExtraQuestions = extraQuestions.value.filter(
+      (q) => q.documentId === currentQuestion.value.documentId,
+    )
+
+    // 같은 문서에 EXTRA 문제가 없으면 전체 EXTRA 문제에서 선택
+    const availableExtraQuestions =
+      sameDocumentExtraQuestions.length > 0 ? sameDocumentExtraQuestions : extraQuestions.value
+
+    // 현재 문제와 다른 문제만 선택 (중복 방지)
+    const differentExtraQuestions = availableExtraQuestions.filter(
+      (q) => q.id !== currentQuestion.value.id,
+    )
+
+    if (differentExtraQuestions.length === 0) {
+      console.warn('교체할 수 있는 다른 EXTRA 문제가 없습니다.')
+      isRefreshing.value = false
+      return
+    }
+
+    // 무작위로 EXTRA 문제 선택
+    const randomIndex = Math.floor(Math.random() * differentExtraQuestions.length)
+    const selectedExtraQuestion = differentExtraQuestions[randomIndex]
+
+    // 현재 문제를 선택된 EXTRA 문제로 교체
+    const currentIndex = selectedQuestionIndex.value
+    questions.value[currentIndex] = {
+      ...selectedExtraQuestion,
+      isReplaced: true, // 교체된 문제임을 표시
+    }
+
+    // 문서 목록도 업데이트
+    updateDocumentsList()
+
+    console.log('문제 교체 완료:', selectedExtraQuestion.question.substring(0, 50) + '...')
+  } catch (error) {
+    console.error('문제 교체 중 오류 발생:', error)
+  } finally {
+    // 짧은 딜레이 후 로딩 해제 (UX 개선)
+    setTimeout(() => {
+      isRefreshing.value = false
+    }, 500)
+  }
+}
+
+// 문서 목록 업데이트 함수
+const updateDocumentsList = () => {
+  const docsMap = new Map()
+
+  questions.value.forEach((q) => {
+    const docId = q.documentId
+    if (!docsMap.has(docId)) {
+      docsMap.set(docId, {
+        id: docId,
+        name: q.documentName,
+        questions: [],
+      })
+    }
+    docsMap.get(docId).questions.push(q)
+  })
+
+  documents.value = Array.from(docsMap.values())
+}
 
 // questionsData prop이 변경될 때마다 내부 상태 업데이트
 const processQuestionsData = (data) => {
   const docsMap = new Map()
   const allQuestions = []
+  const allExtraQuestions = []
   let uniqueDocCounter = 0 // To generate unique IDs for documents without a documentId
   let uniqueQuestionCounter = 0 // To generate unique IDs for questions without an ID
 
@@ -263,33 +379,50 @@ const processQuestionsData = (data) => {
     const docId = q.documentId || q.documentName || `generated-doc-id-${uniqueDocCounter++}`
 
     const processedQuestion = {
-      id: q.id || `question-id-${uniqueQuestionCounter++}`, // 질문 ID가 없는 경우 고유 ID 생성
+      id: q.id || `question-id-${uniqueQuestionCounter++}`, // 질문 ID
       documentId: docId,
-      documentName: q.documentName || '알 수 없는 문서', // 문서 이름이 없는 경우 대체 텍스트
-      question: q.question || q.questionText || '질문 내용 없음', // 질문 내용이 없는 경우 대체 텍스트
-      type:
-        q.type === 'MULTIPLE_CHOICE' ? 'MCQ' : q.type === 'SHORT_ANSWER' ? 'Subjective' : q.type, // 타입 매핑
-      options: q.options ? q.options.map((opt) => (typeof opt === 'object' ? opt.text : opt)) : [], // 옵션 형식 통일 (문자열 배열)
-      answer: q.answer || '정답 정보 없음', // 정답이 없는 경우 대체 텍스트
-      explanation: q.explanation || '해설 정보 없음', // 해설이 없는 경우 대체 텍스트
-      tags: q.tags || [],
-      difficulty: typeof q.difficulty === 'number' ? q.difficulty : 3, // 0을 유효한 난이도로 처리, 아니면 기본값 3
+      documentName: q.documentName || '알 수 없는 문서', // 문서 이름
+      question: q.question || '질문 내용 없음', // 질문 내용
+      type: q.type === 'OBJECTIVE' ? 'MCQ' : q.type === 'SUBJECTIVE' ? 'Subjective' : q.type, // 타입 매핑
+      options: q.options || [], // 옵션 (객관식의 경우)
+      answer: q.answer || '정답 정보 없음', // 정답
+      explanation: q.explanation || '해설 정보 없음', // 해설
+      gradingCriteria: q.gradingCriteria || null, // 채점기준 (주관식의 경우)
+      keywords: q.keywords || [], // 키워드
+      tags: q.tags || [], // 태그
+      difficultyLevel: q.difficultyLevel || 'NORMAL', // 난이도 (이미 문자열)
+      generationType: q.generationType || 'BASIC', // generationType
+      isReplaced: q.isReplaced || false, // 교체된 문제 여부
     }
 
-    if (!docsMap.has(docId)) {
-      docsMap.set(docId, {
-        id: docId,
-        name: processedQuestion.documentName,
-        questions: [],
-      })
+    // BASIC 문제는 즉시 표시할 목록에 추가
+    if (processedQuestion.generationType === 'BASIC') {
+      if (!docsMap.has(docId)) {
+        docsMap.set(docId, {
+          id: docId,
+          name: processedQuestion.documentName,
+          questions: [],
+        })
+      }
+      docsMap.get(docId).questions.push(processedQuestion)
+      allQuestions.push(processedQuestion)
     }
-    docsMap.get(docId).questions.push(processedQuestion)
-    allQuestions.push(processedQuestion)
+
+    // EXTRA 문제는 별도 배열에 저장
+    if (processedQuestion.generationType === 'EXTRA') {
+      allExtraQuestions.push(processedQuestion)
+    }
   })
 
   documents.value = Array.from(docsMap.values())
   questions.value = allQuestions
-  selectedQuestionIndex.value = 0
+  extraQuestions.value = allExtraQuestions // EXTRA 문제들 저장
+
+  // 선택된 문제 인덱스가 유효한지 확인하고 조정
+  if (selectedQuestionIndex.value >= questions.value.length) {
+    selectedQuestionIndex.value = Math.max(0, questions.value.length - 1)
+  }
+
   if (questions.value.length > 0 && documents.value.length > 0) {
     expandedPanels.value = [documents.value[0]?.id]
   } else {
@@ -306,6 +439,7 @@ watch(
     } else if (newQuestionsData && newQuestionsData.length === 0) {
       documents.value = []
       questions.value = []
+      extraQuestions.value = []
       selectedQuestionIndex.value = 0
       expandedPanels.value = []
     }
@@ -393,6 +527,43 @@ onMounted(() => {
   left: 0;
   right: 0;
   margin: 0 auto;
+}
+
+/* Enhanced tag styling */
+.enhanced-tag {
+  font-weight: 600 !important;
+  background-color: #1976d2 !important;
+  color: white !important;
+  border: 1px solid #1565c0 !important;
+  box-shadow: 0 2px 4px rgba(25, 118, 210, 0.3) !important;
+}
+
+/* Difficulty text styling */
+.difficulty-text {
+  font-weight: bold;
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.difficulty-easy {
+  background-color: #c8e6c9;
+  color: #2e7d32;
+  border: 1px solid #4caf50;
+}
+
+.difficulty-normal {
+  background-color: #fff3e0;
+  color: #ef6c00;
+  border: 1px solid #ff9800;
+}
+
+.difficulty-hard {
+  background-color: #ffcdd2;
+  color: #c62828;
+  border: 1px solid #f44336;
 }
 
 /* Expansion panel styles */
