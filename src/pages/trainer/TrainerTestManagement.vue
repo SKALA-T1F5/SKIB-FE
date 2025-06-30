@@ -36,7 +36,7 @@
           >
             <TestCard
               :test="test"
-              @copy-link="handleCopyLink"
+              @copy-link="handleCopyLink(test.id, test.token)"
               @go-to-questions="handleGoToQuestions"
               @go-to-dashboard="handleGoToDashboard"
               @delete-test="handleDeleteTest"
@@ -223,10 +223,21 @@ const goToQuestion = () => {
   isLoading.value = false
 }
 
-const goToGenerate = () => {
+// goToGenerate 함수: linkToken 매개변수 추가
+const goToGenerate = (linkToken = null) => {
   router.push({ query: { step: 'generate' } }).catch(() => {})
   isLoading.value = false
-  testLink.value = `${window.location.origin}/exam/${testId.value || 'mock-test-id-123'}`
+
+  // trainer/test/:testId/:linkToken? 라우트 이름으로 URL 생성
+  // testId.value는 실제 testId 또는 'mock-test-id-123'이 될 수 있습니다.
+  const resolvedRoute = router.resolve({
+    name: 'TraineeTestGuide', // trainee/test/:testId/:linkToken? 에 해당하는 라우트 이름
+    params: {
+      testId: testId.value || 'mock-test-id-123',
+      linkToken: linkToken || undefined, // 토큰이 없으면 undefined로 처리하여 경로에서 제외
+    },
+  })
+  testLink.value = `${window.location.origin}${resolvedRoute.href}`
 }
 
 const goToConfigOrQuickConfig = async () => {
@@ -520,8 +531,9 @@ const handleQuestionNext = async ({ selectedQuestionIds, toDeleteQuestionIds }) 
     console.log('Finalize API 응답:', response.data)
 
     if (response.data.statusCode === 'OK') {
-      // alert('테스트와 문제가 성공적으로 저장되었습니다!') // 이 줄을 제거했습니다.
-      goToGenerate() // 테스트 생성 완료 화면으로 이동
+      // response.data.resultData.testLinkToken에서 토큰을 추출합니다.
+      const testLinkToken = response.data.resultData
+      goToGenerate(testLinkToken) // 추출된 토큰을 goToGenerate 함수로 전달
     } else {
       console.error('Test Finalize API 응답 실패:', response.data)
       alert('테스트와 문제 저장에 실패했습니다: ' + response.data.resultMsg)
@@ -560,6 +572,7 @@ const fetchTests = async () => {
         passCount: 0, // API에 없는 필드는 기본값 또는 목업 데이터 유지
         totalApplicants: 0, // API에 없는 필드는 기본값 또는 목업 데이터 유지
         averageScore: 0, // API에 없는 필드는 기본값 또는 목업 데이터 유지
+        token: test.testLinkToken || null, // testLinkToken 추가
       }))
     } else {
       console.error('API 응답 오류:', response.data.resultMsg)
@@ -575,8 +588,18 @@ const fetchTests = async () => {
   }
 }
 
-const handleCopyLink = (id) => {
-  const link = `${window.location.origin}/exam/${id}`
+// handleCopyLink 함수 수정: testId와 token을 인자로 받도록 변경
+const handleCopyLink = (testId, token) => {
+  // trainer/test/:testId/:linkToken? 라우트 이름으로 URL 생성
+  const resolvedRoute = router.resolve({
+    name: 'TraineeTestGuide', // trainee/test/:testId/:linkToken? 에 해당하는 라우트 이름
+    params: {
+      testId: testId,
+      linkToken: token || undefined, // 토큰이 없으면 undefined로 처리하여 경로에서 제외
+    },
+  })
+  const link = `${window.location.origin}${resolvedRoute.href}`
+
   if (navigator.clipboard) {
     navigator.clipboard
       .writeText(link)

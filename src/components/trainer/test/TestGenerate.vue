@@ -45,7 +45,6 @@
       </v-card>
 
       <v-btn color="grey-darken-2" class="mt-4" @click="emitReturnToList">
-        <v-icon start>mdi-arrow-left</v-icon>
         테스트 목록으로 돌아가기
       </v-btn>
     </v-col>
