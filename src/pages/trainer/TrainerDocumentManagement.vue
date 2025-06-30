@@ -10,6 +10,10 @@
       <DocumentUpload :projectId="projectId" @files-uploaded="fetchDocuments" />
     </section>
 
+    <section class="summary-status-section section-bg">
+      <SummaryStatus />
+    </section>
+
     <section class="list-section section-bg">
       <div class="list-header">
         <h4 class="section-title">문서 목록</h4>
@@ -39,6 +43,7 @@ import DocumentUpload from '@/components/trainer/document/DocumentUpload.vue'
 import DocumentFilters from '@/components/trainer/document/DocumentFilters.vue'
 import DocumentList from '@/components/trainer/document/DocumentList.vue'
 import DocumentPreviewDialog from '@/components/trainer/document/DocumentPreviewDialog.vue'
+import SummaryStatus from '@/components/trainer/document/DocumentSummaryStatus.vue' // SummaryStatus 컴포넌트 임포트
 import api from '@/config/axios' // axios 인스턴스를 api로 임포트
 
 const documents = ref([])
@@ -168,6 +173,11 @@ function preview(doc) {
 
 .upload-section {
   margin-bottom: 32px;
+}
+
+/* SummaryStatus 컴포넌트가 자체적으로 margin-bottom을 가지므로 추가 마진 제거 */
+.summary-status-section {
+  margin-bottom: 0;
 }
 
 .list-section {
