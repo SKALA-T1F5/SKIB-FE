@@ -92,6 +92,7 @@
       :selected-document="selectedDocument"
       :revenues="revenues"
       :exam-goal="examPrompt"
+      :questions-data="questionsData"
       @update:isLoading="(val) => (isLoading = val)"
       @prev-step="goToConfigOrQuickConfig"
       @next-step="handleQuestionNext"
@@ -101,6 +102,7 @@
       :test-id="testId"
       :is-loading="isLoading"
       :revenues="revenues"
+      :questions-data="questionsData"
       @update:isLoading="(val) => (isLoading = val)"
       @prev-step="goToConfigOrQuickConfig"
       @next-step="handleQuestionNext"
@@ -137,6 +139,7 @@ const isLoading = ref(false)
 const loadingMessage = ref('데이터 로딩 중입니다...')
 
 const tests = ref([])
+const questionsData = ref([]) // API 응답으로 받은 질문 데이터를 저장할 곳
 
 const examPrompt = ref('')
 const testId = ref(null)
@@ -180,6 +183,7 @@ const goToList = () => {
     retakeAllowed: true,
   }
   revenues.value = []
+  questionsData.value = [] // Clear questions data
   loadingMessage.value = '데이터 로딩 중입니다...'
   isLoading.value = false
   testCreationType.value = null // 생성 유형 초기화
@@ -301,12 +305,6 @@ const handleConfigNext = async (configData) => {
   loadingMessage.value = '문제 생성 중입니다...'
   isLoading.value = true
   try {
-    // selectedDocument.value 및 revenues.value는 TestConfig 컴포넌트에서
-    // update:selected-document 및 update:revenues 이벤트를 통해 이미 업데이트되었으므로
-    // 여기서 configData를 다시 할당할 필요 없이 직접 참조할 수 있습니다.
-    // selectedDocument.value = configData.selectedDocument;
-    // revenues.value = configData.revenues;
-
     const selectedDocs = revenues.value.filter(
       (doc) => doc.selected && (doc.mcSet > 0 || doc.sqSet > 0),
     )
@@ -339,7 +337,7 @@ const handleConfigNext = async (configData) => {
 
     console.log('API Request Body:', requestBody)
 
-    const response = await axios.post('/test/create', requestBody, {
+    const response = await axios.post('/test', requestBody, {
       params: {
         projectId: currentProjectId.value,
       },
@@ -353,6 +351,15 @@ const handleConfigNext = async (configData) => {
       response.data.resultData.testId
     ) {
       testId.value = response.data.resultData.testId // API 응답에서 실제 testId 설정
+
+      // /test?:projectId API 응답에서 questions 부분을 받아와 Parsing
+      if (response.data.resultData.questions) {
+        questionsData.value = response.data.resultData.questions
+      } else {
+        questionsData.value = [] // questions 데이터가 없는 경우 빈 배열로 초기화
+        console.warn("API 응답에 'questions' 데이터가 포함되어 있지 않습니다.")
+      }
+
       goToQuestion() // 문제 검토 단계로 이동
     } else {
       console.error('API 응답이 실패했거나 데이터가 유효하지 않습니다.', response.data)
@@ -390,6 +397,50 @@ const handleQuickConfigNext = async (updatedRevenues) => {
     // 빠른 생성 시에도 testId를 생성해야 TestQuestion으로 넘어갈 수 있음
     testId.value = 'quick-test-' + Date.now()
     selectedDocument.value.title = '빠른 생성 테스트' // 빠른 생성 테스트 이름 설정 (선택사항)
+
+    // --- New: Generate mock questionsData for quick test ---
+    loadingMessage.value = '문제 데이터를 준비하는 중입니다...'
+    // 이 부분은 실제 API 호출로 대체되어야 합니다.
+    // 현재는 TestQuestionReviewAI가 기대하는 mock 데이터 구조를 따릅니다.
+    questionsData.value = [
+      {
+        id: 'q1-quick',
+        questionText:
+          'Vue.js의 라이프사이클 훅 중 컴포넌트가 마운트된 후 한 번 호출되는 훅은 무엇인가요?',
+        type: 'MULTIPLE_CHOICE',
+        options: [
+          { text: 'created' },
+          { text: 'mounted' },
+          { text: 'updated' },
+          { text: 'unmounted' },
+        ],
+        answer: 'mounted',
+        documentName: 'Vue.js 완벽 가이드.pdf',
+      },
+      {
+        id: 'q2-quick',
+        questionText:
+          'Spring Boot에서 RESTful API를 만들 때 사용하는 주요 어노테이션은 무엇인가요?',
+        type: 'SHORT_ANSWER',
+        answer: '@RestController, @RequestMapping',
+        explanation: 'RESTful 웹 서비스를 개발할 때 주로 사용되는 어노테이션입니다.',
+        documentName: 'Spring Boot 시작하기.docx',
+      },
+      {
+        id: 'q3-quick',
+        questionText: '프론트엔드 개발에서 번들러를 사용하는 주된 이유는 무엇인가요?',
+        type: 'MULTIPLE_CHOICE',
+        options: [
+          { text: '코드 압축' },
+          { text: '의존성 관리' },
+          { text: '브라우저 호환성' },
+          { text: '모든 응답' },
+        ],
+        answer: '모든 응답',
+        documentName: 'Aiper Front 개발환경 가이드.pdf',
+      },
+    ]
+    // --- End New ---
 
     goToQuestion()
   } catch (error) {
