@@ -64,7 +64,7 @@ const statusIcon = computed(() => {
     return 'mdi-check-circle'
   } else if (uploadStatus.value && uploadStatus.value.includes('업로드 중')) {
     return 'mdi-upload'
-  } else if (uploadStatus.value && uploadStatus.value.includes('전처리 중')) {
+  } else if (uploadStatus.value && uploadStatus.value.includes('전처리 대기 중')) {
     return 'mdi-cog-outline'
   }
   return 'mdi-information-outline' // 기본 아이콘
@@ -75,7 +75,7 @@ const statusIconColor = computed(() => {
     return 'success'
   } else if (uploadStatus.value && uploadStatus.value.includes('업로드 중')) {
     return 'info'
-  } else if (uploadStatus.value && uploadStatus.value.includes('전처리 중')) {
+  } else if (uploadStatus.value && uploadStatus.value.includes('전처리 대기 중')) {
     return 'warning'
   }
   return 'grey'
@@ -86,7 +86,7 @@ const statusTextColor = computed(() => {
     return 'text-success'
   } else if (uploadStatus.value && uploadStatus.value.includes('업로드 중')) {
     return 'text-info'
-  } else if (uploadStatus.value && uploadStatus.value.includes('전처리 중')) {
+  } else if (uploadStatus.value && uploadStatus.value.includes('전처리 대기 중')) {
     return 'text-warning'
   }
   return 'text-grey-darken-1'

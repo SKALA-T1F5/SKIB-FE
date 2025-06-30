@@ -10,10 +10,6 @@
       <DocumentUpload :projectId="projectId" @files-uploaded="fetchDocuments" />
     </section>
 
-    <section class="summary-status-section section-bg">
-      <SummaryStatus />
-    </section>
-
     <section class="list-section section-bg">
       <div class="list-header">
         <h4 class="section-title">문서 목록</h4>
@@ -38,13 +34,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue' // watch 임포트 제거
 import DocumentUpload from '@/components/trainer/document/DocumentUpload.vue'
 import DocumentFilters from '@/components/trainer/document/DocumentFilters.vue'
 import DocumentList from '@/components/trainer/document/DocumentList.vue'
 import DocumentPreviewDialog from '@/components/trainer/document/DocumentPreviewDialog.vue'
-import SummaryStatus from '@/components/trainer/document/DocumentSummaryStatus.vue' // SummaryStatus 컴포넌트 임포트
-import api from '@/config/axios' // axios 인스턴스를 api로 임포트
+// SummaryStatus 컴포넌트 임포트 제거
+import api from '@/config/axios'
 
 const documents = ref([])
 const searchQuery = ref('')
@@ -53,6 +49,9 @@ const previewDialog = ref(false)
 const selectedDocument = ref(null)
 
 const projectId = ref(1) // 예시: 실제 프로젝트 ID로 변경 필요
+
+// summaryStatusRef 참조 및 관련 watch 로직이 완전히 삭제되었습니다.
+// const summaryStatusRef = ref(null)
 
 const fetchDocuments = async () => {
   try {
@@ -68,6 +67,10 @@ const fetchDocuments = async () => {
         fileType: doc.extension ? doc.extension.toUpperCase() : 'UNKNOWN',
         uploadDate: doc.createdAt ? doc.createdAt.split('T')[0] : '',
         fileSize: doc.fileSize,
+        // DocumentList에서 상태를 WebSocket으로 직접 처리할 것이므로,
+        // 여기서는 초기 상태를 '알 수 없음' 또는 '업로드 완료' 등으로 설정해도 무방.
+        // WebSocket 연결 전에는 기본값을 보여줌.
+        status: doc.status || '알 수 없음',
       }))
     } else {
       console.error('문서 목록 조회 실패:', response.data.resultMsg)
@@ -79,7 +82,6 @@ const fetchDocuments = async () => {
   }
 }
 
-// --- 문서 삭제 기능 추가 시작 ---
 const deleteDocument = async (documentId) => {
   if (!confirm('정말로 이 문서를 삭제하시겠습니까?')) {
     return
@@ -103,7 +105,6 @@ const deleteDocument = async (documentId) => {
     alert('문서 삭제 중 오류가 발생했습니다.')
   }
 }
-// --- 문서 삭제 기능 추가 끝 ---
 
 onMounted(() => {
   fetchDocuments()
@@ -175,10 +176,10 @@ function preview(doc) {
   margin-bottom: 32px;
 }
 
-/* SummaryStatus 컴포넌트가 자체적으로 margin-bottom을 가지므로 추가 마진 제거 */
-.summary-status-section {
-  margin-bottom: 0;
-}
+/* summary-status-section 관련 스타일이 삭제되었습니다. */
+/* .summary-status-section {
+  margin-bottom: 32px;
+} */
 
 .list-section {
   padding: 24px;
