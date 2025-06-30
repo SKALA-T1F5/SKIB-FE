@@ -1,24 +1,26 @@
 <template>
   <div class="common-container">
     <div class="header-section">
-      <h2 class="section-title-main">연수생 관리</h2>
+      <h2 class="section-title-main">훈련생 관리</h2>
       <p class="section-subtitle">
-        프로젝트에 배정된 연수생 목록을 확인하고 테스트 결과를 관리합니다.
+        프로젝트에 배정된 훈련생 목록을 확인하고 테스트 결과를 관리합니다.
       </p>
     </div>
 
     <section class="trainee-management-section section-bg">
       <div class="section-header">
-        <h4 class="section-title">프로젝트 연수생 목록</h4>
-        <v-text-field
-          v-model="searchQuery"
-          append-icon="mdi-magnify"
-          label="연수생 검색"
-          single-line
-          hide-details
-          dense
-          class="search-field"
-        ></v-text-field>
+        <h4 class="section-title">프로젝트 훈련생 목록</h4>
+        <v-col cols="12" md="4" class="search-col">
+          <v-text-field
+            v-model="searchQuery"
+            label="훈련생 검색"
+            prepend-inner-icon="mdi-magnify"
+            density="comfortable"
+            hide-details
+            variant="outlined"
+            class="rounded-input"
+          />
+        </v-col>
       </div>
 
       <v-data-table
@@ -26,7 +28,7 @@
         :items="filteredTrainees"
         :items-per-page="10"
         class="elevation-0 trainee-table"
-        no-data-text="해당하는 연수생이 없습니다."
+        no-data-text="해당하는 훈련생이 없습니다."
         item-key="id"
         show-expand
         single-expand
@@ -57,13 +59,13 @@
         <template v-slot:no-data>
           <div class="no-results-table">
             <v-icon size="64" color="grey lighten-1">mdi-account-remove</v-icon>
-            <p class="no-results-text">해당하는 연수생이 없습니다.</p>
+            <p class="no-results-text">해당하는 훈련생이 없습니다.</p>
           </div>
         </template>
       </v-data-table>
 
       <div class="list-footer">
-        <span class="total-count">총 {{ filteredTrainees.length }}명 연수생</span>
+        <span class="total-count">총 {{ filteredTrainees.length }}명 훈련생</span>
       </div>
     </section>
   </div>
@@ -73,20 +75,21 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import TraineeTestResults from '@/components/trainer/trainee/TraineeTestResults.vue'
+import axios from 'axios'
 
 const route = useRoute()
 
 const trainees = ref([])
 const searchQuery = ref('')
-const expanded = ref([]) // 확장된 행을 추적하기 위한 배열
+const expanded = ref([])
+const projectId = ref(null)
 
-// 1. 인적사항 목록: 이름, 이메일, 소속, 배정일만 나타나도록 headers 정의
 const headers = [
   { title: '이름', value: 'name', align: 'start', sortable: true },
   { title: '이메일', value: 'email', sortable: true },
   { title: '소속', value: 'affiliation', sortable: true },
   { title: '배정일', value: 'assignedDate', sortable: true },
-  { title: '', value: 'data-table-expand', sortable: false }, // 확장 아이콘을 위한 Vuetify 특수 헤더
+  { title: '', value: 'data-table-expand', sortable: false },
 ]
 
 const filteredTrainees = computed(() => {
@@ -104,51 +107,37 @@ const filteredTrainees = computed(() => {
 })
 
 const fetchTrainees = async () => {
-  // 실제 API 호출 대신 목업 데이터 사용
-  trainees.value = [
-    {
-      id: 'T-001',
-      name: '김철수',
-      email: 'kim.cs@example.com',
-      affiliation: 'A팀',
-      assignedDate: '2024-01-15',
-    },
-    {
-      id: 'T-002',
-      name: '이영희',
-      email: 'lee.yh@example.com',
-      affiliation: 'B팀',
-      assignedDate: '2024-02-01',
-    },
-    {
-      id: 'T-003',
-      name: '박민수',
-      email: 'park.ms@example.com',
-      affiliation: 'A팀',
-      assignedDate: '2024-03-10',
-    },
-    {
-      id: 'T-004',
-      name: '최지영',
-      email: 'choi.jy@example.com',
-      affiliation: 'C팀',
-      assignedDate: '2024-03-22',
-    },
-    {
-      id: 'T-005',
-      name: '정대현',
-      email: 'jung.dh@example.com',
-      affiliation: 'B팀',
-      assignedDate: '2024-04-05',
-    },
-    {
-      id: 'T-006',
-      name: '홍길동',
-      email: 'hong.gd@example.com',
-      affiliation: 'C팀',
-      assignedDate: '2024-04-10',
-    },
-  ]
+  try {
+    projectId.value = route.params.projectId || 4 // 실제 프로젝트 ID에 맞게 조정 필요
+
+    if (!projectId.value) {
+      console.warn('projectId가 없습니다. API 호출을 건너뜁니다.')
+      return
+    }
+
+    const response = await axios.get('/project/getProjectUsers', {
+      params: {
+        projectId: projectId.value,
+      },
+    })
+
+    if (response.data.statusCode === 'OK' && response.data.resultData) {
+      // type이 'TRAINEE'인 사용자만 필터링
+      trainees.value = response.data.resultData.trainee.map((trainee) => ({
+        id: trainee.userId,
+        name: trainee.name,
+        email: trainee.email,
+        affiliation: trainee.department,
+        assignedDate: trainee.createdAt.split('T')[0],
+      }))
+    } else {
+      console.error('API 응답 오류:', response.data.resultMsg)
+      trainees.value = []
+    }
+  } catch (error) {
+    console.error('훈련생 목록을 불러오는 중 오류 발생:', error)
+    trainees.value = []
+  }
 }
 
 onMounted(() => {
@@ -213,8 +202,15 @@ onMounted(() => {
   margin-bottom: 18px;
 }
 
-.search-field {
-  max-width: 250px;
+/* 검색 필드 관련 스타일 수정 */
+.search-col {
+  padding-top: 0;
+  padding-bottom: 0;
+  max-width: 250px; /* 기존 search-field의 max-width 유지 */
+}
+
+.rounded-input :deep(.v-input__control) {
+  border-radius: 8px !important;
 }
 
 .trainee-table {
