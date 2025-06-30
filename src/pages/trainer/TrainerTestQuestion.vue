@@ -65,13 +65,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import MainLayout from '@/components/layouts/MainLayout.vue'
-// TrainerTestQuestionSideBar 대신 TrainerSideBar를 임포트합니다.
-import TrainerSideBar from '@/components/trainer/TrainerSideBar.vue' // ProjectDetail.vue와 동일한 사이드바
-
+import TrainerSideBar from '@/components/trainer/TrainerSideBar.vue'
 import TrainerQuestionArea from '@/components/trainer/question/TrainerQuestionArea.vue'
 import TrainerSolutionArea from '@/components/trainer/question/TrainerSolutionArea.vue'
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js'
+import axios from '@/config/axios' // axios 임포트
 
 const router = useRouter()
 const route = useRoute()
@@ -79,10 +78,7 @@ const route = useRoute()
 const allQuestions = ref([])
 const currentQuestionId = ref(null)
 
-// 이 시험과 연관된 (또는 현재 페이지의) 프로젝트 정보
 const associatedProject = ref(null)
-
-// TrainerSideBar에 전달할 사용자 전체 프로젝트 목록
 const userProjects = ref([])
 
 const currentQuestion = computed(() => {
@@ -101,155 +97,37 @@ const hasPreviousQuestion = computed(() => currentQuestionIndex.value > 0)
 const hasNextQuestion = computed(() => currentQuestionIndex.value < allQuestions.value.length - 1)
 
 onMounted(() => {
-  fetchTestQuestions()
+  // 라우트에서 testId를 가져옴
+  const testId = route.params.testId
+  if (testId) {
+    fetchTestQuestions(testId)
+  } else {
+    console.warn('라우트 파라미터에 testId가 없습니다.')
+    // testId가 없을 경우, 적절한 처리 (예: 문제 로딩 실패 메시지 표시, 이전 페이지로 리다이렉트)
+  }
 
-  // `ProjectDetail.vue`에서처럼 프로젝트 ID를 라우트 파라미터로 받을 수 있다고 가정
   const projectIdFromRoute = route.params.projectId
   if (projectIdFromRoute) {
-    // 해당 프로젝트 상세 정보를 가져와 associatedProject에 설정
     fetchAssociatedProject(projectIdFromRoute)
-    // TrainerSideBar에 표시할 전체 프로젝트 목록도 가져옵니다.
     fetchUserProjects()
   } else {
-    // projectId가 없는 경우, 기본 프로젝트를 설정하거나 에러 처리
     console.warn('라우트 파라미터에 projectId가 없습니다. 기본 프로젝트를 로드합니다.')
-    fetchUserProjects() // 전체 목록은 로드
-    // associatedProject를 첫 번째 프로젝트로 설정하거나 기본값 유지
+    fetchUserProjects()
   }
 })
 
-// 샘플 API 데이터 (문제 데이터는 기존과 동일)
-const sampleApiData = [
-  {
-    type: 'OBJECTIVE',
-    difficulty_level: 'NORMAL',
-    question: "To-Be 프로세스 체인 정의서에서 'PC.10' 체인의 명칭은 무엇인가?",
-    options: ['세금계산서', '전자결재', '수기전표', 'ERP 전표'],
-    answer: '세금계산서',
-    explanation: "'PC.10' 체인의 명칭은 '세금계산서'로 정의되어 있습니다.",
-    grading_criteria: null,
-    document_id: 1,
-    tags: ['문해력'],
-  },
-  {
-    type: 'OBJECTIVE',
-    difficulty_level: 'NORMAL',
-    question: "PC.10.01 프로세스에서 '정발행 세금계산서'의 ERP I/F System은 무엇인가?",
-    options: ['스마트빌', 'eBill', 'XML 업로드', '오프라인'],
-    answer: 'XML 업로드',
-    explanation: '정발행 세금계산서의 ERP I/F System은 XML 업로드 방식으로 처리됩니다.',
-    grading_criteria: null,
-    document_id: 1,
-    tags: ['이해력'],
-  },
-  {
-    type: 'SUBJECTIVE',
-    difficulty_level: 'NORMAL',
-    question:
-      'PC.10.02 프로세스에서 정발행/역발행 건의 결재 요청 및 승인 절차를 설명하세요. 이 문제는 지문이 다소 길어질 수 있으므로, 보기가 스크롤될 수 있도록 충분한 높이를 확보해야 합니다. 이는 사용자가 문제의 모든 보기를 한눈에 볼 수 있도록 하면서도, 전체 레이아웃의 균형을 유지하는 데 중요합니다. 이 문제는 지문이 다소 길어질 수 있으므로, 보기가 스크롤될 수 있도록 충분한 높이를 확보해야 합니다. 이는 사용자가 문제의 모든 보기를 한눈에 볼 수 있도록 하면서도, 전체 레이아웃의 균형을 유지하는 데 중요합니다. 이 문제는 지문이 다소 길어질 수 있으므로, 보기가 스크롤될 수 있도록 충분한 높이를 확보해야 합니다. 이는 사용자가 문제의 모든 보기를 한눈에 볼 수 있도록 하면서도, 전체 레이아웃의 균형을 유지하는 데 중요합니다.',
-    options: null,
-    answer:
-      '검수/출장비 기반으로 발생한 정발행/역발행 건을 결재 요청하고, 결재 승인하는 절차입니다. 이 예시 답안은 실제 답변의 길이와 복잡성을 반영하며, 사용자가 작성한 답변과 비교될 수 있도록 충분한 정보를 포함합니다. 이 예시 답안은 실제 답변의 길이와 복잡성을 반영하며, 사용자가 작성한 답변과 비교될 수 있도록 충분한 정보를 포함합니다. 이 예시 답안은 실제 답변의 길이와 복잡성을 반영하며, 사용자가 작성한 답변과 비교될 수 있도록 충분한 정보를 포함합니다. 이 예시 답안은 실제 답변의 길이와 복잡성을 반영하며, 사용자가 작성한 답변과 비교될 수 있도록 충분한 정보를 포함합니다.',
-    explanation:
-      'PC.10.02 프로세스는 검수/출장비를 기반으로 정발행/역발행 건을 결재 요청하고 승인하는 절차를 포함합니다.',
-    grading_criteria: [
-      {
-        score: 5,
-        criteria: '정확하게 결재 요청 및 승인 절차를 설명하고, 관련 프로세스를 언급함.',
-        example:
-          '검수/출장비 기반으로 발생한 정발행/역발행 건을 결재 요청하고, 결재 승인하는 절차입니다.',
-        note: '정확한 프로세스 명칭과 절차를 포함해야 합니다.',
-      },
-      {
-        score: 3,
-        criteria: '결재 요청 및 승인 절차를 대략적으로 설명함.',
-        example: '정발행/역발행 건을 결재 요청하고 승인하는 절차입니다.',
-        note: '프로세스의 주요 요소를 언급해야 합니다.',
-      },
-      {
-        score: 1,
-        criteria: '결재 요청 또는 승인 절차 중 하나만 언급함.',
-        example: '결재 요청 절차입니다.',
-        note: '부분적인 설명만 포함된 경우입니다.',
-      },
-    ],
-    document_id: 1,
-    tags: ['분석력'],
-  },
-  {
-    type: 'SUBJECTIVE',
-    difficulty_level: 'NORMAL',
-    question: 'PC.10.03 수기전표관리 프로세스에서 수기전표의 생성 및 관리 절차를 설명하세요.',
-    options: null,
-    answer: '수기전표 대상을 조회하고 추가 등록하여 결재 상신하는 절차입니다.',
-    explanation:
-      'PC.10.03 프로세스는 수기전표 대상을 조회하고 추가 등록하여 결재 상신하는 절차를 포함합니다.',
-    grading_criteria: [
-      {
-        score: 5,
-        criteria: '수기전표의 생성 및 관리 절차를 정확하게 설명하고, 관련 프로세스를 언급함.',
-        example: '수기전표 대상을 조회하고 추가 등록하여 결재 상신하는 절차입니다.',
-        note: '정확한 프로세스 명칭과 절차를 포함해야 합니다.',
-      },
-      {
-        score: 3,
-        criteria: '수기전표의 생성 및 관리 절차를 대략적으로 설명함.',
-        example: '수기전표를 조회하고 결재 상신하는 절차입니다.',
-        note: '프로세스의 주요 요소를 언급해야 합니다.',
-      },
-      {
-        score: 1,
-        criteria: '수기전표의 생성 또는 관리 절차 중 하나만 언급함.',
-        example: '수기전표 조회 절차입니다.',
-        note: '부분적인 설명만 포함된 경우입니다.',
-      },
-    ],
-    document_id: 1,
-    tags: ['문제해결력'],
-  },
-  {
-    type: 'OBJECTIVE',
-    difficulty_level: 'HARD',
-    question: '다음 중 데이터 시각화 도구가 아닌 것은?',
-    options: ['Tableau', 'Power BI', 'MS Word', 'Qlik Sense'],
-    answer: 'MS Word',
-    explanation:
-      'MS Word는 워드 프로세싱 소프트웨어이며, Tableau, Power BI, Qlik Sense는 데이터 시각화 도구입니다.',
-    grading_criteria: null,
-    document_id: 2,
-    tags: ['상식', 'IT'],
-  },
-  {
-    type: 'SUBJECTIVE',
-    difficulty_level: 'EASY',
-    question: 'Vue.js의 주요 특징 두 가지를 설명하세요.',
-    options: null,
-    answer: 'Vue.js는 점진적 채택이 가능하며, 반응형 데이터 바인딩을 지원합니다.',
-    explanation:
-      'Vue.js의 주요 특징으로는 점진적 채택(Progressive Framework)과 반응형 시스템이 있습니다. 점진적 채택은 프로젝트의 규모에 따라 유연하게 사용할 수 있다는 것을 의미하며, 반응형 시스템은 데이터 변경 시 자동으로 UI가 업데이트되는 것을 의미합니다.',
-    grading_criteria: [
-      {
-        score: 5,
-        criteria: '점진적 채택, 반응형 시스템 등 핵심 특징 2가지 이상을 정확히 설명함.',
-        example: '점진적 채택과 반응형 데이터 바인딩이 있습니다.',
-        note: '각 특징에 대한 간략한 설명도 포함하면 좋습니다.',
-      },
-      {
-        score: 3,
-        criteria: '핵심 특징 중 1가지 또는 유사한 특징을 설명함.',
-        example: '데이터 바인딩이 편리합니다.',
-        note: '하나의 특징만 정확하거나, 설명이 모호할 수 있습니다.',
-      },
-    ],
-    document_id: 3,
-    tags: ['개발', '프론트엔드'],
-  },
-]
-
-const fetchTestQuestions = async () => {
+// fetchTestQuestions 함수를 API 호출에 맞게 수정
+const fetchTestQuestions = async (testId) => {
   try {
-    const fetchedData = sampleApiData
+    // API 호출
+    const response = await axios.get('/test/getTest', {
+      params: {
+        testId: testId,
+        lang: 'ko', // 기본값 'ko'
+      },
+    })
 
+    const fetchedData = response.data.questions // API 응답 구조에 따라 'questions' 키 사용
     if (Array.isArray(fetchedData)) {
       allQuestions.value = fetchedData.map((rawQ, index) => {
         const generatedId = `Q${(index + 1).toString().padStart(2, '0')}`
@@ -259,7 +137,7 @@ const fetchTestQuestions = async () => {
           difficulty_level: rawQ.difficulty_level,
           questionText: rawQ.question,
           options: rawQ.options,
-          correctAnswer: rawQ.answer, // 정답 정보도 함께 전달
+          correctAnswer: rawQ.answer,
           explanation: rawQ.explanation,
           gradingCriteria: rawQ.grading_criteria,
           document_id: rawQ.document_id,
@@ -271,16 +149,16 @@ const fetchTestQuestions = async () => {
         currentQuestionId.value = allQuestions.value[0].id
       }
     } else {
-      console.warn('샘플 데이터가 예상된 문제 배열 형태가 아닙니다.', fetchedData)
+      console.warn('API 응답이 예상된 문제 배열 형태가 아닙니다.', fetchedData)
       allQuestions.value = []
     }
   } catch (error) {
-    console.error('샘플 데이터를 로드하는 데 실패했습니다:', error)
-    alert('UI 데이터를 불러오는 데 실패했습니다. 콘솔을 확인해주세요.')
+    console.error('테스트 문제를 로드하는 데 실패했습니다:', error)
+    alert('테스트 데이터를 불러오는 데 실패했습니다. 콘솔을 확인해주세요.')
+    allQuestions.value = [] // 에러 발생 시 문제 목록 초기화
   }
 }
 
-// 이 함수를 통해 해당 시험과 연결된 프로젝트 정보를 가져옵니다.
 const fetchAssociatedProject = async (projectId) => {
   // 실제 API 호출 로직을 여기에 구현합니다.
   // 예: const response = await axios.get(`/api/projects/${projectId}`);
@@ -289,14 +167,13 @@ const fetchAssociatedProject = async (projectId) => {
   // 임시 데이터 (실제 프로젝트 정보라고 가정)
   const sampleProjectData = {
     id: parseInt(projectId),
-    projectName: `데모 프로젝트 ${projectId}: 신입 역량 평가`, // `MainLayout`이 이 이름을 사용할 수 있도록
+    projectName: `데모 프로젝트 ${projectId}: 신입 역량 평가`,
     description: '신입 트레이니의 기본 역량 평가를 위한 프로젝트입니다.',
   }
   associatedProject.value = sampleProjectData
   console.log('연결된 프로젝트 정보:', associatedProject.value)
 }
 
-// TrainerSideBar에 표시할 사용자 전체 프로젝트 목록을 가져옵니다.
 const fetchUserProjects = async () => {
   // 실제 API 호출 로직을 여기에 구현합니다.
   // 예: const response = await axios.get('/api/users/current/projects');
@@ -307,25 +184,22 @@ const fetchUserProjects = async () => {
     { id: 1, name: '프로젝트 A: AI 기반 추천 시스템' },
     { id: 2, name: '프로젝트 B: 웹 서비스 성능 개선' },
     { id: 3, name: '프로젝트 C: 모바일 앱 UI/UX 리뉴얼' },
-    { id: 123, name: '데모 프로젝트: 신입 역량 평가' }, // 현재 페이지와 연관된 프로젝트도 포함
+    { id: 123, name: '데모 프로젝트: 신입 역량 평가' },
   ]
   userProjects.value = dummyProjects
   console.log('사용자 프로젝트 목록:', userProjects.value)
 }
 
-// TrainerSideBar에서 프로젝트 선택 시 처리하는 함수
 const handleProjectSelectFromSidebar = (projectId) => {
   console.log(`사이드바에서 프로젝트 ID ${projectId} 선택됨`)
-  // TrainerTestQuestion 페이지 내에서 다른 프로젝트의 시험을 볼 수 있도록 라우팅 변경
-  // 예: /trainer/project/:projectId/test/:testId
-  // 현재는 `currentQuestionId`를 변경하는 로직이 없으므로,
-  // 프로젝트 변경 시 시험 목록 자체를 변경하는 로직이 필요할 수 있습니다.
   router.push({
     name: 'TrainerTestQuestion',
     params: { projectId: projectId, testId: route.params.testId },
-  }) // 예시 라우트 이름
-  // 또는 현재 페이지에서 프로젝트 데이터만 변경하여 UI를 업데이트할 수도 있습니다.
+  })
   fetchAssociatedProject(projectId)
+  // 프로젝트가 변경되면 해당 프로젝트의 testId를 사용하여 fetchTestQuestions를 다시 호출해야 할 수도 있습니다.
+  // 현재 코드에서는 testId가 route.params에서 한 번만 가져오므로, 필요하다면 이 부분을 수정해야 합니다.
+  // 예를 들어, 새로운 testId를 가져오는 로직을 추가하거나, 프로젝트 변경 시 라우트 이동을 통해 페이지를 다시 로드하게 할 수 있습니다.
 }
 
 const handleQuestionSelectFromSidebar = (questionId) => {
