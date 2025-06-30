@@ -104,7 +104,6 @@
               </span>
               <v-spacer></v-spacer>
 
-              <!-- 모든 BASIC 문제에 교체 버튼 표시 -->
               <v-btn
                 variant="flat"
                 color="orange"
@@ -226,7 +225,15 @@ const props = defineProps({
 })
 
 function nextStep() {
-  emit('next-step')
+  const selectedQuestionIds = questions.value.map((q) => q.id) // 현재 화면에 노출된(선택된) 문제들의 ID
+  const initialQuestionIds = new Set(props.questionsData.map((q) => q.id)) // 초기 questionsData의 모든 문제 ID
+
+  // 초기 questionsData에는 있었지만, 현재 questions.value에는 없는 문제들의 ID
+  const toDeleteQuestionIds = Array.from(initialQuestionIds).filter(
+    (id) => !selectedQuestionIds.includes(id),
+  )
+
+  emit('next-step', { selectedQuestionIds, toDeleteQuestionIds })
 }
 
 function prevStep() {
@@ -268,10 +275,10 @@ const currentAnswerAndExplanation = computed(() => {
     currentQuestion.value.gradingCriteria.forEach((criteria, index) => {
       result += `\n${criteria.score}점: ${criteria.criteria}`
       if (criteria.example) {
-        result += `\n  예시: ${criteria.example}`
+        result += `\n  예시: ${criteria.example}`
       }
       if (criteria.note) {
-        result += `\n  비고: ${criteria.note}`
+        result += `\n  비고: ${criteria.note}`
       }
     })
   }

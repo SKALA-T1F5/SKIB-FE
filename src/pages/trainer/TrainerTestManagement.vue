@@ -3,6 +3,7 @@
   <div class="common-container">
     <div class="header-section">
       <h2 class="section-title-main">테스트 관리</h2>
+
       <p class="section-subtitle">프로젝트 내 테스트를 확인하고 관리합니다.</p>
     </div>
 
@@ -11,6 +12,7 @@
         <div class="list-header">
           <h4 class="section-title">생성된 테스트 목록</h4>
         </div>
+
         <v-row dense class="test-cards-grid">
           <v-col cols="12" sm="6" md="4" lg="3" class="d-flex pa-2">
             <v-card
@@ -41,6 +43,7 @@
             />
           </v-col>
         </v-row>
+
         <div class="list-footer">
           <span class="total-count">총 {{ tests.length }}개 테스트</span>
         </div>
@@ -98,6 +101,7 @@
       @prev-step="goToConfigOrQuickConfig"
       @next-step="handleQuestionNext"
     />
+
     <TestQuestionReviewQuick
       v-else-if="currentStep === 'question' && testCreationType === 'quick'"
       :test-id="testId"
@@ -352,8 +356,8 @@ const handleConfigNext = async (configData) => {
       response.data.resultData.testId
     ) {
       testId.value = response.data.resultData.testId // API 응답에서 실제 testId 설정
-
       // /test?:projectId API 응답에서 questions 부분을 받아와 Parsing
+
       if (response.data.resultData.questions) {
         questionsData.value = response.data.resultData.questions
       } else {
@@ -393,55 +397,96 @@ const handleQuickConfigNext = async (updatedRevenues) => {
       return
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 3000)) // 실제 API 호출로 대체
+    // 실제 API 호출로 대체되어야 합니다.
+    // 현재는 TestQuestionReviewAI가 기대하는 mock 데이터 구조를 따릅니다.
+    // TODO: 빠른 생성 문제 가져오는 API 호출 로직 추가
+    await new Promise((resolve) => setTimeout(resolve, 3000))
 
-    // 빠른 생성 시에도 testId를 생성해야 TestQuestion으로 넘어갈 수 있음
     testId.value = 'quick-test-' + Date.now()
     selectedDocument.value.title = '빠른 생성 테스트' // 빠른 생성 테스트 이름 설정 (선택사항)
 
-    // --- New: Generate mock questionsData for quick test ---
-    loadingMessage.value = '문제 데이터를 준비하는 중입니다...'
-    // 이 부분은 실제 API 호출로 대체되어야 합니다.
-    // 현재는 TestQuestionReviewAI가 기대하는 mock 데이터 구조를 따릅니다.
+    // TODO: 실제 API 응답에서 questionsData를 받아오는 로직으로 교체 필요
     questionsData.value = [
       {
         id: 'q1-quick',
-        questionText:
+        question:
           'Vue.js의 라이프사이클 훅 중 컴포넌트가 마운트된 후 한 번 호출되는 훅은 무엇인가요?',
-        type: 'MULTIPLE_CHOICE',
-        options: [
-          { text: 'created' },
-          { text: 'mounted' },
-          { text: 'updated' },
-          { text: 'unmounted' },
-        ],
+        type: 'MCQ', // 'MULTIPLE_CHOICE'에서 'MCQ'로 통일
+        options: ['created', 'mounted', 'updated', 'unmounted'],
         answer: 'mounted',
+        explanation: 'Vue.js 컴포넌트가 DOM에 마운트된 후 호출되는 훅입니다.',
         documentName: 'Vue.js 완벽 가이드.pdf',
+        documentId: 104,
+        tags: ['Vue.js', 'LifeCycle'],
+        difficultyLevel: 'NORMAL',
+        generationType: 'BASIC',
       },
       {
         id: 'q2-quick',
-        questionText:
-          'Spring Boot에서 RESTful API를 만들 때 사용하는 주요 어노테이션은 무엇인가요?',
-        type: 'SHORT_ANSWER',
+        question:
+          'Spring Boot에서 RESTful API를 만들 때 사용하는 주요 어노테이션 두 가지를 설명하세요.',
+        type: 'Subjective', // 'SHORT_ANSWER'에서 'Subjective'로 통일
         answer: '@RestController, @RequestMapping',
         explanation: 'RESTful 웹 서비스를 개발할 때 주로 사용되는 어노테이션입니다.',
+        gradingCriteria: [
+          {
+            score: 5,
+            criteria: '두 가지 어노테이션을 모두 정확히 언급하고 각각의 역할을 설명함.',
+            example:
+              'RestController는 해당 클래스를 REST API의 컨트롤러로 지정하고, RequestMapping은 요청 URL과 메서드를 매핑합니다.',
+          },
+          {
+            score: 3,
+            criteria: '한 가지 어노테이션만 정확히 언급하거나 역할 설명이 부족함.',
+            example: 'RestController만 언급하고 설명이 부족함.',
+          },
+        ],
         documentName: 'Spring Boot 시작하기.docx',
+        documentId: 105,
+        tags: ['Spring Boot', 'REST API'],
+        difficultyLevel: 'HARD',
+        generationType: 'BASIC',
       },
       {
         id: 'q3-quick',
-        questionText: '프론트엔드 개발에서 번들러를 사용하는 주된 이유는 무엇인가요?',
-        type: 'MULTIPLE_CHOICE',
+        question:
+          '프론트엔드 개발에서 번들러(예: Webpack)를 사용하는 주된 이유는 무엇인가요? (객관식)',
+        type: 'MCQ',
         options: [
-          { text: '코드 압축' },
-          { text: '의존성 관리' },
-          { text: '브라우저 호환성' },
-          { text: '모든 응답' },
+          '코드 압축 및 최적화',
+          '모듈 의존성 관리',
+          '브라우저 호환성 확보 (Babel 등)',
+          '위의 모든 응답',
         ],
-        answer: '모든 응답',
+        answer: '위의 모든 응답',
+        explanation:
+          '번들러는 여러 파일을 하나로 묶고, 코드 최적화, 의존성 관리, 트랜스파일링을 통해 브라우저 호환성을 높이는 등 다양한 역할을 합니다.',
         documentName: 'Aiper Front 개발환경 가이드.pdf',
+        documentId: 101,
+        tags: ['Frontend', 'Webpack'],
+        difficultyLevel: 'EASY',
+        generationType: 'BASIC',
+      },
+      {
+        id: 'q4-quick-extra',
+        question: 'Vue.js에서 컴포넌트 간 데이터 전달 시 가장 일반적인 방법은 무엇인가요? (EXTRA)',
+        type: 'MCQ',
+        options: [
+          'Props를 통한 하향식 전달',
+          'Event Bus를 통한 통신',
+          'Vuex/Pinia와 같은 상태 관리 라이브러리 사용',
+          '전역 변수 사용',
+        ],
+        answer: 'Props를 통한 하향식 전달',
+        explanation:
+          '부모에서 자식으로 데이터를 전달할 때는 props를 사용하는 것이 Vue.js의 기본적이고 권장되는 방식입니다.',
+        documentName: 'Vue.js 완벽 가이드.pdf',
+        documentId: 104,
+        tags: ['Vue.js', 'Props'],
+        difficultyLevel: 'NORMAL',
+        generationType: 'EXTRA', // EXTRA 문제 예시
       },
     ]
-    // --- End New ---
 
     goToQuestion()
   } catch (error) {
@@ -453,8 +498,43 @@ const handleQuickConfigNext = async (updatedRevenues) => {
   }
 }
 
-const handleQuestionNext = () => {
-  goToGenerate()
+// TestQuestionReviewAI 또는 TestQuestionReviewQuick 컴포넌트에서 'next-step' 이벤트 발생 시 호출
+// 인자로 { selectedQuestionIds, toDeleteQuestionIds } 객체를 받도록 수정
+const handleQuestionNext = async ({ selectedQuestionIds, toDeleteQuestionIds }) => {
+  loadingMessage.value = '테스트와 문제를 최종 저장 중입니다...'
+  isLoading.value = true
+  try {
+    const requestBody = {
+      selectedQuestionIds: selectedQuestionIds, // 선택된 문제 ID 목록
+      toDeleteQuestionIds: toDeleteQuestionIds, // 삭제될 문제 ID 목록
+    }
+
+    console.log('Finalize API Request Body:', requestBody)
+
+    const response = await axios.post(`/test/finalize`, requestBody, {
+      params: {
+        testId: testId.value,
+      },
+    })
+
+    console.log('Finalize API 응답:', response.data)
+
+    if (response.data.statusCode === 'OK') {
+      // alert('테스트와 문제가 성공적으로 저장되었습니다!') // 이 줄을 제거했습니다.
+      goToGenerate() // 테스트 생성 완료 화면으로 이동
+    } else {
+      console.error('Test Finalize API 응답 실패:', response.data)
+      alert('테스트와 문제 저장에 실패했습니다: ' + response.data.resultMsg)
+    }
+  } catch (error) {
+    console.error('테스트 최종 저장 중 오류 발생:', error)
+    alert(
+      '테스트 최종 저장 중 오류가 발생했습니다. 네트워크 연결을 확인하거나 나중에 다시 시도해주세요.',
+    )
+  } finally {
+    isLoading.value = false
+    loadingMessage.value = '데이터 로딩 중입니다...'
+  }
 }
 
 // --- Data Fetching for TestList content ---
@@ -612,9 +692,8 @@ const updateRevenues = (newVal) => {
 
 onMounted(() => {
   // 컴포넌트 마운트 시 URL 쿼리에서 currentStep을 초기화합니다.
-  currentStep.value = route.query.step || 'list'
+  currentStep.value = route.query.step || 'list' // 현재 라우트 쿼리에서 testCreationType을 설정합니다.
 
-  // 현재 라우트 쿼리에서 testCreationType을 설정합니다.
   if (route.query.step === 'question') {
     if (testId.value && String(testId.value).startsWith('quick-test-')) {
       testCreationType.value = 'quick'
@@ -634,8 +713,7 @@ watch(
       currentStep.value = newStep
     } else {
       currentStep.value = 'list' // step 쿼리 파라미터가 없으면 'list'로 간주
-    }
-    // URL 쿼리 변경 시 testCreationType도 업데이트할 필요가 있다면 여기에 로직 추가
+    } // URL 쿼리 변경 시 testCreationType도 업데이트할 필요가 있다면 여기에 로직 추가
     // 예: if (newStep === 'question' && route.query.type) testCreationType.value = route.query.type;
   },
 )
