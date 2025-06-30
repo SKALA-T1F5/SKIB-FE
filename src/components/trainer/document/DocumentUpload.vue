@@ -41,25 +41,25 @@
 
 <script setup>
 import { ref } from 'vue'
+import axios from 'axios' // axios 추가
+
 const emit = defineEmits(['files-uploaded'])
+
+const props = defineProps({
+  // projectId props 추가
+  projectId: {
+    type: Number,
+    required: true,
+  },
+})
 
 const uploadProgress = ref(0)
 const isUploading = ref(false)
 const isDragActive = ref(false)
 const fileInputRef = ref(null)
 
-const allowedFileTypes = [
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.ms-powerpoint',
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'text/plain',
-  'image/jpeg',
-  'image/png',
-]
+// PDF만 허용하도록 변경
+const allowedFileTypes = ['application/pdf']
 const maxFileSize = 50 * 1024 * 1024 // 50MB
 
 const triggerFileInput = () => {
@@ -107,7 +107,7 @@ const handleDrop = (event) => {
 const uploadFiles = async (files) => {
   const formData = new FormData()
   files.forEach((file) => {
-    formData.append('files', file)
+    formData.append('file', file) // Spring Boot의 @RequestParam("file")과 매칭
   })
 
   isUploading.value = true
@@ -118,29 +118,43 @@ const uploadFiles = async (files) => {
   }, 200)
 
   try {
-    // 실제 API 호출 (프로젝트의 apiRequest 함수 또는 axios 등 사용)
-    // const response = await apiRequest('POST', '/api/documents/upload', formData);
-    // 예시 응답
-    await new Promise((resolve) => setTimeout(resolve, 2000)) // Simulate network delay
-    const responseData = { message: `${files.length}개 파일 업로드 성공` } // Simulate success response
+    const response = await axios.post(`/document`, formData, {
+      params: {
+        projectId: props.projectId, // props로 받은 projectId 사용
+      },
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress: (progressEvent) => {
+        // 실제 업로드 진행률 업데이트 (선택 사항)
+        if (progressEvent.lengthComputable) {
+          uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+        }
+      },
+    })
 
-    clearInterval(progressInterval)
-    uploadProgress.value = 100
+    if (response.data.statusCode === 'OK') {
+      clearInterval(progressInterval)
+      uploadProgress.value = 100
 
-    console.log('업로드 완료:', responseData.message)
+      console.log('업로드 완료:', response.data.resultMsg)
 
-    // 업로드 완료 후 상위 컴포넌트에 알림
-    emit('files-uploaded')
+      emit('files-uploaded')
 
-    setTimeout(() => {
+      setTimeout(() => {
+        isUploading.value = false
+        uploadProgress.value = 0
+      }, 500)
+    } else {
+      clearInterval(progressInterval)
       isUploading.value = false
       uploadProgress.value = 0
-    }, 500)
+      console.error('파일 업로드 실패:', response.data.resultMsg)
+    }
   } catch (error) {
     clearInterval(progressInterval)
     isUploading.value = false
     uploadProgress.value = 0
-
     console.error('업로드 실패:', error)
   }
 }

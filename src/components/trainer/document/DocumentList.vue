@@ -62,22 +62,23 @@ import { computed } from 'vue'
 
 const props = defineProps({
   documents: Array,
-  viewMode: String,
+  // viewMode: String, // 제거
   searchQuery: String,
-  filterType: String,
+  // filterType: String, // 제거
 })
 
 const emit = defineEmits(['preview'])
 
 const noDocumentMessage = computed(() => {
-  return props.searchQuery || props.filterType
+  // filterType 관련 로직 제거
+  return props.searchQuery
     ? '검색 조건에 맞는 문서를 찾을 수 없습니다.'
     : '첫 번째 문서를 업로드해보세요.'
 })
 
 function formatDate(date) {
   if (!date) return ''
-  return new Date(date).toLocaleDateString('ko-KR') // 한국 날짜 형식으로 변경
+  return new Date(date).toLocaleDateString('ko-KR')
 }
 
 function formatSize(bytes) {
@@ -88,29 +89,14 @@ function formatSize(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
 }
 
-// 파일 타입에 따른 아이콘 반환 함수 추가
+// 파일 타입에 따른 아이콘 반환 함수 간소화 (PDF만)
 function getFileIcon(fileType) {
-  switch (fileType.toLowerCase()) {
-    case 'pdf':
-      return 'mdi-file-pdf-box'
-    case 'doc':
-    case 'docx':
-      return 'mdi-file-word-box'
-    case 'txt':
-      return 'mdi-file-document-outline'
-    case 'png':
-    case 'jpg':
-    case 'jpeg':
-      return 'mdi-file-image'
-    case 'xls':
-    case 'xlsx':
-      return 'mdi-file-excel-box'
-    case 'ppt':
-    case 'pptx':
-      return 'mdi-file-powerpoint-box'
-    default:
-      return 'mdi-file-outline'
+  // 실제 파일 확장자는 'PDF'로 들어올 것이므로, .toLowerCase()를 사용하지 않을 수도 있습니다.
+  // API 응답의 'extension' 필드값이 소문자라면 .toLowerCase()를 유지하는 것이 안전합니다.
+  if (fileType.toLowerCase() === 'pdf') {
+    return 'mdi-file-pdf-box'
   }
+  return 'mdi-file-outline' // PDF 외의 모든 경우 기본 아이콘
 }
 
 function selectDocument(doc) {
@@ -129,7 +115,7 @@ function selectDocument(doc) {
 
 .doc-table th,
 .doc-table td {
-  padding: 12px 16px; /* 좌우 패딩 증가 */
+  padding: 12px 16px;
   vertical-align: middle;
 }
 
@@ -138,11 +124,11 @@ function selectDocument(doc) {
   color: #191d5a;
   font-weight: bold;
   border-bottom: 1.5px solid #e0e0e0;
-  text-align: left; /* 헤더 텍스트 왼쪽 정렬 */
+  text-align: left;
 }
 
 .doc-table td {
-  color: #444; /* 본문 텍스트 색상 조정 */
+  color: #444;
 }
 
 .doc-row {
@@ -158,17 +144,16 @@ function selectDocument(doc) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 380px; /* 파일 이름 길이에 따라 적절히 조절 */
-  display: flex; /* 아이콘과 텍스트 정렬을 위해 flex 사용 */
+  max-width: 380px;
+  display: flex;
   align-items: center;
 }
 
-/* 문서 없음 메시지 스타일 개선 */
 .text-center {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 200px; /* 최소 높이 설정 */
+  min-height: 200px;
 }
 </style>

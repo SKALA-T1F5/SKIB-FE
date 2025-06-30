@@ -12,90 +12,63 @@
         class="rounded-input"
       />
     </v-col>
-
-    <v-col cols="12" md="3">
-      <v-select
-        :model-value="filterType"
-        @update:model-value="updateFilterType"
-        label="파일 유형"
-        :items="fileTypes"
-        density="comfortable"
-        hide-details
-        variant="outlined"
-        class="rounded-input"
-        prepend-inner-icon="mdi-filter-variant"
-        clearable
-      />
-    </v-col>
-
-    <v-col cols="12" md="3" class="d-flex justify-end">
-      <v-btn-toggle
-        :model-value="viewMode"
-        @update:model-value="updateViewMode"
-        density="comfortable"
-        class="view-toggle"
-        rounded
-        color="primary"
-      >
-        <v-btn value="grid" icon :aria-label="'그리드 보기'">
-          <v-icon>mdi-view-grid</v-icon>
-        </v-btn>
-        <v-btn value="list" icon :aria-label="'리스트 보기'">
-          <v-icon>mdi-format-list-bulleted</v-icon>
-        </v-btn>
-      </v-btn-toggle>
-    </v-col>
   </v-row>
 </template>
 
 <script setup>
 const props = defineProps({
   searchQuery: String,
-  filterType: String,
-  viewMode: String,
+  // filterType: String, // 제거
+  // viewMode: String, // 제거
 })
 
-const emit = defineEmits(['update:searchQuery', 'update:filterType', 'update:viewMode'])
+const emit = defineEmits([
+  'update:searchQuery',
+  // 'update:filterType', // 제거
+  // 'update:viewMode', // 제거
+])
 
-const fileTypes = ['PDF', 'DOC', 'DOCX', 'TXT', 'PNG', 'JPG']
+// fileTypes 정의 제거
+// const fileTypes = ['PDF', 'DOC', 'DOCX', 'TXT', 'PNG', 'JPG']
 
 const updateSearchQuery = (value) => {
   emit('update:searchQuery', value)
 }
 
-const updateFilterType = (value) => {
-  emit('update:filterType', value)
-}
+// updateFilterType 제거
+// const updateFilterType = (value) => {
+//   emit('update:filterType', value)
+// }
 
-const updateViewMode = (value) => {
-  emit('update:viewMode', value)
-}
+// updateViewMode 제거
+// const updateViewMode = (value) => {
+//   emit('update:viewMode', value)
+// }
 </script>
 
 <style scoped>
-/* Vuetify의 기본 gutter를 사용하기 위해 no-gutters 제거 */
 .filters-row {
   margin-bottom: 12px;
-  /* gap 대신 Vuetify 그리드 시스템의 패딩을 활용 */
 }
 
-/* md 이상에서 필터 요소 사이 간격 조정 */
 @media (min-width: 960px) {
-  .filters-row .v-col:nth-child(2) {
-    margin-left: 8px; /* 파일 유형 필터 왼쪽 마진 */
+  /* 필터 요소 간격 조정은 이제 검색 필드만 남았으므로 필요 없을 수 있음 */
+  /* .filters-row .v-col:nth-child(2) {
+    margin-left: 8px;
   }
   .filters-row .v-col:nth-child(3) {
-    margin-left: auto; /* 보기모드 전환 버튼을 오른쪽으로 밀기 */
-  }
+    margin-left: auto;
+  } */
 }
 
 .rounded-input :deep(.v-input__control) {
   border-radius: 8px !important;
 }
 
-.view-toggle {
+/* view-toggle 스타일 제거 */
+/* .view-toggle {
   background: #f4f4f4;
   border-radius: 8px;
   box-shadow: none;
-}
+} */
 </style>

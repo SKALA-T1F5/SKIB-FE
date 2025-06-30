@@ -21,8 +21,8 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-  modelValue: Boolean, // 다이얼로그 열림/닫힘 상태 (v-model)
-  selectedDocument: Object, // 미리보기할 문서 객체
+  modelValue: Boolean,
+  selectedDocument: Object,
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -51,5 +51,4 @@ function formatSize(bytes) {
 
 <style scoped>
 /* 필요한 스타일 추가 */
-/* v-card-title의 기본 패딩은 Vuetify에서 제공하므로 추가 스타일링은 최소화 */
 </style>

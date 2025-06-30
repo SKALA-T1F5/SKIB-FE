@@ -7,7 +7,7 @@
 
     <section class="upload-section section-bg">
       <h4 class="section-title">문서 업로드</h4>
-      <DocumentUpload @files-uploaded="fetchDocuments" />
+      <DocumentUpload :projectId="projectId" @files-uploaded="fetchDocuments" />
     </section>
 
     <section class="list-section section-bg">
@@ -15,19 +15,9 @@
         <h4 class="section-title">문서 목록</h4>
       </div>
       <div class="filters-wrapper">
-        <DocumentFilters
-          v-model:search-query="searchQuery"
-          v-model:filter-type="filterType"
-          v-model:view-mode="viewMode"
-        />
+        <DocumentFilters v-model:search-query="searchQuery" />
       </div>
-      <DocumentList
-        :documents="filteredDocuments"
-        :view-mode="viewMode"
-        :search-query="searchQuery"
-        :filter-type="filterType"
-        @preview="preview"
-      />
+      <DocumentList :documents="filteredDocuments" view-mode="list" :search-query="searchQuery" />
       <div class="list-footer">
         <span class="total-count">총 {{ filteredDocuments.length }}개 문서</span>
       </div>
@@ -43,39 +33,42 @@ import DocumentUpload from '@/components/trainer/document/DocumentUpload.vue'
 import DocumentFilters from '@/components/trainer/document/DocumentFilters.vue'
 import DocumentList from '@/components/trainer/document/DocumentList.vue'
 import DocumentPreviewDialog from '@/components/trainer/document/DocumentPreviewDialog.vue'
+import axios from 'axios'
 
 const documents = ref([])
 const searchQuery = ref('')
-const filterType = ref('')
-const viewMode = ref('grid')
+// filterType과 viewMode ref 제거
+// const filterType = ref('')
+// const viewMode = ref('grid')
 
 const previewDialog = ref(false)
 const selectedDocument = ref(null)
 
+const projectId = ref(1) // 예시: 실제 프로젝트 ID로 변경 필요
+
 const fetchDocuments = async () => {
-  documents.value = [
-    {
-      id: 1,
-      originalName: 'Aiper Front 개발환경 가이드',
-      fileType: 'PDF',
-      uploadDate: '2023-12-01',
-      fileSize: 124580,
-    },
-    {
-      id: 2,
-      originalName: 'alopex_UI_1.1.2_개발가이드',
-      fileType: 'PDF',
-      uploadDate: '2023-11-21',
-      fileSize: 208470,
-    },
-    {
-      id: 3,
-      originalName: '개발 Process 흐름도_sample',
-      fileType: 'PDF',
-      uploadDate: '2025-05-30',
-      fileSize: 45200,
-    },
-  ]
+  try {
+    const response = await axios.get(`/documents`, {
+      params: {
+        projectId: projectId.value,
+      },
+    })
+    if (response.data.statusCode === 'OK') {
+      documents.value = response.data.resultData.documents.map((doc) => ({
+        id: doc.documentId,
+        originalName: doc.name,
+        fileType: doc.extension ? doc.extension.toUpperCase() : 'UNKNOWN',
+        uploadDate: doc.createdAt ? doc.createdAt.split('T')[0] : '',
+        fileSize: doc.fileSize,
+      }))
+    } else {
+      console.error('문서 목록 조회 실패:', response.data.resultMsg)
+      documents.value = []
+    }
+  } catch (error) {
+    console.error('문서 목록을 가져오는 중 오류 발생:', error)
+    documents.value = []
+  }
 }
 
 onMounted(() => {
@@ -84,9 +77,9 @@ onMounted(() => {
 
 const filteredDocuments = computed(() => {
   return documents.value.filter((doc) => {
+    // filterType 관련 로직 제거
     const matchesSearch = doc.originalName.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesType = !filterType.value || doc.fileType === filterType.value
-    return matchesSearch && matchesType
+    return matchesSearch
   })
 })
 
@@ -99,35 +92,35 @@ function preview(doc) {
 <style scoped>
 /* 공통 컨테이너 스타일 */
 .common-container {
-  max-width: 100%; /* 모든 주요 콘텐츠 컨테이너의 최대 너비 */
-  margin: 0 auto; /* 가운데 정렬 */
-  padding: 24px 12px; /* 좌우 12px 패딩, 상하 24px 패딩 */
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 24px 12px;
 }
 
 /* Common header styles (모든 관련 컴포넌트에 일관 적용) */
 .header-section {
   display: flex;
-  align-items: flex-end; /* 제목과 부제목의 하단 정렬 */
-  gap: 18px; /* 제목과 부제목 사이 간격 */
-  margin-bottom: 24px; /* 섹션 하단 여백 */
+  align-items: flex-end;
+  gap: 18px;
+  margin-bottom: 24px;
 }
 
 .section-title-main {
   font-size: 28px;
   font-weight: bold;
-  line-height: 1; /* 높이를 정확히 맞춤 */
+  line-height: 1;
   margin: 0;
-  color: #333; /* 기본 색상 유지 */
+  color: #333;
 }
 
 .section-subtitle {
   font-size: 12px;
   color: #a1a1a1;
   font-weight: normal;
-  margin-left: 0; /* gap으로 간격 제어 */
+  margin-left: 0;
   white-space: nowrap;
-  line-height: 1; /* 높이를 정확히 맞춤 */
-  padding-bottom: 2px; /* 미세 조정 */
+  line-height: 1;
+  padding-bottom: 2px;
 }
 
 .section-title {
