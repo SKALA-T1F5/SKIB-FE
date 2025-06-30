@@ -21,16 +21,31 @@
  ├── 📂src
  |    ├── 📂assets                  - 이미지, 폰트, 전역 스타일 등 정적 리소스 저장
  |    ├── 📂components              - 역할별 Component
- |    |    ├── 📂layouts                - 공통 Layouts: Header, SideBar, Footer
+ |    |    ├── 📂admin                  - Admin Component
+ |    |    ├── 📂layouts                - 공통 Component: Header, Footer, MainLayout
+ |    |    |    └── 📂header               - Header 내부 Component (LangSwitcher, LogoArea 등)
  |    |    ├── 📂trainee                - Trainee Component
+ |    |    |    ├── 📂feedback             - 피드백 차트, 분석 Component
+ |    |    |    ├── 📂main                 - 메인 Component
+ |    |    |    ├── 📂result               - 시험 결과 Component
+ |    |    |    └── 📂test                 - 시험 응시 Component
  |    |    └── 📂trainer                - Trainer Component
+ |    |         ├── 📂document             - 문서 관리 Component
+ |    |         ├── 📂feedback             - 성과/분석 대시보드 Component
+ |    |         ├── 📂main                 - 메인 Component
+ |    |         ├── 📂project              - 프로젝트 상세 Component
+ |    |         ├── 📂question             - 문제 출제/검토 Component
+ |    |         ├── 📂test                 - 시험 관리 Component
+ |    |         └── 📂trainee              - Trainee 관리 Component
  |    ├── 📂pages                   - 역할별 Page
  |    |    ├── 📂admin                  - Admin Page
  |    |    ├── 📂general                - General Page: Login, MyPage, ...
  |    |    ├── 📂trainee                - Trainee Page
  |    |    └── 📂trainer                - Trainer Page
- |    ├── 📂plugins                 - 외부 라이브러리 전역 등록
+ |    ├── 📂config                  - 공통 설정 파일
+ |    |    └── 💾axios.js               - axios 경로 설정: Springboot 연동 간 사용
  |    ├── 📂router                  - 페이지 간 Routing Logic 설정
+ |    |    └── 💾index.js               - Route 경로 설정
  |    ├── 📂stores                  - Pinia 기반 상태 관리
  |    ├── 💾App.vue
  |    └── 💾main.js
