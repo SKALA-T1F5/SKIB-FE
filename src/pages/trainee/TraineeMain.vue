@@ -130,8 +130,9 @@ const hideAddTestModal = () => {
   addTestModalVisible.value = false
 }
 const addTestByLink = async (link) => {
+  // link 매개변수를 받도록 수정
   invitationLinkError.value = ''
-  invitationLink.value = link
+  invitationLink.value = link // 여기서 모달에서 전달받은 링크 값을 할당합니다.
   if (!invitationLink.value.trim()) {
     invitationLinkError.value = '초대 링크를 입력해주세요.'
     return
