@@ -63,7 +63,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router' // useRoute 추가
 import MainLayout from '@/components/layouts/MainLayout.vue'
 import AISummaryCard from '@/components/trainer/feedback/AISummaryCard.vue'
 import AverageScoreCard from '@/components/trainer/feedback/AverageScoreCard.vue'
@@ -71,14 +71,18 @@ import TagAnalysisCard from '@/components/trainer/feedback/TagAnalysisCard.vue'
 import ProblemAnalysisCard from '@/components/trainer/feedback/ProblemAnalysisCard.vue'
 import ScoreDistributionCard from '@/components/trainer/feedback/ScoreDistributionCard.vue'
 import CorrectnessTableCard from '@/components/trainer/feedback/TraineeProblemCorrectnessTableCard.vue'
+import axios from '@/config/axios' // axios import
 
 const router = useRouter()
+const route = useRoute() // useRoute 인스턴스 생성
+
+const testId = ref(null) // testId를 저장할 ref
 
 const goBack = () => {
   router.back()
 }
 
-// 다운로드 함수들
+// 다운로드 함수들 (기존 로직 유지)
 const downloadAll = () => {
   console.log('전체 다운로드 실행')
 }
@@ -107,145 +111,130 @@ const downloadCorrectnessTable = () => {
   console.log('정오표 PDF 다운로드')
 }
 
-// AI Output 데이터
+// API 응답을 저장할 ref 변수들 초기화
 const aiOutputData = ref({
-  examGoal: '클라우드 DB 관리 역량 평가 (관계형, NoSQL, 보안)',
-  performanceByDocument: [
-    {
-      documentName: 'AWS RDS 가이드',
-      averageCorrectRate: 68.47,
-      comment:
-        '관계형 DB 기본 개념 및 운영 기능에 대한 이해는 있으나, 성능 최적화와 같은 심화 내용 적용에는 추가 학습이 필요해 보입니다.',
-    },
-    {
-      documentName: 'MongoDB Atlas Documentation',
-      averageCorrectRate: 69.84,
-      comment:
-        'NoSQL의 특징과 복제 및 샤딩과 같은 확장성 관련 개념을 잘 이해하고 있으며, 실무 적용 가능성이 높습니다.',
-    },
-    {
-      documentName: '데이터베이스 보안 모범 사례',
-      averageCorrectRate: 38.69,
-      comment:
-        'DB 보안의 기본적인 중요성은 인지하고 있으나, SQL Injection 방지, DB 암호화, 키 보관 등 구체적인 보안 기법 및 원칙에 대한 이해도가 현저히 낮습니다.',
-    },
-  ],
-  insights: [
-    {
-      type: 'strength',
-      text: '관계형 DB와 NoSQL DB의 기본 개념에 대한 이해도가 높음 (#관계형 DB, #NoSQL 특징)',
-    },
-    {
-      type: 'strength',
-      text: '데이터베이스 확장성 관련 기술인 복제 및 샤딩에 대한 이해도가 우수함 (#복제, #샤딩)',
-    },
-    {
-      type: 'weakness',
-      text: '데이터베이스 보안의 전반적인 중요성은 인지하나, 구체적인 보안 기법(SQL Injection, DB 암호화, 키 보관)에 대한 이해 부족 (#SQL Injection, #DB 암호화, #키 보관)',
-    },
-    {
-      type: 'weakness',
-      text: 'DB 백업 및 장애 조치, 성능 조정과 같은 운영 기능의 실무 적용 심화 학습 필요 (#DB 백업, #성능 조정, #장애 조치)',
-    },
-  ],
-  improvementPoints:
-    '관계형 및 NoSQL DB의 기본 구조와 확장성 개념은 잘 파악하고 있으나, DB 보안에 대한 이해도가 매우 낮아 해당 부분에 대한 집중 학습이 시급합니다. 특히 SQL Injection 방지, DB 암호화 방식, 안전한 키 관리 방법 등을 구체적인 사례와 함께 학습하고, 보안 취약점 점검 및 대응 방안을 실습하는 것이 중요합니다. 또한, RDS의 성능 조정과 백업/장애 조치 관련 실무 적용 능력을 강화하기 위해 실제 운영 환경을 가정한 시나리오 학습이 필요합니다.',
-  suggestedTopics: [
-    'SQL Injection 공격 유형별 방어 전략 및 실제 코드 예제',
-    'DB 암호화 방식 비교 (TDE, 컬럼 암호화 등) 및 키 관리 시스템(KMS) 활용',
-    'AWS RDS 성능 튜닝 실습: 인덱스 최적화 및 쿼리 분석',
-  ],
-  overallEvaluation:
-    '관계형 및 NoSQL 데이터베이스의 기본 개념과 확장성에 대한 이해는 양호하나, 데이터베이스 보안 관련 역량이 현저히 부족하여 현재 상태로는 프로젝트 수행이 어렵습니다. 특히 보안에 대한 기초적인 학습과 실습이 선행되어야 하며, 이후 심화 학습을 통해 전반적인 클라우드 데이터베이스 관리 역량을 강화한 후 재평가가 필요합니다.',
-  projectReadiness: 'Fail',
+  examGoal: '',
+  performanceByDocument: [],
+  insights: [],
+  improvementPoints: '',
+  suggestedTopics: [],
+  overallEvaluation: '',
+  projectReadiness: '',
 })
 
-// 목업 데이터
 const trainerStatusData = ref({
-  totalParticipants: 250,
-  passers: 105,
-  averageScore: 78.5,
-  problemAccuracies: [
-    { problemId: 'P1', accuracy: 85 },
-    { problemId: 'P2', accuracy: 70 },
-    { problemId: 'P3', accuracy: 92 },
-    { problemId: 'P4', accuracy: 60 },
-    { problemId: 'P5', accuracy: 78 },
-    { problemId: 'P6', accuracy: 95 },
-    { problemId: 'P7', accuracy: 55 },
-    { problemId: 'P8', accuracy: 88 },
-    { problemId: 'P9', accuracy: 72 },
-    { problemId: 'P10', accuracy: 81 },
-  ],
-  tagAccuracies: {
-    '관계형 DB': { correct: 8, total: 10 },
-    'NoSQL 특징': { correct: 9, total: 10 },
-    'DB 보안': { correct: 3, total: 10 },
-    '성능 최적화': { correct: 6, total: 10 },
-    '백업/복구': { correct: 7, total: 10 },
-  },
-  learnerScores: [
-    70, 85, 95, 60, 85, 90, 78, 85, 65, 99, 72, 81, 55, 88, 79, 40, 50, 52, 58, 60, 62, 65, 67, 70,
-    71, 72, 73, 74, 75, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95,
-    96, 98, 99,
-  ],
-  problemDetails: [
-    {
-      id: 'P1',
-      type: '기본',
-      accuracy: 85,
-      average: 80,
-      myScore: 88,
-      difficulty: '하',
-      questionText: 'HTML의 주요 특징은 무엇입니까?',
-      correctAnswer: '웹 페이지 구조화',
-      explanation: 'HTML은 웹 페이지의 뼈대를 구성하는 마크업 언어입니다.',
-      tags: ['웹 기본', '프론트엔드', '관계형 DB'],
-    },
-    {
-      id: 'P2',
-      type: '추론',
-      accuracy: 70,
-      average: 75,
-      myScore: 65,
-      difficulty: '중',
-      questionText: 'Vue 컴포넌트의 라이프사이클 훅 중 `mounted`가 호출되는 시점은?',
-      correctAnswer: '컴포넌트가 DOM에 마운트된 후',
-      explanation: '`mounted` 훅은 컴포넌트가 DOM에 성공적으로 삽입된 후에 호출됩니다.',
-      tags: ['Vue.js', '프론트엔드', 'NoSQL 특징'],
-    },
-    // 나머지 문제들...
-  ],
-  learnerCorrectnessData: [
-    {
-      learner: '학습자1',
-      P1: 'O',
-      P2: 'O',
-      P3: 'O',
-      P4: 'X',
-      P5: 'O',
-      P6: 'O',
-      P7: 'O',
-      P8: 'O',
-      P9: 'O',
-      P10: 'O',
-    },
-    {
-      learner: '학습자2',
-      P1: 'O',
-      P2: 'X',
-      P3: 'O',
-      P4: 'O',
-      P5: 'O',
-      P6: 'O',
-      P7: 'O',
-      P8: 'X',
-      P9: 'O',
-      P10: 'X',
-    },
-    // 나머지 학습자들...
-  ],
+  totalParticipants: 0,
+  passers: 0,
+  averageScore: 0,
+  problemAccuracies: [],
+  tagAccuracies: {},
+  learnerScores: [],
+  problemDetails: [],
+  learnerCorrectnessData: [],
 })
+
+// API 연동 함수들
+const fetchTrainerFeedback = async (id) => {
+  try {
+    const response = await axios.get(`/feedback/trainer-feedback`, { params: { testId: id } })
+    aiOutputData.value = response.data // AI 요약 데이터 업데이트
+  } catch (error) {
+    console.error('트레이너 피드백을 불러오는 데 실패했습니다:', error)
+  }
+}
+
+const fetchTestBasicStatistics = async (id) => {
+  try {
+    const response = await axios.get(`/feedback/test-basic-statistics`, { params: { testId: id } })
+    const data = response.data
+    trainerStatusData.value.totalParticipants = data.totalParticipants
+    trainerStatusData.value.passers = data.passers
+    trainerStatusData.value.averageScore = data.averageScore
+    trainerStatusData.value.learnerScores = data.learnerScores // 점수 분포 데이터를 위해 추가
+  } catch (error) {
+    console.error('테스트 기본 통계를 불러오는 데 실패했습니다:', error)
+  }
+}
+
+const fetchTagByTest = async (id) => {
+  try {
+    const response = await axios.get(`/feedback/tag-by-test`, { params: { testId: id } })
+    trainerStatusData.value.tagAccuracies = response.data // 태그별 정답률 데이터 업데이트
+  } catch (error) {
+    console.error('태그별 정답률을 불러오는 데 실패했습니다:', error)
+  }
+}
+
+const fetchAnswerMatrix = async (id) => {
+  try {
+    const response = await axios.get(`/feedback/answer-matrix`, { params: { testId: id } })
+    trainerStatusData.value.learnerCorrectnessData = response.data // 정오표 데이터 업데이트
+  } catch (error) {
+    console.error('정오표 데이터를 불러오는 데 실패했습니다:', error)
+  }
+}
+
+// 문항별 정답률 상위/하위 조회 (ProblemAnalysisCard에 필요)
+const fetchProblemAccuraciesTop = async (id) => {
+  try {
+    const response = await axios.get(`/feedback/trainer-feedback/top`, { params: { testId: id } })
+    // 문제 상세 정보에 정확도 데이터를 매핑합니다.
+    trainerStatusData.value.problemAccuracies = response.data.map((item) => ({
+      problemId: item.problemId,
+      accuracy: item.accuracy,
+    }))
+    trainerStatusData.value.problemDetails = response.data.map((item) => ({
+      id: item.problemId,
+      type: item.type,
+      accuracy: item.accuracy,
+      average: item.average,
+      myScore: item.myScore,
+      difficulty: item.difficulty,
+      questionText: item.questionText,
+      correctAnswer: item.correctAnswer,
+      explanation: item.explanation,
+      tags: item.tags,
+    }))
+  } catch (error) {
+    console.error('문항 정답률 상위 데이터를 불러오는 데 실패했습니다:', error)
+  }
+}
+
+const fetchProblemAccuraciesBottom = async (id) => {
+  try {
+    const response = await axios.get(`/feedback/trainer-feedback/bottom`, {
+      params: { testId: id },
+    })
+    // 문제 상세 정보에 정확도 데이터를 매핑합니다.
+    // 기존 problemAccuracies에 하위 데이터를 추가하거나, 필요한 경우 별도 처리
+    const bottomProblems = response.data.map((item) => ({
+      problemId: item.problemId,
+      accuracy: item.accuracy,
+    }))
+    trainerStatusData.value.problemAccuracies = [
+      ...trainerStatusData.value.problemAccuracies,
+      ...bottomProblems,
+    ]
+    const bottomProblemDetails = response.data.map((item) => ({
+      id: item.problemId,
+      type: item.type,
+      accuracy: item.accuracy,
+      average: item.average,
+      myScore: item.myScore,
+      difficulty: item.difficulty,
+      questionText: item.questionText,
+      correctAnswer: item.correctAnswer,
+      explanation: item.explanation,
+      tags: item.tags,
+    }))
+    trainerStatusData.value.problemDetails = [
+      ...trainerStatusData.value.problemDetails,
+      ...bottomProblemDetails,
+    ]
+  } catch (error) {
+    console.error('문항 정답률 하위 데이터를 불러오는 데 실패했습니다:', error)
+  }
+}
 
 const averageScore = computed(() => trainerStatusData.value.averageScore)
 const passersCount = computed(() => trainerStatusData.value.passers)
@@ -289,7 +278,7 @@ const tagRadarData = computed(() => {
   }
 })
 
-// 응시자 목록
+// 응시자 목록 (더미 데이터 생성 로직 유지, 실제 학습자명은 API에서 받아오면 변경)
 const participantsList = computed(() => {
   const participants = []
   const names = [
@@ -385,8 +374,19 @@ const scoreDistributionChartOptions = computed(() => ({
   },
 }))
 
-onMounted(() => {
+onMounted(async () => {
   console.log('TrainerTestStatus component mounted.')
+  // URL에서 testId 추출
+  testId.value = route.params.testId || 1 // 라우터 파라미터에서 testId를 가져옴, 없으면 기본값 1
+
+  if (testId.value) {
+    await fetchTrainerFeedback(testId.value)
+    await fetchTestBasicStatistics(testId.value)
+    await fetchTagByTest(testId.value)
+    await fetchAnswerMatrix(testId.value)
+    await fetchProblemAccuraciesTop(testId.value)
+    await fetchProblemAccuraciesBottom(testId.value)
+  }
 })
 </script>
 
