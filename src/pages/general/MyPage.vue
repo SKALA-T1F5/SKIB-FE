@@ -62,9 +62,6 @@ const user = ref({
   affiliation: '', // department 값을 여기에 할당할 예정
 })
 
-// 컴포넌트 로드 시점의 원본 사용자 이름을 저장 (변경 여부 확인용)
-let originalUserName = ''
-
 // 새로운 비밀번호를 저장할 반응형 변수
 const newPassword = ref('')
 
@@ -94,8 +91,6 @@ const fetchUserInfo = async () => {
       name: data.name,
       affiliation: data.department, // API 응답의 department 필드를 affiliation(소속)으로 매핑
     }
-    // 사용자 정보를 불러온 후 원본 이름 저장
-    originalUserName = data.name
   } catch (error) {
     console.error('사용자 정보를 불러오는 데 실패했습니다:', error)
     alert('사용자 정보를 불러오는 데 실패했습니다. 다시 시도해 주세요.')
@@ -104,23 +99,12 @@ const fetchUserInfo = async () => {
 
 /**
  * '확인' 버튼 클릭 시 실행되는 함수입니다.
- * 이름 및 비밀번호 변경 요청을 보내거나, 변경사항이 없으면 메인 페이지로 이동합니다.
+ * 이름 및 비밀번호 변경 요청을 보냅니다.
  */
 const handleConfirm = async () => {
   if (!userId) {
     alert('사용자 정보를 찾을 수 없습니다. 다시 로그인해 주세요.')
     router.push('/login')
-    return
-  }
-
-  // 이름이 변경되었는지, 새 비밀번호가 입력되었는지 확인
-  const isNameChanged = user.value.name !== originalUserName
-  const isPasswordEntered = newPassword.value.trim() !== ''
-
-  if (!isNameChanged && !isPasswordEntered) {
-    // 변경사항이 없으면 바로 메인 페이지로 이동
-    console.log('변경사항 없음. 메인 페이지로 이동합니다.')
-    router.push(`/${role}/main`)
     return
   }
 
@@ -130,11 +114,16 @@ const handleConfirm = async () => {
       name: user.value.name,
     }
 
-    if (isPasswordEntered) {
+    if (newPassword.value.trim() !== '') {
       updatePayload.password = newPassword.value.trim()
     }
 
-    await axios.put(`/user/${userId}`, updatePayload)
+    // 변경된 API 요청 주소와 Request Body 형식에 맞게 수정
+    await axios.put('/user/update', updatePayload, {
+      params: {
+        userId: userId,
+      },
+    })
 
     alert('정보가 성공적으로 변경되었습니다.')
     // 업데이트 후 사용자 정보를 다시 불러와 화면을 최신 상태로 유지
