@@ -655,6 +655,13 @@ watch(currentStep, (newStep) => {
     }
   }
 })
+
+watch(currentProjectId, (newProjectId, oldProjectId) => {
+  if (newProjectId && newProjectId !== oldProjectId) {
+    // projectId가 유효하고 이전 projectId와 다를 경우에만 fetchTests 호출
+    fetchTests()
+  }
+})
 </script>
 
 <style scoped>
