@@ -33,7 +33,7 @@ import DocumentUpload from '@/components/trainer/document/DocumentUpload.vue'
 import DocumentFilters from '@/components/trainer/document/DocumentFilters.vue'
 import DocumentList from '@/components/trainer/document/DocumentList.vue'
 import DocumentPreviewDialog from '@/components/trainer/document/DocumentPreviewDialog.vue'
-import axios from 'axios'
+import axios from '@/config/axios'
 
 const documents = ref([])
 const searchQuery = ref('')

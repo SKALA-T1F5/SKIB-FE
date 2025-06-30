@@ -41,7 +41,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import axios from 'axios' // axios 추가
+import axios from '@/config/axios' // axios 추가
 
 const emit = defineEmits(['files-uploaded'])
 
