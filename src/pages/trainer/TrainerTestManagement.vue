@@ -37,6 +37,7 @@
               @copy-link="handleCopyLink"
               @go-to-questions="handleGoToQuestions"
               @go-to-dashboard="handleGoToDashboard"
+              @delete-test="handleDeleteTest"
             />
           </v-col>
         </v-row>
@@ -514,6 +515,33 @@ const handleGoToQuestions = (id) => {
 const handleGoToDashboard = (id) => {
   console.log(`응시 현황 대시보드로 이동: ${id}`)
   router.push({ name: 'TrainerTestStatus', params: { testId: id } })
+}
+
+// 새로운 함수: 테스트 삭제 API 호출
+const handleDeleteTest = async (testIdToDelete) => {
+  isLoading.value = true
+  loadingMessage.value = '테스트를 삭제 중입니다...'
+  try {
+    const response = await axios.delete('/test/deleteTest', {
+      params: { testId: testIdToDelete },
+    })
+
+    if (response.data.statusCode === 'OK') {
+      alert('테스트가 성공적으로 삭제되었습니다.')
+      fetchTests() // 삭제 후 테스트 목록 새로고침
+    } else {
+      alert('테스트 삭제에 실패했습니다: ' + response.data.resultMsg)
+      console.error('테스트 삭제 API 응답 오류:', response.data)
+    }
+  } catch (error) {
+    console.error('테스트 삭제 중 오류 발생:', error)
+    alert(
+      '테스트 삭제 중 오류가 발생했습니다. 네트워크 연결을 확인하거나 나중에 다시 시도해주세요.',
+    )
+  } finally {
+    isLoading.value = false
+    loadingMessage.value = '데이터 로딩 중입니다...'
+  }
 }
 
 // --- Data Fetching (Mock) for TestConfig content ---

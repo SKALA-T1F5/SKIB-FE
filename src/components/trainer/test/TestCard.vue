@@ -43,6 +43,9 @@
       <button class="action-button-trainer primary-button" @click="goToDashboard(test.id)">
         <v-icon size="18" class="mr-1">mdi-chart-line</v-icon> 응시현황
       </button>
+      <button class="action-button-trainer delete-button" @click="confirmDelete(test.id)">
+        <v-icon size="18" class="mr-1">mdi-delete</v-icon> 삭제
+      </button>
     </div>
   </v-card>
 </template>
@@ -69,7 +72,8 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['copy-link', 'go-to-questions', 'go-to-dashboard'])
+// 'delete-test' 이벤트 추가
+const emit = defineEmits(['copy-link', 'go-to-questions', 'go-to-dashboard', 'delete-test'])
 
 const copyLink = (id) => {
   emit('copy-link', id)
@@ -81,6 +85,13 @@ const goToQuestions = (id) => {
 
 const goToDashboard = (id) => {
   emit('go-to-dashboard', id)
+}
+
+// 삭제 확인 및 이벤트 발생 함수
+const confirmDelete = (id) => {
+  if (confirm('정말로 이 테스트를 삭제하시겠습니까? 관련 데이터도 함께 삭제됩니다.')) {
+    emit('delete-test', id)
+  }
 }
 
 // 합격률 계산
@@ -259,6 +270,18 @@ const formattedCreatedAt = computed(() => {
 .action-button-trainer.primary-button:hover {
   background-color: #0c0f3c; /* 강조 색상에 맞춘 호버 색상 */
   border-color: #0c0f3c; /* 강조 색상에 맞춘 호버 색상 */
+}
+
+/* 삭제 버튼 스타일 추가 */
+.action-button-trainer.delete-button {
+  background-color: #ef5350; /* 붉은색 계열 */
+  color: white;
+  border-color: #ef5350;
+}
+
+.action-button-trainer.delete-button:hover {
+  background-color: #c62828; /* 더 진한 붉은색 */
+  border-color: #c62828;
 }
 
 .action-button-trainer .v-icon {
