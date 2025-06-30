@@ -53,6 +53,12 @@ const routes = [
 
   // Trainee Routes
   {
+    path: '/trainee/main',
+    name: 'TraineeMain',
+    component: TraineeMain,
+    props: true, // 이 줄을 제거하여 $route.params로 접근하도록 합니다.
+  },
+  {
     path: '/trainee/test/:testId/:linkToken?', // linkToken을 선택적 파라미터로 추가하고 props: true 제거
     name: 'TraineeTestGuide',
     component: TraineeTestGuide,
