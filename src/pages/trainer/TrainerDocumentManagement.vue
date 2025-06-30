@@ -17,7 +17,13 @@
       <div class="filters-wrapper">
         <DocumentFilters v-model:search-query="searchQuery" />
       </div>
-      <DocumentList :documents="filteredDocuments" view-mode="list" :search-query="searchQuery" />
+      <DocumentList
+        :documents="filteredDocuments"
+        view-mode="list"
+        :search-query="searchQuery"
+        @preview="preview"
+        @delete-document="deleteDocument"
+      />
       <div class="list-footer">
         <span class="total-count">총 {{ filteredDocuments.length }}개 문서</span>
       </div>
@@ -33,13 +39,10 @@ import DocumentUpload from '@/components/trainer/document/DocumentUpload.vue'
 import DocumentFilters from '@/components/trainer/document/DocumentFilters.vue'
 import DocumentList from '@/components/trainer/document/DocumentList.vue'
 import DocumentPreviewDialog from '@/components/trainer/document/DocumentPreviewDialog.vue'
-import axios from '@/config/axios'
+import api from '@/config/axios' // axios 인스턴스를 api로 임포트
 
 const documents = ref([])
 const searchQuery = ref('')
-// filterType과 viewMode ref 제거
-// const filterType = ref('')
-// const viewMode = ref('grid')
 
 const previewDialog = ref(false)
 const selectedDocument = ref(null)
@@ -48,7 +51,7 @@ const projectId = ref(1) // 예시: 실제 프로젝트 ID로 변경 필요
 
 const fetchDocuments = async () => {
   try {
-    const response = await axios.get(`/documents`, {
+    const response = await api.get(`/documents`, {
       params: {
         projectId: projectId.value,
       },
@@ -71,13 +74,38 @@ const fetchDocuments = async () => {
   }
 }
 
+// --- 문서 삭제 기능 추가 시작 ---
+const deleteDocument = async (documentId) => {
+  if (!confirm('정말로 이 문서를 삭제하시겠습니까?')) {
+    return
+  }
+  try {
+    const response = await api.delete(`/document/delete`, {
+      params: {
+        documentId: documentId,
+      },
+    })
+
+    if (response.data.statusCode === 'OK') {
+      alert('문서가 성공적으로 삭제되었습니다.')
+      fetchDocuments() // 문서 목록 새로고침
+    } else {
+      console.error('문서 삭제 실패:', response.data.resultMsg)
+      alert(`문서 삭제 실패: ${response.data.resultMsg}`)
+    }
+  } catch (error) {
+    console.error('문서 삭제 중 오류 발생:', error)
+    alert('문서 삭제 중 오류가 발생했습니다.')
+  }
+}
+// --- 문서 삭제 기능 추가 끝 ---
+
 onMounted(() => {
   fetchDocuments()
 })
 
 const filteredDocuments = computed(() => {
   return documents.value.filter((doc) => {
-    // filterType 관련 로직 제거
     const matchesSearch = doc.originalName.toLowerCase().includes(searchQuery.value.toLowerCase())
     return matchesSearch
   })

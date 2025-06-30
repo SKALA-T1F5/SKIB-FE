@@ -20,27 +20,39 @@
               <v-icon size="20" color="#191d5a" class="mr-2">mdi-file-outline</v-icon>
               파일 유형
             </th>
+            <th class="text-center">
+              <v-icon size="20" color="#191d5a">mdi-trash-can-outline</v-icon>
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="doc in documents" :key="doc.id" @click="selectDocument(doc)" class="doc-row">
-            <td class="text-truncate">
+          <tr v-for="doc in documents" :key="doc.id" class="doc-row">
+            <td class="text-truncate" @click="selectDocument(doc)">
               <v-icon size="20" color="#888" class="mr-2">
                 {{ getFileIcon(doc.fileType) }}
               </v-icon>
               {{ doc.originalName }}
             </td>
-            <td>
+            <td @click="selectDocument(doc)">
               <v-icon size="18" color="#888" class="mr-1">mdi-calendar-check-outline</v-icon>
               {{ formatDate(doc.uploadDate) }}
             </td>
-            <td>
+            <td @click="selectDocument(doc)">
               <v-icon size="18" color="#888" class="mr-1">mdi-harddisk</v-icon>
               {{ formatSize(doc.fileSize) }}
             </td>
-            <td>
+            <td @click="selectDocument(doc)">
               <v-icon size="18" color="#888" class="mr-1">mdi-file-find-outline</v-icon>
               {{ doc.fileType }}
+            </td>
+            <td class="text-center">
+              <v-icon
+                size="20"
+                color="#e57373"
+                @click.stop="confirmDelete(doc.id)"
+                class="delete-icon"
+                >mdi-delete</v-icon
+              >
             </td>
           </tr>
         </tbody>
@@ -62,15 +74,13 @@ import { computed } from 'vue'
 
 const props = defineProps({
   documents: Array,
-  // viewMode: String, // 제거
   searchQuery: String,
-  // filterType: String, // 제거
 })
 
-const emit = defineEmits(['preview'])
+// 'preview'와 'delete-document' 이벤트를 정의합니다.
+const emit = defineEmits(['preview', 'delete-document'])
 
 const noDocumentMessage = computed(() => {
-  // filterType 관련 로직 제거
   return props.searchQuery
     ? '검색 조건에 맞는 문서를 찾을 수 없습니다.'
     : '첫 번째 문서를 업로드해보세요.'
@@ -89,71 +99,19 @@ function formatSize(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
 }
 
-// 파일 타입에 따른 아이콘 반환 함수 간소화 (PDF만)
 function getFileIcon(fileType) {
-  // 실제 파일 확장자는 'PDF'로 들어올 것이므로, .toLowerCase()를 사용하지 않을 수도 있습니다.
-  // API 응답의 'extension' 필드값이 소문자라면 .toLowerCase()를 유지하는 것이 안전합니다.
   if (fileType.toLowerCase() === 'pdf') {
     return 'mdi-file-pdf-box'
   }
-  return 'mdi-file-outline' // PDF 외의 모든 경우 기본 아이콘
+  return 'mdi-file-outline'
 }
 
 function selectDocument(doc) {
   emit('preview', doc)
 }
+
+// 삭제 확인 및 이벤트 발생 함수 추가
+function confirmDelete(documentId) {
+  emit('delete-document', documentId)
+}
 </script>
-
-<style scoped>
-.doc-table {
-  background: #fff;
-  border-radius: 8px;
-  overflow: hidden;
-  font-size: 15px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
-}
-
-.doc-table th,
-.doc-table td {
-  padding: 12px 16px;
-  vertical-align: middle;
-}
-
-.doc-table th {
-  background: #f8f8f8;
-  color: #191d5a;
-  font-weight: bold;
-  border-bottom: 1.5px solid #e0e0e0;
-  text-align: left;
-}
-
-.doc-table td {
-  color: #444;
-}
-
-.doc-row {
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.doc-row:hover {
-  background: #f3f6fa;
-}
-
-.text-truncate {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 380px;
-  display: flex;
-  align-items: center;
-}
-
-.text-center {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
-}
-</style>
