@@ -6,6 +6,7 @@
         :search-query="searchQuery"
         @update:search-query="searchQuery = $event"
         @reset-filters="handleResetFilters"
+        placeholderText="프로젝트 이름을 검색하세요..."
       />
     </template>
 
@@ -57,9 +58,9 @@ const projects = ref([])
 const searchQuery = ref('')
 // Project는 Status 속성을 가지고 있지 않으므로 statusFilters 제거
 // const statusFilters = ref({
-//   inProgress: false,
-//   completed: false,
-//   pending: false,
+//   inProgress: false,
+//   completed: false,
+//   pending: false,
 // })
 
 // 라우팅 실험 및 빈 데이터 상황을 위한 임시 프로젝트 데이터
@@ -107,19 +108,19 @@ const filteredProjects = computed(() => {
   // const isPendingChecked = statusFilters.value.pending
 
   // if (isInProgressChecked || isCompletedChecked || isPendingChecked) {
-  //   currentProjects = currentProjects.filter((project) => {
-  //     let matchStatusFilter = false
-  //     if (isInProgressChecked && project.status === '진행 중') {
-  //       matchStatusFilter = true
-  //     }
-  //     if (isCompletedChecked && project.status === '완료') {
-  //       matchStatusFilter = true
-  //     }
-  //     if (isPendingChecked && project.status === '대기 중') {
-  //       matchStatusFilter = true
-  //     }
-  //     return matchStatusFilter
-  //   })
+  //   currentProjects = currentProjects.filter((project) => {
+  //     let matchStatusFilter = false
+  //     if (isInProgressChecked && project.status === '진행 중') {
+  //       matchStatusFilter = true
+  //     }
+  //     if (isCompletedChecked && project.status === '완료') {
+  //       matchStatusFilter = true
+  //     }
+  //     if (isPendingChecked && project.status === '대기 중') {
+  //       matchStatusFilter = true
+  //     }
+  //     return matchStatusFilter
+  //   })
   // }
 
   // 필터가 적용되지 않은 경우 모든 프로젝트 반환
@@ -176,9 +177,9 @@ const handleResetFilters = () => {
   searchQuery.value = ''
   // Project는 Status 속성을 가지고 있지 않으므로 statusFilters 초기화 제거
   // statusFilters.value = {
-  //   inProgress: false,
-  //   completed: false,
-  //   pending: false,
+  //   inProgress: false,
+  //   completed: false,
+  //   pending: false,
   // }
   fetchProjects() // 필터 초기화 후 프로젝트 재조회
 }
@@ -193,11 +194,11 @@ const handleProjectAction = (project, actionType) => {
   }
   // 트레이너는 프로젝트를 수정하거나 삭제할 수 없으므로 해당 로직 제거
   // else if (actionType === 'edit') {
-  //   alert(`프로젝트 "${project.name}" 수정 기능을 구현해야 합니다.`)
+  //   alert(`프로젝트 "${project.name}" 수정 기능을 구현해야 합니다.`)
   // } else if (actionType === 'delete') {
-  //   if (confirm(`정말로 프로젝트 "${project.name}"을 삭제하시겠습니까?`)) {
-  //     alert(`프로젝트 "${project.name}" 삭제 기능을 구현해야 합니다.`)
-  //   }
+  //   if (confirm(`정말로 프로젝트 "${project.name}"을 삭제하시겠습니까?`)) {
+  //     alert(`프로젝트 "${project.name}" 삭제 기능을 구현해야 합니다.`)
+  //   }
   // }
 }
 
@@ -209,7 +210,7 @@ onMounted(() => {
 
 <style scoped>
 /* MainLayout.vue에 전반적인 레이아웃 스타일이 정의되었으므로,
-    여기서는 콘텐츠 영역에 특화된 스타일만 유지합니다. */
+    여기서는 콘텐츠 영역에 특화된 스타일만 유지합니다. */
 .main-header {
   display: flex;
   justify-content: space-between;
@@ -227,18 +228,18 @@ onMounted(() => {
 /* 프로젝트 추가 버튼 제거로 인한 불필요 스타일 제거 */
 /*
 .add-test-button {
-  background-color: #e0e0e0;
-  color: #666;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 6px 8px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: background-color 0.2s ease;
+  background-color: #e0e0e0;
+  color: #666;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.2s ease;
 }
 
 .add-test-button:hover {
-  background-color: #d0d0d0;
+  background-color: #d0d0d0;
 }
 */
 

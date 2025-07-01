@@ -6,6 +6,7 @@
         :search-query="searchQuery"
         @update:search-query="searchQuery = $event"
         @reset-filters="handleResetFilters"
+        placeholderText="테스트 이름을 검색하세요..."
       />
     </template>
 
@@ -295,7 +296,7 @@ onMounted(() => {
 
 <style scoped>
 /* MainLayout.vue에 전반적인 레이아웃 스타일이 정의되었으므로,
-   여기서는 콘텐츠 영역에 특화된 스타일만 유지합니다. */
+    여기서는 콘텐츠 영역에 특화된 스타일만 유지합니다. */
 .main-header {
   display: flex;
   justify-content: space-between;

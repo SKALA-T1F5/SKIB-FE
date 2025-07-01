@@ -5,7 +5,7 @@
       type="text"
       :value="searchQuery"
       @input="$emit('update:searchQuery', $event.target.value)"
-      placeholder="테스트 이름을 검색하세요..."
+      :placeholder="placeholderText"
       class="search-input"
     />
     <SvgIcon type="mdi" :path="mdiRefresh" class="refresh-icon" @click="$emit('reset-filters')" />
@@ -17,7 +17,14 @@ import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiMagnify, mdiRefresh } from '@mdi/js'
 
 defineProps({
-  searchQuery: String,
+  searchQuery: {
+    type: String,
+    default: '', // searchQuery의 기본값 설정
+  },
+  placeholderText: {
+    type: String,
+    default: '검색어를 입력하세요...', // placeholderText의 기본값 설정
+  },
 })
 
 defineEmits(['update:searchQuery', 'reset-filters'])
@@ -33,10 +40,7 @@ defineEmits(['update:searchQuery', 'reset-filters'])
   border-radius: 4px;
   background-color: #ffffff;
   box-sizing: border-box;
-  max-width: 150px; /* 요청하신 가로 크기 제한 */
-  /* MainLayout의 sidebar-header-content가 flex-start이므로 이 margin은 필요 없을 수 있습니다. */
-  /* margin-left: 0; */
-  /* margin-right: auto; */
+  max-width: 240px; /* 요청하신 가로 크기 제한 */
 }
 
 .search-icon {
