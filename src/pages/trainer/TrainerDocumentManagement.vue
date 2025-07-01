@@ -34,12 +34,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue' // watch 임포트 제거
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import DocumentUpload from '@/components/trainer/document/DocumentUpload.vue'
 import DocumentFilters from '@/components/trainer/document/DocumentFilters.vue'
 import DocumentList from '@/components/trainer/document/DocumentList.vue'
 import DocumentPreviewDialog from '@/components/trainer/document/DocumentPreviewDialog.vue'
-// SummaryStatus 컴포넌트 임포트 제거
 import api from '@/config/axios'
 
 const documents = ref([])
@@ -50,9 +49,9 @@ const selectedDocument = ref(null)
 
 const projectId = ref(1) // 예시: 실제 프로젝트 ID로 변경 필요
 
-// summaryStatusRef 참조 및 관련 watch 로직이 완전히 삭제되었습니다.
-// const summaryStatusRef = ref(null)
+let statusUpdateInterval = null // 상태 업데이트 인터벌 ID
 
+// Define functions early and consistently
 const fetchDocuments = async () => {
   try {
     const response = await api.get(`/documents`, {
@@ -67,10 +66,7 @@ const fetchDocuments = async () => {
         fileType: doc.extension ? doc.extension.toUpperCase() : 'UNKNOWN',
         uploadDate: doc.createdAt ? doc.createdAt.split('T')[0] : '',
         fileSize: doc.fileSize,
-        // DocumentList에서 상태를 WebSocket으로 직접 처리할 것이므로,
-        // 여기서는 초기 상태를 '알 수 없음' 또는 '업로드 완료' 등으로 설정해도 무방.
-        // WebSocket 연결 전에는 기본값을 보여줌.
-        status: doc.status || '알 수 없음',
+        status: doc.status || '알 수 없음', // 초기 상태 설정
       }))
     } else {
       console.error('문서 목록 조회 실패:', response.data.resultMsg)
@@ -80,6 +76,44 @@ const fetchDocuments = async () => {
     console.error('문서 목록을 가져오는 중 오류 발생:', error)
     documents.value = []
   }
+}
+
+const fetchDocumentStatus = async (documentId) => {
+  try {
+    const response = await api.get(`/document/status`, {
+      params: {
+        documentId: documentId,
+      },
+    })
+    if (response.data.statusCode === 'OK' && response.data.resultData) {
+      const updatedStatus = response.data.resultData.status // API 응답에서 상태 값 추출
+      // documents 배열에서 해당 문서 찾아 상태 업데이트
+      const docIndex = documents.value.findIndex((doc) => doc.id === documentId)
+      if (docIndex !== -1) {
+        documents.value[docIndex].status = updatedStatus
+      }
+    } else {
+      console.error(`문서 ID ${documentId}의 상태 조회 실패:`, response.data.resultMsg)
+    }
+  } catch (error) {
+    console.error(`문서 ID ${documentId}의 상태를 가져오는 중 오류 발생:`, error)
+  }
+}
+
+const startStatusUpdate = () => {
+  // 기존 인터벌이 있으면 클리어
+  if (statusUpdateInterval) {
+    clearInterval(statusUpdateInterval)
+  }
+  // 5초마다 모든 문서의 상태 업데이트
+  statusUpdateInterval = setInterval(() => {
+    documents.value.forEach((doc) => {
+      // '요약 완료' 또는 '실패' 상태가 아닌 문서만 업데이트
+      if (doc.status !== '요약 완료' && doc.status !== '실패') {
+        fetchDocumentStatus(doc.id)
+      }
+    })
+  }, 5000)
 }
 
 const deleteDocument = async (documentId) => {
@@ -106,8 +140,22 @@ const deleteDocument = async (documentId) => {
   }
 }
 
+const preview = (doc) => {
+  selectedDocument.value = doc
+  previewDialog.value = true
+}
+
+// Lifecycle hooks
 onMounted(() => {
   fetchDocuments()
+  startStatusUpdate() // 컴포넌트 마운트 시 상태 업데이트 시작
+})
+
+onBeforeUnmount(() => {
+  // 컴포넌트 언마운트 시 인터벌 정리
+  if (statusUpdateInterval) {
+    clearInterval(statusUpdateInterval)
+  }
 })
 
 const filteredDocuments = computed(() => {
@@ -116,11 +164,6 @@ const filteredDocuments = computed(() => {
     return matchesSearch
   })
 })
-
-function preview(doc) {
-  selectedDocument.value = doc
-  previewDialog.value = true
-}
 </script>
 
 <style scoped>
@@ -175,11 +218,6 @@ function preview(doc) {
 .upload-section {
   margin-bottom: 32px;
 }
-
-/* summary-status-section 관련 스타일이 삭제되었습니다. */
-/* .summary-status-section {
-  margin-bottom: 32px;
-} */
 
 .list-section {
   padding: 24px;

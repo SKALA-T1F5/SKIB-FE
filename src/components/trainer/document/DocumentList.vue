@@ -80,9 +80,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onBeforeUnmount } from 'vue' // onMounted, onBeforeUnmount 임포트
-import SockJS from 'sockjs-client' // SockJS 임포트
-import Stomp from 'stompjs' // Stomp 임포트
+import { computed } from 'vue'
 
 const props = defineProps({
   documents: Array,
@@ -96,61 +94,6 @@ const noDocumentMessage = computed(() => {
     ? '검색 조건에 맞는 문서를 찾을 수 없습니다.'
     : '첫 번째 문서를 업로드해보세요.'
 })
-
-// WebSocket 관련 데이터 및 메서드 추가
-let stompClient = null
-
-const connectWebSocket = () => {
-  if (stompClient && stompClient.connected) {
-    return
-  }
-
-  const socket = new SockJS('https://skib-backend.skala25a.project.skala-ai.com/ws')
-  stompClient = Stomp.over(socket)
-  stompClient.debug = null // 디버그 메시지 비활성화
-
-  stompClient.connect(
-    {},
-    (frame) => {
-      console.log('📡 DocumentList WebSocket 연결 성공:', frame)
-      // Spring Boot가 보내는 /topic/summary 토픽 구독
-      stompClient.subscribe('/topic/summary', handleSummaryNotification)
-    },
-    (error) => {
-      console.error('❌ DocumentList WebSocket 연결 실패:', error)
-      // 연결 실패 시 재연결 시도 (선택 사항)
-      // setTimeout(() => connectWebSocket(), 5000);
-    },
-  )
-}
-
-const handleSummaryNotification = (message) => {
-  try {
-    const notification = JSON.parse(message.body)
-    console.log('📥 DocumentList에서 수신된 문서 처리 알림:', notification)
-
-    const targetDocumentId = notification.documentId
-    const targetDocument = props.documents.find((doc) => doc.id === targetDocumentId)
-
-    if (targetDocument) {
-      // 알림 메시지에 따라 상태 업데이트
-      if (notification.message.includes('업로드 완료')) {
-        targetDocument.status = '업로드 완료'
-      } else if (notification.message.includes('전처리 중')) {
-        targetDocument.status = '전처리 중'
-      } else if (notification.message.includes('요약 중')) {
-        targetDocument.status = '요약 중'
-      } else if (notification.message.includes('요약이 완료되었습니다.')) {
-        targetDocument.status = '요약 완료'
-      } else if (notification.message.includes('실패')) {
-        targetDocument.status = '실패'
-      }
-      // console.log(`DocumentList: 문서 ID: ${targetDocumentId} 상태 업데이트: ${targetDocument.status}`)
-    }
-  } catch (e) {
-    console.error('❌ DocumentList 문서 처리 알림 파싱 오류:', e)
-  }
-}
 
 function formatDate(date) {
   if (!date) return ''
@@ -214,18 +157,67 @@ function selectDocument(doc) {
 function confirmDelete(documentId) {
   emit('delete-document', documentId)
 }
-
-// 컴포넌트 마운트 시 WebSocket 연결
-onMounted(() => {
-  connectWebSocket()
-})
-
-// 컴포넌트 언마운트 시 WebSocket 연결 해제
-onBeforeUnmount(() => {
-  if (stompClient && stompClient.connected) {
-    stompClient.disconnect(() => {
-      console.log('📡 DocumentList WebSocket 연결 해제됨.')
-    })
-  }
-})
 </script>
+
+<style scoped>
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.doc-table th {
+  font-size: 0.9rem;
+  color: #191d5a;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+  white-space: nowrap;
+}
+
+.doc-table th:first-child {
+  border-top-left-radius: 8px;
+}
+
+.doc-table th:last-child {
+  border-top-right-radius: 8px;
+  text-align: center;
+}
+
+.doc-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.875rem;
+  color: #555;
+  cursor: pointer;
+}
+
+.doc-table tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+.doc-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.text-truncate {
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.delete-icon {
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.delete-icon:hover {
+  opacity: 1;
+}
+
+.v-chip {
+  height: 24px; /* 칩 높이 조정 */
+  font-size: 0.75rem; /* 칩 폰트 크기 조정 */
+}
+</style>

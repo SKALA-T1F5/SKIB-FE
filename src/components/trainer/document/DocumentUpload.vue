@@ -26,10 +26,6 @@
           </div>
         </div>
       </div>
-      <div v-if="uploadStatus" class="upload-status-message mt-4">
-        <v-icon :color="statusIconColor" class="mr-2">{{ statusIcon }}</v-icon>
-        <span :class="statusTextColor">{{ uploadStatus }}</span>
-      </div>
       <div v-if="uploadError" class="text-center mt-2 text-error">
         ❌ 업로드 실패: {{ uploadError }}
       </div>
@@ -38,7 +34,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import axios from '@/config/axios' // axios 추가
 
 const emit = defineEmits(['files-uploaded'])
@@ -50,47 +46,12 @@ const props = defineProps({
   },
 })
 
-const uploadStatus = ref(null) // 업로드 상태 메시지 (예: "업로드 중...", "업로드 완료!")
 const uploadError = ref(null) // 업로드 오류 메시지
 const isDragActive = ref(false)
 const fileInputRef = ref(null)
 
 const allowedFileTypes = ['application/pdf']
 const maxFileSize = 50 * 1024 * 1024 // 50MB
-
-// 상태 메시지에 따라 아이콘과 색상 변경
-const statusIcon = computed(() => {
-  if (uploadStatus.value && uploadStatus.value.includes('완료')) {
-    return 'mdi-check-circle'
-  } else if (uploadStatus.value && uploadStatus.value.includes('업로드 중')) {
-    return 'mdi-upload'
-  } else if (uploadStatus.value && uploadStatus.value.includes('전처리 대기 중')) {
-    return 'mdi-cog-outline'
-  }
-  return 'mdi-information-outline' // 기본 아이콘
-})
-
-const statusIconColor = computed(() => {
-  if (uploadStatus.value && uploadStatus.value.includes('완료')) {
-    return 'success'
-  } else if (uploadStatus.value && uploadStatus.value.includes('업로드 중')) {
-    return 'info'
-  } else if (uploadStatus.value && uploadStatus.value.includes('전처리 대기 중')) {
-    return 'warning'
-  }
-  return 'grey'
-})
-
-const statusTextColor = computed(() => {
-  if (uploadStatus.value && uploadStatus.value.includes('완료')) {
-    return 'text-success'
-  } else if (uploadStatus.value && uploadStatus.value.includes('업로드 중')) {
-    return 'text-info'
-  } else if (uploadStatus.value && uploadStatus.value.includes('전처리 대기 중')) {
-    return 'text-warning'
-  }
-  return 'text-grey-darken-1'
-})
 
 const triggerFileInput = () => {
   fileInputRef.value.click()
@@ -117,7 +78,7 @@ const handleFiles = (files) => {
     uploadFiles(validFiles)
     uploadError.value = null // 새 업로드 시작 시 오류 메시지 초기화
   } else if (files.length > 0) {
-    uploadStatus.value = null // 유효하지 않은 파일만 있을 경우 상태 초기화
+    // 유효하지 않은 파일만 있을 경우 오류 메시지 유지 또는 업데이트
   }
 }
 
@@ -145,8 +106,7 @@ const uploadFiles = async (files) => {
     formData.append('file', file)
   })
 
-  uploadStatus.value = '📤 업로드 중...'
-  uploadError.value = null
+  uploadError.value = null // 업로드 시작 전 오류 메시지 초기화
 
   try {
     const response = await axios.post(`/document`, formData, {
@@ -156,24 +116,16 @@ const uploadFiles = async (files) => {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      // onUploadProgress 제거 (Progress Bar가 필요 없으므로)
     })
 
     if (response.data.statusCode === 'OK') {
-      uploadStatus.value = '✅ 업로드 완료! (서버 전처리 대기 중...)'
       console.log('업로드 완료:', response.data.resultMsg)
       emit('files-uploaded') // 문서 목록 새로고침을 위해 이벤트 발생
-
-      setTimeout(() => {
-        uploadStatus.value = null // 일정 시간 후 메시지 사라지게
-      }, 5000) // 5초 후 메시지 사라짐
     } else {
-      uploadStatus.value = null
       uploadError.value = response.data.resultMsg || '알 수 없는 업로드 실패'
       console.error('파일 업로드 실패:', response.data.resultMsg)
     }
   } catch (error) {
-    uploadStatus.value = null
     uploadError.value = error.response?.data?.resultMsg || error.message || '네트워크 오류 발생'
     console.error('업로드 실패:', error)
   }
@@ -226,26 +178,6 @@ const uploadFiles = async (files) => {
   margin-bottom: 8px;
 }
 
-.upload-status-message {
-  text-align: center;
-  font-weight: bold;
-  font-size: 0.9rem;
-  padding: 8px 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-}
-
-.text-success {
-  color: #4caf50;
-}
-.text-info {
-  color: #2196f3;
-}
-.text-warning {
-  color: #ffc107;
-}
 .text-error {
   color: #f44336;
 }
