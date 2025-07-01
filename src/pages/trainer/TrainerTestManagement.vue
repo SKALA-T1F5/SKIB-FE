@@ -146,7 +146,7 @@ const loadingMessage = ref('데이터 로딩 중입니다...')
 const tests = ref([])
 const questionsData = ref([]) // API 응답으로 받은 질문 데이터를 저장할 곳
 
-const examPrompt = ref('')
+const examPrompt = ref('') // 이 변수에 사용자가 입력한 프롬프트 또는 AI가 생성한 summary가 저장됩니다.
 const testId = ref(null)
 const testLink = ref('')
 const testCreationType = ref(null) // 'ai' 또는 'quick'
@@ -266,7 +266,7 @@ const handleTypeSelectionNext = (selectedType) => {
 
 // TestPrompt 컴포넌트에서 'next-step' 이벤트 발생 시 호출 (프롬프트 전달)
 const handlePromptNext = async (prompt) => {
-  examPrompt.value = prompt // TrainerTestManagement에 프롬프트 저장
+  // examPrompt.value = prompt; // 사용자가 입력한 프롬프트는 저장하되, TestConfig에는 AI summary를 넘김
   loadingMessage.value = 'AI가 테스트를 생성 중입니다...'
   isLoading.value = true // 중앙 로딩 시작
 
@@ -291,6 +291,8 @@ const handlePromptNext = async (prompt) => {
         passScore: response.data.resultData.passScore,
         retakeAllowed: response.data.resultData.isRetake,
       }
+      // 이곳에서 API 응답의 summary를 examPrompt에 할당하여 TestConfig로 전달합니다.
+      examPrompt.value = response.data.resultData.summary // [Cite: 1]
       revenues.value = response.data.resultData.documentConfigs.map((doc) => ({
         id: doc.documentId,
         name: doc.documentName,
@@ -343,7 +345,7 @@ const handleConfigNext = async (configData) => {
 
     const requestBody = {
       name: selectedDocument.value.title, // TestConfig에서 설정된 테스트 이름
-      summary: examPrompt.value, // TestPrompt에서 설정된 테스트 목표
+      summary: examPrompt.value, // TestPrompt에서 설정된 테스트 목표 (이제 AI summary)
       difficultyLevel: selectedDocument.value.difficulty,
       limitedTime: selectedDocument.value.examTime,
       passScore: selectedDocument.value.passScore,
