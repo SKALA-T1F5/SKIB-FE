@@ -303,7 +303,7 @@ const handlePromptNext = async (prompt) => {
         retakeAllowed: response.data.resultData.isRetake,
       }
       // 이곳에서 API 응답의 summary를 examPrompt에 할당하여 TestConfig로 전달합니다.
-      examPrompt.value = response.data.resultData.summary // [Cite: 1]
+      examPrompt.value = response.data.resultData.summary //
       revenues.value = response.data.resultData.documentConfigs.map((doc) => ({
         id: doc.documentId,
         name: doc.documentName,
@@ -347,8 +347,8 @@ const handleConfigNext = async (configData) => {
     const documentConfigsForApi = revenues.value
       .filter((doc) => doc.selected && (doc.mcSet > 0 || doc.sqSet > 0))
       .map((doc) => ({
-        documentId: doc.documentId,
-        documentName: doc.documentName,
+        documentId: doc.id, // 이 부분을 추가합니다.
+        documentName: doc.name, // 이 부분을 추가합니다.
         keywords: doc.keyword ? doc.keyword.map((k) => k.trim()) : [], // 배열 그대로 사용
         configuredObjectiveCount: doc.mcSet,
         configuredSubjectiveCount: doc.sqSet,
@@ -417,7 +417,7 @@ const handleQuickConfigNext = async (updatedRevenues, totalTestQuestions) => {
     quickPassingScore.value = 60 // 기본값 설정
 
     // 랜덤 테스트 생성 API 호출
-    const response = await axios.post('/test/random', null, {
+    const response = await axios.get('/test/random', {
       params: {
         projectId: currentProjectId.value,
         count: totalTestQuestions, // 총 문제 수 (count)를 파라미터로 전달
