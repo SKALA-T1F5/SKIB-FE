@@ -241,7 +241,7 @@ export default {
                 this.showDeleteConfirm = true; // 삭제 확인 모달 표시
             } else if (this.currentMenu === 'learners') {
                 // TraineeList 컴포넌트에서 발생시킨 삭제 이벤트를 통해 처리
-                console.log('학습자 삭제 요청 받음:', id);
+                // console.log('학습자 삭제 요청 받음:', id);
                 // 실제 학습자 삭제 로직 (API 호출 또는 데이터 업데이트) 구현 필요
                 // 예시: 로컬 학습자 데이터에서 학습자 제거 (필요 시 주석 해제 및 수정)
                 // this.trainees = this.trainees.filter(trainee => trainee.id !== this.itemToDeleteId);
@@ -251,18 +251,18 @@ export default {
         // 삭제 확인 (프로젝트/출제자 공용 사용)
         confirmDelete() {
             // 실제 삭제 로직 구현 (API 호출 등)
-            console.log(`${this.currentMenu} 삭제 실행:`, this.itemToDeleteId);
+            // console.log(`${this.currentMenu} 삭제 실행:`, this.itemToDeleteId);
 
             if (this.currentMenu === 'projects') {
                 // 예시: 로컬 프로젝트 데이터에서 프로젝트 제거
                 this.allProjects = this.allProjects.filter(project => project.id !== this.itemToDeleteId);
             } else if (this.currentMenu === 'quizzers') {
                 // TrainerList 컴포넌트의 deleteQuizzer 메서드 호출
-                console.log('출제자 삭제 요청 받음:', this.itemToDeleteId);
+                // console.log('출제자 삭제 요청 받음:', this.itemToDeleteId);
                 this.$refs.trainerListRef.deleteQuizzer(this.itemToDeleteId);
             } else if (this.currentMenu === 'learners') {
                 // TraineeList 컴포넌트의 deleteTrainee 메서드 호출
-                console.log('학습자 삭제 요청 받음:', this.itemToDeleteId);
+                // console.log('학습자 삭제 요청 받음:', this.itemToDeleteId);
                 this.$refs.traineeListRef.deleteTrainee(this.itemToDeleteId);
             }
 
@@ -334,7 +334,7 @@ export default {
 
         // 출제자 삭제 이벤트 핸들러
         handleDeleteQuizzer(quizzerId) {
-            console.log('TrainerList에서 삭제 이벤트 수신:', quizzerId);
+            // console.log('TrainerList에서 삭제 이벤트 수신:', quizzerId);
             // 삭제 확인 모달 표시
             this.itemToDeleteId = quizzerId; // 삭제할 출제자 ID 저장
             this.showDeleteConfirm = true; // 삭제 확인 모달 표시
@@ -342,7 +342,7 @@ export default {
 
         // 학습자 삭제 이벤트 핸들러
         handleDeleteTrainee(traineeId) {
-            console.log('TraineeList에서 삭제 이벤트 수신:', traineeId);
+            // console.log('TraineeList에서 삭제 이벤트 수신:', traineeId);
             // 삭제 확인 모달 표시 (프로젝트/출제자와 동일한 모달 사용)
             this.itemToDeleteId = traineeId; // 삭제할 학습자 ID 저장
             this.showDeleteConfirm = true; // 삭제 확인 모달 표시

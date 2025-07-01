@@ -121,12 +121,28 @@ export default {
         confirmDelete(traineeId) {
             this.$emit('confirm-delete-trainee', traineeId);
         },
-        deleteTrainee(traineeId) {
-            // 실제 데이터에서 학습자 삭제
-            this.allTrainees = this.allTrainees.filter(trainee => trainee.id !== traineeId);
-            // 삭제 후 현재 페이지가 빈 페이지가 되면 이전 페이지로 이동
-            if (this.paginatedTrainees.length === 0 && this.currentPage > 1) {
-                this.currentPage--;
+        async deleteTrainee(traineeId) {
+            try {
+                const token = localStorage.getItem('token');
+                const headers = {};
+                if (token) {
+                    headers.Authorization = `Bearer ${token}`;
+                }
+                headers['Content-Type'] = 'application/json';
+                // DELETE 요청에 body를 담으려면 axios의 data 옵션 사용
+                await api.delete('/user/delete', {
+                    headers,
+                    data:  traineeId 
+                });
+                // 삭제 성공 시 목록 새로고침
+                this.fetchTrainees();
+            } catch (error) {
+                if (error.response) {
+                    console.error(`학습자 삭제 실패: ${error.response.status} - ${error.response.statusText}`);
+                } else {
+                    console.error('학습자 삭제 실패:', error.message);
+                }
+                alert('학습자 삭제 중 오류가 발생했습니다.');
             }
         },
         addTraineeTag() {

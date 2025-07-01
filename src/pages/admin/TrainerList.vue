@@ -25,7 +25,16 @@
             <td class="email-column">{{ quizzer.email }}</td>
             <td class="department-column">{{ quizzer.department }}</td>
             <td class="actions-column">
-              <button class="delete-button" @click="confirmDelete(quizzer.id)">🗑️</button>
+              <button class="delete-button" @click="confirmDelete(quizzer.id)">
+                <span class="material-icons">delete</span>
+                <span class="material-icons">delete_outline</span>
+                <span class="material-icons">remove_circle</span>
+                <span class="material-icons">remove_circle_outline</span>
+                <span class="material-icons">close</span>
+                <span class="material-icons">backspace</span>
+                <span class="material-icons">cancel</span>
+                <span class="material-icons">do_not_disturb</span>
+              </button>
             </td>
           </tr>
         </tbody>
@@ -69,10 +78,28 @@ export default {
     confirmDelete(quizzerId) {
       this.$emit('confirm-delete-quizzer', quizzerId);
     },
-    deleteQuizzer(quizzerId) {
-      this.allQuizzers = this.allQuizzers.filter(quizzer => quizzer.id !== quizzerId);
-      if (this.paginatedQuizzers.length === 0 && this.currentPage > 1) {
-        this.currentPage--;
+    async deleteQuizzer(quizzerId) {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = {};
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+        headers['Content-Type'] = 'application/json';
+        // DELETE 요청에 body에 id 대신 quizzerId(숫자)만 담아 전송
+        await api.delete('/user/delete', {
+          headers,
+          data: quizzerId
+        });
+        // 삭제 성공 시 목록 새로고침
+        this.fetchTrainers();
+      } catch (error) {
+        if (error.response) {
+          console.error(`출제자 삭제 실패: ${error.response.status} - ${error.response.statusText}`);
+        } else {
+          console.error('출제자 삭제 실패:', error.message);
+        }
+        alert('출제자 삭제 중 오류가 발생했습니다.');
       }
     },
     goToPage(page) {
