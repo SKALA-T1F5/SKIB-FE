@@ -102,6 +102,17 @@
                         <h2>프로젝트 생성</h2>
                         <div class="dialog-form">
                             <div class="form-group">
+                                <label for="project-name">프로젝트명</label>
+                                <input type="text" id="project-name" placeholder="ex) 프로젝트A" v-model="newProject.name" />
+                            </div>
+                            <div class="form-group">
+                                <label for="project-description">프로젝트 설명</label>
+                                <input type="text" id="project-description" placeholder="프로젝트 설명 (50자 이내)"
+                                    maxlength="100" v-model="newProject.description" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                                <label for="project-manager">담당자 이메일 목록</label>
                                 <!-- 이메일 태그 입력 필드 -->
                                 <div class="manager-input-container">
                                     <span v-for="(manager, index) in newProject.managers" :key="index"
@@ -109,19 +120,12 @@
                                         {{ manager }}
                                         <span class="remove-tag" @click="removeManager(index)">×</span>
                                     </span>
+
                                     <input type="text" id="project-manager"
-                                        :placeholder="newProject.managers.length === 0 ? '프로젝트 담당자 이메일' : ''"
+                                        :placeholder="newProject.managers.length === 0 ? '프로젝트 담당자 이메일 입력 후 Enter' : ''"
                                         v-model="currentManagerInput" @keydown.enter.prevent="addManager" />
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <input type="text" id="project-name" placeholder="프로젝트명" v-model="newProject.name" />
-                            </div>
-                            <div class="form-group">
-                                <input type="text" id="project-description" placeholder="프로젝트 설명 (50자 이내)"
-                                    maxlength="100" v-model="newProject.description" />
-                            </div>
-                        </div>
                         <div class="dialog-buttons">
                             <button class="confirm-button" @click="confirmCreate">확인</button>
                             <button class="cancel-button" @click="cancelCreate">취소</button>
@@ -250,20 +254,32 @@ export default {
         },
 
         // 삭제 확인 (프로젝트/출제자 공용 사용)
-        confirmDelete() {
+        async confirmDelete() {
             // 실제 삭제 로직 구현 (API 호출 등)
-            // console.log(`${this.currentMenu} 삭제 실행:`, this.itemToDeleteId);
-
             if (this.currentMenu === 'projects') {
-                // 예시: 로컬 프로젝트 데이터에서 프로젝트 제거
-                this.allProjects = this.allProjects.filter(project => project.id !== this.itemToDeleteId);
+                try {
+                    const token = localStorage.getItem('token');
+                    const headers = {};
+                    if (token) {
+                        headers.Authorization = `Bearer ${token}`;
+                    }
+                    headers['Content-Type'] = 'application/json';
+                    await api.delete('/project/delete', {
+                        headers,
+                        data: this.itemToDeleteId
+                    });
+                    this.fetchProjects(); // 목록 새로고침
+                } catch (error) {
+                    if (error.response) {
+                        console.error(`프로젝트 삭제 실패: ${error.response.status} - ${error.response.statusText}`);
+                    } else {
+                        console.error('프로젝트 삭제 실패:', error.message);
+                    }
+                    alert('프로젝트 삭제 중 오류가 발생했습니다.');
+                }
             } else if (this.currentMenu === 'quizzers') {
-                // TrainerList 컴포넌트의 deleteQuizzer 메서드 호출
-                // console.log('출제자 삭제 요청 받음:', this.itemToDeleteId);
                 this.$refs.trainerListRef.deleteQuizzer(this.itemToDeleteId);
             } else if (this.currentMenu === 'learners') {
-                // TraineeList 컴포넌트의 deleteTrainee 메서드 호출
-                // console.log('학습자 삭제 요청 받음:', this.itemToDeleteId);
                 this.$refs.traineeListRef.deleteTrainee(this.itemToDeleteId);
             }
 
@@ -288,27 +304,40 @@ export default {
         },
 
         // 프로젝트 생성 확인
-        confirmCreate() {
-            // TODO: 새 프로젝트 생성 로직 구현 (API 호출 등)
-            console.log('새 프로젝트 생성:', this.newProject);
-
-            // 새 프로젝트 객체 생성
-            const newProjectData = {
-                id: Date.now(), // 고유 ID 생성 (간단 예시)
-                name: this.newProject.name,
-                description: this.newProject.description,
-                createdDate: new Date().toISOString().slice(0, 10), // 현재 날짜 (YYYY-MM-DD 형식)
-                // 담당자 정보는 필요에 따라 추가 가공하여 저장
-                managers: [...this.newProject.managers] // 담당자 배열 복사
-            };
-
-            // 프로젝트 목록에 새 프로젝트 추가
-            this.allProjects.push(newProjectData);
-
-            // 입력 필드 및 모달 상태 초기화
-            this.newProject = { managers: [], name: '', description: '' };
-            this.currentManagerInput = '';
-            this.showCreateProjectModal = false;
+        async confirmCreate() {
+            if (!this.newProject.name || !this.newProject.description || !this.newProject.managers.length) {
+                alert('프로젝트명, 설명, 담당자 이메일을 모두 입력해주세요.');
+                return;
+            }
+            try {
+                const token = localStorage.getItem('token');
+                const headers = {};
+                if (token) {
+                    headers.Authorization = `Bearer ${token}`;
+                }
+                const body = {
+                    projectName: this.newProject.name,
+                    projectDescription: this.newProject.description,
+                    trainerEmails: [...this.newProject.managers],
+                };
+                const response = await api.post('/project', body, { headers });
+                if (response.data.statusCode === 'OK') {
+                    alert('프로젝트가 성공적으로 추가되었습니다.');
+                    this.newProject = { managers: [], name: '', description: '' };
+                    this.currentManagerInput = '';
+                    this.showCreateProjectModal = false;
+                    this.fetchProjects(); // 목록 새로고침
+                } else {
+                    alert('프로젝트 추가에 실패했습니다.');
+                }
+            } catch (error) {
+                if (error.response) {
+                    console.error(`프로젝트 추가 실패: ${error.response.status} - ${error.response.statusText}`);
+                } else {
+                    console.error('프로젝트 추가 실패:', error.message);
+                }
+                alert('프로젝트 추가 중 오류가 발생했습니다.');
+            }
         },
 
         // 프로젝트 생성 취소
