@@ -1,9 +1,15 @@
 <template>
   <!-- 출제자 목록 컨텐츠 -->
   <div style="flex: 1; display: flex; flex-direction: column;">
-    <!-- 페이지 제목 영역 -->
-    <div class="page-header">
-      <h1>출제자 목록</h1>
+    <div style="display: flex; flex-direction: row;">
+      <!-- 페이지 제목 영역 -->
+      <div class="page-header">
+        <h1>출제자 목록</h1>
+      </div>
+      <!-- 프로젝트 추가 버튼 영역 -->
+      <div class="add-button-container">
+        <!-- <button class="add-project-button"></button> -->
+      </div>
     </div>
     <!-- 출제자 목록을 표시하는 테이블 -->
     <div style="flex: 1;">
@@ -21,7 +27,7 @@
           <!-- 예시 출제자 데이터 -->
           <tr v-for="quizzer in paginatedQuizzers" :key="quizzer.id">
             <td class="checkbox-column">
-                <!-- <input type="checkbox" /> -->
+              <!-- <input type="checkbox" /> -->
             </td>
             <td class="name-column">{{ quizzer.name }}</td>
             <td class="email-column">{{ quizzer.email }}</td>
@@ -39,8 +45,8 @@
     <!-- 페이지네이션 컨트롤 UI -->
     <div class="pagination-controls">
       <button @click="prevPage" :disabled="currentPage === 1" class="page-button prev-next-button">이전</button>
-      <button v-for="page in totalPages" :key="page" @click="goToPage(page)" 
-              :class="{ 'active-page': page === currentPage }" class="page-button">
+      <button v-for="page in totalPages" :key="page" @click="goToPage(page)"
+        :class="{ 'active-page': page === currentPage }" class="page-button">
         {{ page }}
       </button>
       <button @click="nextPage" :disabled="currentPage === totalPages" class="page-button prev-next-button">다음</button>
@@ -171,11 +177,32 @@ export default {
   color: #000000;
 }
 
+/* 프로젝트 추가 버튼 컨테이너 스타일 */
+.add-button-container {
+    width: 30%;
+    /* 테이블과 동일한 너비 */
+    margin: auto;
+    /* 가운데 정렬 */
+    text-align: right;
+    /* 버튼을 오른쪽으로 정렬 */
+}
+
+/* 프로젝트 추가 버튼 스타일 */
+.add-project-button {
+    background-color: #1C2053;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
 .trainer-table {
   width: 90%;
   border-collapse: collapse;
   background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-top: 50px;
   margin-left: auto;
   margin-right: auto;
@@ -269,4 +296,4 @@ export default {
 .prev-next-button {
   font-weight: bold;
 }
-</style> 
+</style>

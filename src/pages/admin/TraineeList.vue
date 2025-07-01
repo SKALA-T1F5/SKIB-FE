@@ -1,13 +1,15 @@
 <template>
     <!-- 학습자 목록 컨텐츠 -->
     <div style="flex: 1;">
-        <!-- 페이지 제목 영역 -->
-        <div class="page-header">
-            <h1>학습자 목록</h1>
-        </div>
-        <!-- 학습자 추가 버튼 영역 -->
-        <div class="add-button-container">
-            <button class="add-trainee-button" @click="openAddModal">학습자 추가</button>
+        <div style="display: flex; flex-direction: row;">
+            <!-- 페이지 제목 영역 -->
+            <div class="page-header">
+                <h1>학습자 목록</h1>
+            </div>
+            <!-- 학습자 추가 버튼 영역 -->
+            <div class="add-button-container">
+                <button class="add-trainee-button" @click="openAddModal">학습자 추가</button>
+            </div>
         </div>
         <!-- 학습자 목록을 표시하는 테이블 -->
         <table class="trainee-table">
@@ -55,7 +57,8 @@
                             <span class="remove-tag" @click="removeTrainee(index)">×</span>
                         </span>
                         <input type="text" id="trainee-input" :placeholder="traineePlaceholder"
-                            v-model="currentTraineeInput" @keydown.enter.prevent="addTraineeTag" @blur="addTraineeTag" />
+                            v-model="currentTraineeInput" @keydown.enter.prevent="addTraineeTag"
+                            @blur="addTraineeTag" />
                     </div>
                 </div>
                 <div class="form-group">
@@ -135,7 +138,7 @@ export default {
                 headers['Content-Type'] = 'application/json';
                 await api.delete('/user/delete', {
                     headers,
-                    data:  traineeId 
+                    data: traineeId
                 });
                 // 삭제 성공 시 목록 새로고침
                 this.fetchTrainees();
@@ -173,7 +176,7 @@ export default {
                     headers.Authorization = `Bearer ${token}`;
                 }
                 const body = {
-                    emails: [...this.newTraineeData.trainees], 
+                    emails: [...this.newTraineeData.trainees],
                     department: this.newTraineeData.affiliation,
                     password: this.newTraineeData.password,
                     type: 'TRAINEE',

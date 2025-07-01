@@ -20,15 +20,19 @@
 
                 <!-- 메인 컨텐츠 영역 -->
                 <main class="main-content" style="display: flex; flex-direction: column;">
+
                     <!-- 프로젝트 목록 컨텐츠 -->
                     <div v-if="currentMenu === 'projects'">
-                        <!-- 페이지 제목 영역 -->
-                        <div class="page-header">
-                            <h1>프로젝트 목록</h1>
-                        </div>
-                        <!-- 프로젝트 추가 버튼 영역 -->
-                        <div class="add-button-container">
-                            <button class="add-project-button" @click="showCreateModal">프로젝트 추가</button>
+                        
+                        <div style="display: flex; flex-direction: row;">
+                            <!-- 페이지 제목 영역 -->
+                            <div class="page-header">
+                                <h1>프로젝트 목록</h1>
+                            </div>
+                            <!-- 프로젝트 추가 버튼 영역 -->
+                            <div class="add-button-container">
+                                <button class="add-project-button" @click="showCreateModal">프로젝트 추가</button>
+                            </div>
                         </div>
                         <!-- 프로젝트 목록을 표시하는 테이블 -->
                         <table class="project-table">
@@ -116,13 +120,15 @@
                         <div class="form-group">
                             <label for="project-manager">담당자 이메일 목록</label>
                             <div style="position: relative; width: 100%;">
-                                <select id="project-manager" class="manager-select" @change="addManagerBySelect($event)" :value="''">
+                                <select id="project-manager" class="manager-select" @change="addManagerBySelect($event)"
+                                    :value="''">
                                     <option disabled value="">담당자 선택</option>
                                     <option v-for="option in emailOptions" :key="option.email" :value="option.email">
                                         {{ option.name }} ({{ option.email }})
                                     </option>
                                 </select>
-                                <span class="manager-select-arrow"><span class="material-icons">arrow_drop_down</span></span>
+                                <span class="manager-select-arrow"><span
+                                        class="material-icons">arrow_drop_down</span></span>
                             </div>
                         </div>
                         <div class="manager-input-container">
@@ -428,7 +434,7 @@ export default {
     /* Flexbox 레이아웃으로 변경 */
     flex-direction: column;
     /* 자식 요소들을 세로로 배치 */
-    min-height: 100vh;
+    min-height: 100vpx;
     /* 최소 높이를 뷰포트 전체 높이로 설정 */
     font-family: Arial, sans-serif;
     color: #333;
@@ -525,12 +531,13 @@ export default {
 
 /* 메인 컨텐츠 영역 스타일 */
 .main-content {
-    flex-grow: 1;
+    /* flex-grow: 1; */
     /* 헤더와 푸터를 제외한 나머지 공간을 모두 차지 */
     padding: 300px;
     padding-top: 10px;
     padding-bottom: 20px;
     background-color: #f9f9f9;
+    height: 650px;
 }
 
 /* 페이지 헤더 (제목) 영역 스타일 */
@@ -539,7 +546,7 @@ export default {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
-    width: 90%;
+    width: 70%;
     /* 테이블과의 정렬을 위해 너비 설정 */
     margin-left: auto;
     /* 테이블과의 정렬을 위해 추가 */
@@ -557,7 +564,7 @@ export default {
 
 /* 프로젝트 추가 버튼 컨테이너 스타일 */
 .add-button-container {
-    width: 90%;
+    width: 30%;
     /* 테이블과 동일한 너비 */
     margin: auto;
     /* 가운데 정렬 */
