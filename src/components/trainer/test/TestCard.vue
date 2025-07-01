@@ -68,6 +68,7 @@ const props = defineProps({
       passCount: 0,
       totalApplicants: 0,
       averageScore: 0,
+      token: null, // testLinkToken 추가
     }),
   },
 })
@@ -75,6 +76,7 @@ const props = defineProps({
 // 'delete-test' 이벤트 추가
 const emit = defineEmits(['copy-link', 'go-to-questions', 'go-to-dashboard', 'delete-test'])
 
+// testId만 전달하도록 변경 (상위 컴포넌트에서 API 호출)
 const copyLink = (id) => {
   emit('copy-link', id)
 }

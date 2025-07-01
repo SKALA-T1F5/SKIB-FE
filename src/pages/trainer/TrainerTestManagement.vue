@@ -36,7 +36,7 @@
           >
             <TestCard
               :test="test"
-              @copy-link="handleCopyLink(test.id, test.token)"
+              @copy-link="handleCopyLink"
               @go-to-questions="handleGoToQuestions"
               @go-to-dashboard="handleGoToDashboard"
               @delete-test="handleDeleteTest"
@@ -534,24 +534,35 @@ const fetchTests = async () => {
 }
 
 // handleCopyLink 함수 수정: testId와 token을 인자로 받도록 변경
-const handleCopyLink = (testId, token) => {
-  // trainer/test/:testId/:linkToken? 라우트 이름으로 URL 생성
-  const resolvedRoute = router.resolve({
-    name: 'TraineeTestGuide', // trainee/test/:testId/:linkToken? 에 해당하는 라우트 이름
-    params: {
-      testId: testId,
-      linkToken: token || undefined, // 토큰이 없으면 undefined로 처리하여 경로에서 제외
-    },
-  })
-  const link = `${window.location.origin}${resolvedRoute.href}`
+const handleCopyLink = async (testId) => {
+  isLoading.value = true
+  loadingMessage.value = '초대 링크를 생성 중입니다...'
+  try {
+    const response = await axios.get('/test/getInviteLink', {
+      params: { testId: testId },
+    })
 
-  if (navigator.clipboard) {
-    navigator.clipboard
-      .writeText(link)
-      .then(() => alert(`링크 복사 완료: ${link}`))
-      .catch((err) => console.error('링크 복사 실패:', err))
-  } else {
-    alert(`링크를 복사해주세요: ${link}`)
+    if (response.data.statusCode === 'OK' && response.data.resultData) {
+      const link = response.data.resultData
+      if (navigator.clipboard) {
+        navigator.clipboard
+          .writeText(link)
+          .then(() => alert(`링크 복사 완료: ${link}`))
+          .catch((err) => console.error('링크 복사 실패:', err))
+      } else {
+        alert(`링크를 복사해주세요: ${link}`)
+      }
+    } else {
+      alert('초대 링크를 가져오는 데 실패했습니다: ' + response.data.resultMsg)
+    }
+  } catch (error) {
+    console.error('초대 링크 가져오기 실패:', error)
+    alert(
+      '초대 링크를 가져오는 중 오류가 발생했습니다. 네트워크 연결을 확인하거나 나중에 다시 시도해주세요.',
+    )
+  } finally {
+    isLoading.value = false
+    loadingMessage.value = '데이터 로딩 중입니다...'
   }
 }
 
