@@ -9,13 +9,13 @@
       <!-- 관리자 로그인 버튼 추가 -->
       <div style="background: white; padding: 10px; height: 10%;">
         <div class="extra-options" style="background: white; margin: 10px;">
-          <a href="#">관리자 로그인</a>
+          <a href="#" @click.prevent="goToGeneralLogin">← 사용자 로그인으로 돌아가기</a>
         </div>
       </div>
       <!-- 기존 로그인 영역 -->
       <div class="login-form-box" style="height: 90%;">
         <div style="width: 60%; margin: 0 auto;">
-          <h2 class="form-title">로그인</h2>
+          <h2 class="form-title">관리자 로그인</h2>
 
           <form class="login-form" @submit.prevent="handleLogin">
             <label>
@@ -48,10 +48,14 @@ const id = ref('')
 const password = ref('')
 const router = useRouter()
 
+const goToGeneralLogin = () => {
+  router.push('/login')
+}
+
 const handleLogin = async () => {
   try {
-    const response = await api.post('/auth/user/login', {
-      email: id.value,
+    const response = await api.post('/auth/admin/login', {
+      id: id.value,
       password: password.value,
     })
 
@@ -71,17 +75,12 @@ const handleLogin = async () => {
     localStorage.setItem('role', role)
     localStorage.setItem('firstLogin', 'true')
 
-    // The original code has `router.push('/mypage')` which would immediately redirect,
-    // potentially before the role-based redirection.
-    // It's usually better to have one definitive redirect path after login.
-    // I'll keep the logic as it was, but this is something to review for intended behavior.
-    if (role === 'TRAINER') {
-      router.push('/trainer/main')
-    } else if (role === 'TRAINEE') {
-      router.push('/trainee/main')
+    // 관리자 로그인 성공 시 프로젝트 목록 페이지로 이동
+    if (role === 'ADMIN') {
+      router.push('/admin/projects')
     } else {
-      alert('알 수 없는 역할입니다.')
-      // Optionally, clear local storage or handle unknown role more gracefully
+      alert('관리자 권한이 필요합니다.')
+      // 로컬 스토리지 정리
       localStorage.removeItem('token')
       localStorage.removeItem('userId')
       localStorage.removeItem('name')
