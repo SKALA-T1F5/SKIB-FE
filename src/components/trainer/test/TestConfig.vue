@@ -152,16 +152,16 @@
           </div>
           <div class="total-questions mt-4 mb-4" style="text-align: center">
             객관식:&nbsp;<span class="font-weight-bold" style="color: #191d5a">{{
-              totalMcqCount
+              totalMcqCountComputed
             }}</span
             >&nbsp;&nbsp;|&nbsp;&nbsp;주관식:&nbsp;<span
               class="font-weight-bold"
               style="color: #191d5a"
-              >{{ totalSaqCount }}</span
+              >{{ totalSaqCountComputed }}</span
             >&nbsp;&nbsp;|&nbsp;&nbsp;총 문제 수:&nbsp;<span
               class="font-weight-bold"
               style="color: #191d5a"
-              >{{ totalMcqCount + totalSaqCount }}</span
+              >{{ totalMcqCountComputed + totalSaqCountComputed }}</span
             >
           </div>
         </v-form>
@@ -193,6 +193,15 @@ const props = defineProps({
   selectedDocument: Object,
   revenues: Array,
   isLoading: Boolean,
+  // 이전에 추가했던 props 정의는 그대로 유지됩니다.
+  totalMcqCount: {
+    type: Number,
+    default: 0,
+  },
+  totalSaqCount: {
+    type: Number,
+    default: 0,
+  },
 })
 
 const emit = defineEmits(['prev-step', 'next-step', 'update:selected-document', 'update:revenues'])
@@ -223,11 +232,11 @@ watch(
   { deep: true },
 )
 
-const totalMcqCount = computed(() => {
+const totalMcqCountComputed = computed(() => {
   return internalRevenues.value.reduce((sum, doc) => sum + doc.mcSet, 0)
 })
 
-const totalSaqCount = computed(() => {
+const totalSaqCountComputed = computed(() => {
   return internalRevenues.value.reduce((sum, doc) => sum + doc.sqSet, 0)
 })
 
@@ -239,8 +248,6 @@ const emitNextStep = () => {
   emit('next-step', {
     selectedDocument: internalSelectedDocument.value,
     revenues: internalRevenues.value,
-    totalMcqCount: totalMcqCount.value,
-    totalSaqCount: totalSaqCount.value,
   })
 }
 
@@ -347,9 +354,8 @@ const emitUpdateRevenues = () => {
 
 .hide-number-spinners :deep(input[type='number']) {
   -webkit-appearance: none; /* Chrome, Safari 등 WebKit/Blink 기반 브라우저 */
-  -moz-appearance: none; /* Firefox */
-  appearance: none; /* 표준 (미래를 대비) */
-  /* 원래 적용했던 다른 CSS 스타일은 그대로 유지 */
+  -moz-appearance: none; /* Firefox (하위 호환성을 위해 유지하거나 필요에 따라 제거) */
+  appearance: none; /* 표준 */
 }
 
 /* 숫자 입력 필드 텍스트 가운데 정렬 */
