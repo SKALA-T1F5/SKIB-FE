@@ -44,21 +44,24 @@
             <div class="dialog-form">
                 <div class="form-group">
                     <!-- 학습자 태그 입력 필드 -->
+                    <label for="trainee-input">이메일 주소 목록</label>
                     <div class="trainee-input-container">
                         <span v-for="(trainee, index) in newTraineeData.trainees" :key="index" class="trainee-tag">
                             {{ trainee }}
                             <span class="remove-tag" @click="removeTrainee(index)">×</span>
                         </span>
                         <input type="text" id="trainee-input" :placeholder="traineePlaceholder"
-                            v-model="currentTraineeInput" @keydown.enter.prevent="addTraineeTag" />
+                            v-model="currentTraineeInput" @keydown.enter.prevent="addTraineeTag" @blur="addTraineeTag" />
                     </div>
                 </div>
                 <div class="form-group">
-                    <input type="password" id="trainee-password" placeholder="초기 비밀번호 설정"
+                    <label for="trainee-password">초기 비밀번호 설정</label>
+                    <input type="password" id="trainee-password" placeholder="ex) 1234"
                         v-model="newTraineeData.password" />
                 </div>
                 <div class="form-group">
-                    <input type="text" id="trainee-affiliation" placeholder="소속명 입력"
+                    <label for="trainee-affiliation">학습자 소속</label>
+                    <input type="text" id="trainee-affiliation" placeholder="ex) SK AX"
                         v-model="newTraineeData.affiliation" />
                 </div>
             </div>
@@ -111,7 +114,7 @@ export default {
             return this.allTrainees.slice(startIndex, endIndex);
         },
         traineePlaceholder() {
-            return this.newTraineeData.trainees.length === 0 ? '이메일 입력 후 Enter' : '';
+            return this.newTraineeData.trainees.length === 0 ? 'ex) trainee@gmail.com' : '';
         }
     },
     methods: {
@@ -139,11 +142,39 @@ export default {
         openAddModal() {
             this.showAddModal = true;
         },
-        confirmAddTrainee() {
-            // TODO: 실제 학습자 추가 로직 구현
-            console.log('새 학습자 정보:', this.newTraineeData);
-            // 모달 닫기 및 입력 필드 초기화
-            this.resetAddModal();
+        async confirmAddTrainee() {
+            if (!this.newTraineeData.trainees.length || !this.newTraineeData.password || !this.newTraineeData.affiliation) {
+                alert('이메일, 비밀번호, 소속명을 모두 입력해주세요.');
+                return;
+            }
+            try {
+                const token = localStorage.getItem('token');
+                const headers = {};
+                if (token) {
+                    headers.Authorization = `Bearer ${token}`;
+                }
+                const body = {
+                    emails: [...this.newTraineeData.trainees], 
+                    department: this.newTraineeData.affiliation,
+                    password: this.newTraineeData.password,
+                    type: 'TRAINEE',
+                };
+                const response = await api.post('/user', body, { headers });
+                if (response.data.statusCode === 'OK') {
+                    alert('트레이니가 성공적으로 추가되었습니다.');
+                    this.resetAddModal();
+                    this.fetchTrainees(); // 목록 새로고침
+                } else {
+                    alert('트레이니 추가에 실패했습니다.');
+                }
+            } catch (error) {
+                if (error.response) {
+                    console.error(`트레이니 추가 실패: ${error.response.status} - ${error.response.statusText}`);
+                } else {
+                    console.error('트레이니 추가 실패:', error.message);
+                }
+                alert('트레이니 추가 중 오류가 발생했습니다.');
+            }
         },
         cancelAddTrainee() {
             // 모달 닫기 및 입력 필드 초기화
@@ -157,6 +188,7 @@ export default {
                 affiliation: '',
             };
             this.currentTraineeInput = '';
+            this.fetchTrainees(); // 모달 닫힐 때마다 목록 새로고침
         },
         goToPage(page) {
             if (page >= 1 && page <= this.totalPages) {
