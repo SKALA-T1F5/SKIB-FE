@@ -20,7 +20,9 @@
         <tbody>
           <!-- 예시 출제자 데이터 -->
           <tr v-for="quizzer in paginatedQuizzers" :key="quizzer.id">
-            <td class="checkbox-column"><input type="checkbox" /></td>
+            <td class="checkbox-column">
+                <!-- <input type="checkbox" /> -->
+            </td>
             <td class="name-column">{{ quizzer.name }}</td>
             <td class="email-column">{{ quizzer.email }}</td>
             <td class="department-column">{{ quizzer.department }}</td>

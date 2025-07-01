@@ -44,7 +44,9 @@
                             <tbody>
                                 <!-- paginatedProjects 배열을 순회하며 현재 페이지의 프로젝트 정보만 표시 -->
                                 <tr v-for="project in paginatedProjects" :key="project.id">
-                                    <td class="checkbox-column"><input type="checkbox" /></td>
+                                    <td class="checkbox-column">
+                                        <!-- <input type="checkbox" /> -->
+                                    </td>
                                     <td>{{ project.name }}</td>
                                     <td>{{ project.description }}</td>
                                     <td>{{ project.createdDate }}</td>
