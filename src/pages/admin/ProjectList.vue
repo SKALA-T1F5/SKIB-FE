@@ -5,11 +5,7 @@
     <div class="project-list-container">
         <!-- 상단 헤더 영역 -->
         <header class="app-header">
-            <!-- 로고 (이미지 + 텍스트) -->
-            <div class="logo">
-                <!-- <img src="/icon1.png" class="logo-image" /> -->
-                <span>skib</span>
-            </div>
+
             <!-- 메인 네비게이션 메뉴 -->
             <nav class="main-nav">
                 <a href="#" class="nav-item" :class="{ active: currentMenu === 'projects' }"
@@ -19,16 +15,7 @@
                 <a href="#" class="nav-item" :class="{ active: currentMenu === 'learners' }"
                     @click.prevent="selectMenu('learners')">학습자 관리</a>
             </nav>
-            <!-- 사용자 관련 메뉴 (언어 선택, 사용자 정보) -->
-            <div class="user-menu">
-                <span class="language-selector">KOR</span>
-                <!-- <img src="/person.png" class="person-icon" alt="User Icon" /> -->
-                <span class="user-info">
-                    Doeun Kim
-                    <span class="user-role">Admin</span>
-                </span>
-                <span class="dropdown-icon">▼</span>
-            </div>
+      
         </header>
 
         <!-- 메인 컨텐츠 영역 -->
@@ -91,10 +78,6 @@
                 class="page-button prev-next-button">다음</button>
         </div>
 
-        <!-- 하단 푸터 영역 -->
-        <footer class="app-footer">
-            <p>©2025 SKIB Maholan</p>
-        </footer>
 
         <!-- 삭제 확인 모달 -->
         <div v-if="showDeleteConfirm" class="modal-overlay">
