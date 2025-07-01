@@ -19,94 +19,33 @@
 
   <v-row class="mt-4">
     <v-col cols="12">
-      <div class="section-bg test-config-section">
-        <h4 class="section-title">테스트 기본 설정</h4>
-        <v-form ref="form" v-model="formValid">
-          <v-row>
-            <v-col cols="12" sm="6" md="4" lg="3">
-              <v-text-field
-                v-model="testName"
-                label="테스트명"
-                variant="outlined"
-                density="compact"
-                hide-details
-                class="mb-4"
-                :rules="[(v) => !!v || '테스트명을 입력해주세요.']"
-                required
-                bg-color="white"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="6" md="4" lg="3">
-              <v-text-field
-                v-model.number="totalTestQuestions"
-                label="생성할 테스트의 총 문제 수"
-                type="number"
-                variant="outlined"
-                density="compact"
-                hide-details
-                min="1"
-                :max="totalAvailableQuestions"
-                class="mb-4"
-                :rules="[
-                  (v) => !!v || '총 문제 수를 입력해주세요.',
-                  (v) => v >= 1 || '총 문제 수는 1개 이상이어야 합니다.',
-                  (v) =>
-                    v <= totalAvailableQuestions ||
-                    `총 문제 수는 저장된 총 문제 수 (${totalAvailableQuestions}개)를 초과할 수 없습니다.`,
-                  (v) => v !== '' || '총 문제 수를 입력해주세요.',
-                ]"
-                bg-color="white"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="6" md="4" lg="3">
-              <v-text-field
-                v-model.number="testDuration"
-                label="응시 제한 시간 (분)"
-                type="number"
-                variant="outlined"
-                density="compact"
-                hide-details
-                min="1"
-                class="mb-4"
-                :rules="[
-                  (v) => !!v || '응시 시간을 입력해주세요.',
-                  (v) => v >= 1 || '응시 시간은 1분 이상이어야 합니다.',
-                ]"
-                bg-color="white"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="6" md="4" lg="3">
-              <v-text-field
-                v-model.number="passingScore"
-                label="합격 기준 점수"
-                type="number"
-                variant="outlined"
-                density="compact"
-                hide-details
-                min="0"
-                max="100"
-                class="mb-4"
-                :rules="[
-                  (v) =>
-                    (v !== null && v !== undefined && v !== '') || '합격 기준 점수를 입력해주세요.',
-                  (v) => (v >= 0 && v <= 100) || '합격 기준 점수는 0점에서 100점 사이여야 합니다.',
-                  (v) => v !== '' || '합격 기준 점수를 입력해주세요.',
-                ]"
-                bg-color="white"
-              ></v-text-field>
-            </v-col>
-          </v-row>
-        </v-form>
-      </div>
-    </v-col>
-  </v-row>
-
-  <v-row class="mt-4">
-    <v-col cols="12">
       <div class="section-bg document-list-section fill-height">
         <h4 class="section-title">문서 목록</h4>
-        <div class="total-available-questions-info mb-4">
+        <div class="total-available-questions-info mb-4 d-flex justify-space-between align-center">
           <span class="font-weight-bold">저장된 총 문제: {{ totalAvailableQuestions }}개</span>
+          <v-form ref="form" v-model="formValid" class="d-flex align-center">
+            <v-text-field
+              v-model.number="totalTestQuestions"
+              label="총 문제 수"
+              type="number"
+              variant="outlined"
+              density="compact"
+              hide-details
+              min="1"
+              :max="totalAvailableQuestions"
+              class="ml-4"
+              style="max-width: 180px"
+              :rules="[
+                (v) => !!v || '총 문제 수를 입력해주세요.',
+                (v) => v >= 1 || '총 문제 수는 1개 이상이어야 합니다.',
+                (v) =>
+                  v <= totalAvailableQuestions ||
+                  `총 문제 수는 저장된 총 문제 수 (${totalAvailableQuestions}개)를 초과할 수 없습니다.`,
+                (v) => v !== '' || '총 문제 수를 입력해주세요.',
+              ]"
+              bg-color="white"
+            ></v-text-field>
+          </v-form>
         </div>
         <div class="document-table-container">
           <v-data-table
@@ -153,7 +92,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits, computed, watch } from 'vue' // onMounted, axios, useRoute 제거
+import { ref, defineProps, defineEmits, computed, watch } from 'vue'
 
 const props = defineProps({
   revenues: {
@@ -165,38 +104,22 @@ const props = defineProps({
 
 const emit = defineEmits(['update:revenues', 'prev-step', 'next-step'])
 
-// const route = useRoute(); // 사용하지 않으므로 제거
-
 const internalRevenues = ref([])
 
-const testName = ref('')
-const totalTestQuestions = ref(0)
-const testDuration = ref(60)
-const passingScore = ref(60)
+const totalTestQuestions = ref(0) // testName, testDuration, passingScore 제거
 
 const form = ref(null)
 const formValid = ref(false)
 
-// currentProjectId는 TestQuickConfig에서 직접 사용하지 않으므로 제거
-// const currentProjectId = computed(
-//   () => route.params.projectId || localStorage.getItem('projectId') || 'mock-project-123',
-// );
-
-// fetchDocumentQuestionCounts 함수 제거
-// const fetchDocumentQuestionCounts = async () => { /* ... */ };
-
-// props.revenues를 직접 watch하여 internalRevenues 업데이트
 watch(
   () => props.revenues,
   (newVal) => {
     internalRevenues.value = newVal.map((item) => ({
       ...item,
-      // mcCount, sqCount는 부모에서 이미 적절히 설정되어 넘어올 것으로 가정
-      // 만약 필요하다면 여기에 기본값 설정 로직 추가
-      questionCount: item.questionCount || 0, // ensure questionCount is present
+      questionCount: item.questionCount || 0,
     }))
   },
-  { deep: true, immediate: true }, // immediate: true로 설정하여 초기 props 값으로 즉시 반영
+  { deep: true, immediate: true },
 )
 
 const headers = [
@@ -215,11 +138,7 @@ const totalAvailableQuestions = computed(() =>
   internalRevenues.value.reduce((sum, doc) => sum + (doc.questionCount || 0), 0),
 )
 
-// 버튼 활성화를 위한 조건 확인
 const isFormValid = computed(() => {
-  if (!testName.value.trim()) {
-    return false
-  }
   if (
     totalTestQuestions.value === null ||
     totalTestQuestions.value === undefined ||
@@ -231,31 +150,13 @@ const isFormValid = computed(() => {
   if (totalTestQuestions.value > totalAvailableQuestions.value) {
     return false
   }
-  if (testDuration.value === null || testDuration.value === undefined || testDuration.value < 1) {
-    return false
-  }
-  if (
-    passingScore.value === null ||
-    passingScore.value === undefined ||
-    passingScore.value === ''
-  ) {
-    return false
-  }
-
-  if (passingScore.value < 0 || passingScore.value > 100) {
-    return false
-  }
 
   return true
 })
 
-// 버튼 비활성화 이유를 제공하는 computed 속성
 const disabledReason = computed(() => {
   if (props.isLoading) {
     return '로딩 중입니다.'
-  }
-  if (!testName.value.trim()) {
-    return '테스트명을 입력해주세요.'
   }
   if (
     totalTestQuestions.value === null ||
@@ -267,19 +168,6 @@ const disabledReason = computed(() => {
   }
   if (totalTestQuestions.value > totalAvailableQuestions.value) {
     return `총 문제 수는 저장된 총 문제 수 (${totalAvailableQuestions.value}개)를 초과할 수 없습니다.`
-  }
-  if (testDuration.value === null || testDuration.value === undefined || testDuration.value < 1) {
-    return '응시 시간은 1분 이상이어야 합니다.'
-  }
-  if (
-    passingScore.value === null ||
-    passingScore.value === undefined ||
-    passingScore.value === ''
-  ) {
-    return '합격 기준 점수를 입력해주세요.'
-  }
-  if (passingScore.value < 0 || passingScore.value > 100) {
-    return '합격 기준 점수는 0점에서 100점 사이여야 합니다.'
   }
 
   return '모든 정보를 입력해주세요.'
@@ -293,31 +181,16 @@ const emitNextStep = async () => {
   const { valid } = await form.value.validate()
 
   if (!valid) {
-    alert('테스트 기본 설정 입력값을 확인해주세요.')
+    alert('총 문제 수를 확인해주세요.')
     return
   }
 
   emit(
     'next-step',
-    internalRevenues.value, // 업데이트된 revenues 데이터 전달
-    testName.value,
+    internalRevenues.value, // 업데이트된 revenues 데이터 전달 (기존과 동일)
     totalTestQuestions.value,
-    testDuration.value,
-    passingScore.value,
   )
 }
-
-// onMounted와 currentProjectId watch는 TestQuickConfig에서 필요 없으므로 제거
-// onMounted(() => {
-//   console.log('TestQuickConfig mounted!');
-//   fetchDocumentQuestionCounts();
-// });
-
-// watch(currentProjectId, (newProjectId, oldProjectId) => {
-//   if (newProjectId && newProjectId !== oldProjectId) {
-//     fetchDocumentQuestionCounts();
-//   }
-// });
 </script>
 
 <style scoped>

@@ -19,6 +19,39 @@
     <v-col cols="12" sm="4" class="d-flex flex-column">
       <v-card elevation="0" class="section-bg d-flex flex-column flex-grow-1">
         <v-card-text class="pa-8 d-flex flex-column flex-grow-1">
+          <h4 class="section-title">테스트 정보</h4>
+          <v-text-field
+            v-model="internalTestName"
+            label="테스트명"
+            variant="outlined"
+            density="compact"
+            hide-details
+            class="mb-4"
+            bg-color="white"
+          ></v-text-field>
+          <v-text-field
+            v-model.number="internalTestDuration"
+            label="응시 제한 시간 (분)"
+            type="number"
+            variant="outlined"
+            density="compact"
+            hide-details
+            class="mb-4"
+            bg-color="white"
+          ></v-text-field>
+          <v-text-field
+            v-model.number="internalPassingScore"
+            label="합격 기준 점수"
+            type="number"
+            variant="outlined"
+            density="compact"
+            hide-details
+            class="mb-4"
+            bg-color="white"
+          ></v-text-field>
+
+          <v-divider class="my-4"></v-divider>
+
           <div class="d-flex justify-space-between align-center mb-6">
             <h4 class="section-title mb-0">문제 목록</h4>
           </div>
@@ -202,10 +235,50 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  testName: {
+    type: String,
+    default: '',
+  },
+  testDuration: {
+    type: Number,
+    default: 60,
+  },
+  passingScore: {
+    type: Number,
+    default: 60,
+  },
 })
 
+// props의 값을 내부 ref로 미러링하여 v-model에 바인딩
+const internalTestName = ref(props.testName)
+const internalTestDuration = ref(props.testDuration)
+const internalPassingScore = ref(props.passingScore)
+
+// props 변경 시 내부 ref 업데이트
+watch(
+  () => props.testName,
+  (newVal) => {
+    internalTestName.value = newVal
+  },
+)
+watch(
+  () => props.testDuration,
+  (newVal) => {
+    internalTestDuration.value = newVal
+  },
+)
+watch(
+  () => props.passingScore,
+  (newVal) => {
+    internalPassingScore.value = newVal
+  },
+)
+
 function nextStep() {
-  emit('next-step')
+  // 실제 사용 시에는 이 데이터들을 API에 전송해야 합니다.
+  const selectedQuestionIds = questions.value.map((q) => q.id) // 모든 문제를 선택된 것으로 가정
+  const toDeleteQuestionIds = [] // 삭제할 문제가 없다고 가정
+  emit('next-step', { selectedQuestionIds, toDeleteQuestionIds })
 }
 
 function prevStep() {
@@ -215,7 +288,7 @@ function prevStep() {
 const documents = ref([])
 const questions = ref([])
 const selectedQuestionIndex = ref(0)
-const isFetchingQuestions = ref(false) // Prop으로 전달받은 isLoading을 따르도록 설정
+const isFetchingQuestions = ref(false)
 const currentQuestion = computed(() => {
   return questions.value[selectedQuestionIndex.value]
 })
@@ -245,7 +318,6 @@ const difficultyStars = computed(() => {
   )
 })
 
-// questionsData prop이 변경될 때마다 내부 상태 업데이트
 const processQuestionsData = (data) => {
   const docsMap = new Map()
   const allQuestions = []
@@ -289,7 +361,7 @@ const processQuestionsData = (data) => {
 watch(
   () => props.questionsData,
   (newQuestionsData) => {
-    isFetchingQuestions.value = props.isLoading // props.isLoading에 따라 로딩 상태 동기화
+    isFetchingQuestions.value = props.isLoading
     if (newQuestionsData && newQuestionsData.length > 0) {
       processQuestionsData(newQuestionsData)
     } else if (newQuestionsData && newQuestionsData.length === 0) {
@@ -299,13 +371,13 @@ watch(
       expandedPanels.value = []
     }
   },
-  { immediate: true }, // 컴포넌트 마운트 시 즉시 실행
+  { immediate: true },
 )
 
 watch(
   () => props.isLoading,
   (newVal) => {
-    isFetchingQuestions.value = newVal // 부모의 isLoading 상태를 반영
+    isFetchingQuestions.value = newVal
   },
 )
 
@@ -326,7 +398,75 @@ const moveToPreviousQuestion = () => {
 }
 
 onMounted(() => {
-  // 컴포넌트 마운트 시 questionsData prop을 감시하므로 별도의 fetch 호출 불필요
+  // 예시 데이터 로드
+  if (props.questionsData.length === 0 && !props.isLoading) {
+    processQuestionsData([
+      {
+        id: 'mock-q-1',
+        documentId: 'doc-1',
+        documentName: '데이터베이스 기초',
+        question:
+          '관계형 데이터베이스에서 여러 테이블 간의 관계를 정의하는 데 사용되는 키는 무엇입니까?',
+        type: 'MULTIPLE_CHOICE',
+        options: ['기본 키', '외래 키', '후보 키', '대리 키'],
+        answer: '외래 키',
+        explanation:
+          '외래 키는 한 테이블의 필드가 다른 테이블의 기본 키를 참조하여 두 테이블 간의 관계를 설정하는 데 사용됩니다.',
+        tags: ['데이터베이스', '관계형'],
+        difficulty: 4,
+      },
+      {
+        id: 'mock-q-2',
+        documentId: 'doc-1',
+        documentName: '데이터베이스 기초',
+        question: 'SQL에서 데이터를 삽입하는 데 사용되는 명령문은 무엇입니까?',
+        type: 'SHORT_ANSWER',
+        options: [],
+        answer: 'INSERT INTO',
+        explanation: 'INSERT INTO 명령문은 테이블에 새 행을 추가하는 데 사용됩니다.',
+        tags: ['SQL', '데이터 조작'],
+        difficulty: 3,
+      },
+      {
+        id: 'mock-q-3',
+        documentId: 'doc-2',
+        documentName: '네트워크 보안',
+        question: 'Dos 공격이란 무엇인지 설명하시오.',
+        type: 'SHORT_ANSWER',
+        options: [],
+        answer:
+          '서비스 거부(Denial-of-Service) 공격은 시스템의 리소스를 고갈시키거나 서비스를 중단시켜 사용자가 정상적으로 서비스를 이용할 수 없도록 만드는 공격입니다.',
+        explanation:
+          '주로 네트워크 트래픽을 과도하게 발생시키거나 시스템 취약점을 이용하여 이루어집니다.',
+        tags: ['네트워크', '보안'],
+        difficulty: 5,
+      },
+      {
+        id: 'mock-q-4',
+        documentId: 'doc-2',
+        documentName: '네트워크 보안',
+        question: '다음 중 암호화 방식이 아닌 것은?',
+        type: 'MULTIPLE_CHOICE',
+        options: ['AES', 'RSA', 'MD5', 'DES'],
+        answer: 'MD5',
+        explanation: 'MD5는 해싱 알고리즘으로, 암호화와는 다른 단방향 함수입니다.',
+        tags: ['암호화', '보안'],
+        difficulty: 4,
+      },
+      {
+        id: 'mock-q-5',
+        documentId: 'doc-3',
+        documentName: '운영체제 개론',
+        question: '교착 상태(Deadlock)의 4가지 필요 조건은 무엇입니까?',
+        type: 'SHORT_ANSWER',
+        options: [],
+        answer: '상호 배제, 점유와 대기, 비선점, 순환 대기',
+        explanation: '이 네 가지 조건이 모두 충족될 때 교착 상태가 발생할 수 있습니다.',
+        tags: ['운영체제', '프로세스'],
+        difficulty: 4,
+      },
+    ])
+  }
 })
 </script>
 

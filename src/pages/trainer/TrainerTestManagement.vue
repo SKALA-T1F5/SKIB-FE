@@ -108,6 +108,9 @@
       :is-loading="isLoading"
       :revenues="revenues"
       :questions-data="questionsData"
+      :test-name="quickTestName"
+      :test-duration="quickTestDuration"
+      :passing-score="quickPassingScore"
       @update:isLoading="(val) => (isLoading = val)"
       @prev-step="goToConfigOrQuickConfig"
       @next-step="handleQuestionNext"
@@ -151,6 +154,11 @@ const testId = ref(null)
 const testLink = ref('')
 const testCreationType = ref(null) // 'ai' 또는 'quick'
 
+// TestQuickConfig에서 받아온 값들을 저장할 ref 추가 (이제 TestQuickConfig에서 입력받지 않음)
+const quickTestName = ref('')
+const quickTestDuration = ref(60)
+const quickPassingScore = ref(60)
+
 const selectedDocument = ref({
   title: '',
   examTime: 60,
@@ -192,6 +200,9 @@ const goToList = () => {
   loadingMessage.value = '데이터 로딩 중입니다...'
   isLoading.value = false
   testCreationType.value = null // 생성 유형 초기화
+  quickTestName.value = '' // 빠른 생성 관련 값 초기화
+  quickTestDuration.value = 60
+  quickPassingScore.value = 60
   fetchTests() // 목록으로 돌아올 때 테스트 목록 다시 로드
 }
 
@@ -336,8 +347,8 @@ const handleConfigNext = async (configData) => {
     const documentConfigsForApi = revenues.value
       .filter((doc) => doc.selected && (doc.mcSet > 0 || doc.sqSet > 0))
       .map((doc) => ({
-        documentId: doc.id,
-        documentName: doc.name,
+        documentId: doc.documentId,
+        documentName: doc.documentName,
         keywords: doc.keyword ? doc.keyword.map((k) => k.trim()) : [], // 배열 그대로 사용
         configuredObjectiveCount: doc.mcSet,
         configuredSubjectiveCount: doc.sqSet,
@@ -395,37 +406,25 @@ const handleConfigNext = async (configData) => {
 }
 
 // TestQuickConfig 컴포넌트에서 'next-step' 이벤트 발생 시 호출
-const handleQuickConfigNext = async (
-  updatedRevenues,
-  testName,
-  totalTestQuestions,
-  testDuration,
-  passingScore,
-) => {
+const handleQuickConfigNext = async (updatedRevenues, totalTestQuestions) => {
   loadingMessage.value = '문제를 찾아오는 중입니다.'
   isLoading.value = true
   try {
-    // TestQuickConfig에서 받은 데이터를 사용하여 API 요청 바디 구성
-    const requestBody = {
-      name: testName,
-      limitedTime: testDuration,
-      passScore: passingScore,
-      totalQuestionCount: totalTestQuestions,
-      // revenues에서 필요한 정보 (documentId, questionCount)만 추출
-      documentConfigs: revenues.value.map((doc) => ({
-        documentId: doc.id,
-        questionCount: doc.questionCount, // TestQuickConfig에서 받아온 questionCount 사용
-      })),
-    }
-    console.log('Quick Test API Request Body:', requestBody)
+    // TestQuickConfig에서 받은 데이터를 저장 (여기서는 testName, testDuration, passingScore는 더 이상 받지 않음)
+    // 이 값들은 TestQuestionReviewQuick에서 입력받거나 기본값으로 사용
+    quickTestName.value = '새로운 빠른 테스트' // 기본값 설정
+    quickTestDuration.value = 60 // 기본값 설정
+    quickPassingScore.value = 60 // 기본값 설정
 
-    const response = await axios.post('/test/quick', requestBody, {
+    // 랜덤 테스트 생성 API 호출
+    const response = await axios.post('/test/random', null, {
       params: {
         projectId: currentProjectId.value,
+        count: totalTestQuestions, // 총 문제 수 (count)를 파라미터로 전달
       },
     })
 
-    console.log('Quick Test API 응답:', response.data)
+    console.log('Random Test API 응답:', response.data)
 
     if (
       response.data.statusCode === 'OK' &&
@@ -433,7 +432,6 @@ const handleQuickConfigNext = async (
       response.data.resultData.testId
     ) {
       testId.value = response.data.resultData.testId
-      // selectedDocument.value.title = testName; // 빠른 생성 테스트 이름 설정
 
       if (response.data.resultData.questions) {
         questionsData.value = response.data.resultData.questions
@@ -444,7 +442,7 @@ const handleQuickConfigNext = async (
 
       goToQuestion() // 문제 검토 단계로 이동
     } else {
-      console.error('Quick Test API 응답 실패:', response.data)
+      console.error('Random Test API 응답 실패:', response.data)
       alert('빠른 테스트 생성에 실패했습니다: ' + response.data.resultMsg)
     }
   } catch (error) {
