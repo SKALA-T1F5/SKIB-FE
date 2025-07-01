@@ -44,28 +44,13 @@
 </template>
 
 <script>
+import api from '@/config/axios'
+
 export default {
   name: 'TrainerList',
   data() {
     return {
-      allQuizzers: [
-        { id: 1, name: '홍길동', email: 'gildong@gmail.com', department: '글로벌 사업1팀' },
-        { id: 2, name: '홍길순', email: 'gildong@gmail.com', department: '글로벌 사업2팀' },
-        { id: 3, name: '김철수', email: 'gildong@gmail.com', department: '글로벌 사업3팀' },
-        { id: 4, name: '정대령', email: 'gildong@gmail.com', department: 'SKALA팀' },
-        { id: 5, name: '안보람', email: 'gildong@gmail.com', department: 'SKALA팀' },
-        { id: 6, name: '김고은', email: 'gildong@gmail.com', department: 'AI혁신팀' },
-        { id: 7, name: '마동석', email: 'gildong@gmail.com', department: 'IT기획팀' },
-        { id: 8, name: '손흥민', email: 'gildong@gmail.com', department: '글로벌 사업1팀' },
-        { id: 9, name: '마동석', email: 'gildong@gmail.com', department: '글로벌 사업2팀' },
-        { id: 10, name: '손흥민', email: 'gildong@gmail.com', department: '글로벌 사업1팀' },
-        { id: 11, name: '박보검', email: 'gildong@gmail.com', department: '글로벌 사업1팀' },
-        { id: 12, name: '김고은', email: 'gildong@gmail.com', department: 'AI혁신팀' },
-        { id: 13, name: '마동석', email: 'gildong@gmail.com', department: 'IT기획팀' },
-        { id: 14, name: '손흥민', email: 'gildong@gmail.com', department: '글로벌 사업1팀' },
-        { id: 15, name: '마동석', email: 'gildong@gmail.com', department: '글로벌 사업3팀' },
-        { id: 16, name: '손흥민', email: 'gildong@gmail.com', department: '글로벌 사업1팀' },
-      ],
+      allQuizzers: [],
       currentPage: 1,
       itemsPerPage: 8
     };
@@ -105,6 +90,42 @@ export default {
         this.currentPage--;
       }
     },
+    async fetchTrainers() {
+      try {
+        const token = localStorage.getItem('token');
+        // console.log('현재 저장된 토큰:', token);
+        const headers = {};
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+        const response = await api.get('/user/trainers', { headers });
+        if (response.data.statusCode === 'OK' && response.data.resultData && Array.isArray(response.data.resultData.users)) {
+          this.allQuizzers = response.data.resultData.users.map(u => ({
+            id: u.userId,
+            name: u.name ? u.name : (u.email ? u.email.split('@')[0] : ''),
+            email: u.email,
+            department: u.department || '',
+          }));
+        } else {
+          this.allQuizzers = [];
+        }
+      } catch (error) {
+        if (error.response) {
+          console.error(`출제자 목록 불러오기 실패: ${error.response.status} - ${error.response.statusText}`);
+          if (error.response.status === 500) {
+            console.error('서버 내부 오류입니다. 백엔드 서버를 확인해주세요.');
+          }
+        } else if (error.request) {
+          console.error('출제자 목록 불러오기 실패: 서버에 연결할 수 없습니다.');
+        } else {
+          console.error('출제자 목록 불러오기 실패:', error.message);
+        }
+        this.allQuizzers = [];
+      }
+    }
+  },
+  created() {
+    this.fetchTrainers();
   }
 };
 </script>
