@@ -146,7 +146,8 @@ const fetchTestQuestions = async (testId) => {
       },
     })
 
-    const fetchedData = response.data.questions
+    // 변경된 부분: response.data.resultData.questions 로 접근
+    const fetchedData = response.data?.resultData?.questions
     if (Array.isArray(fetchedData)) {
       allQuestions.value = fetchedData.map((rawQ, index) => {
         const generatedId = `Q${(index + 1).toString().padStart(2, '0')}`
