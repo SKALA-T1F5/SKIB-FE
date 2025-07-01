@@ -131,40 +131,56 @@ const hideAddTestModal = () => {
   addTestModalVisible.value = false
 }
 const addTestByLink = async (link) => {
-  // link 매개변수를 받도록 수정
   invitationLinkError.value = ''
-  invitationLink.value = link // 여기서 모달에서 전달받은 링크 값을 할당합니다.
+  invitationLink.value = link
+
   if (!invitationLink.value.trim()) {
     invitationLinkError.value = '초대 링크를 입력해주세요.'
     return
   }
+
   let token = null
   try {
     const url = new URL(invitationLink.value)
-    token = url.searchParams.get('token')
+    const pathSegments = url.pathname.split('/')
+    token = pathSegments[pathSegments.length - 1]
+
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(token)) {
+      invitationLinkError.value = '유효한 초대 링크 형식이 아닙니다. 토큰이 올바르지 않습니다.'
+      return
+    }
   } catch (e) {
     invitationLinkError.value = '유효한 초대 링크 형식이 아닙니다.'
     return
   }
+
   if (!token) {
     invitationLinkError.value = '유효한 초대 링크가 아닙니다. 토큰을 찾을 수 없습니다.'
     return
   }
+
   const userId = localStorage.getItem('userId')
   if (!userId) {
     alert('사용자 ID를 찾을 수 없습니다. 다시 로그인해주세요.')
     router.push('/login')
     return
   }
+
   try {
-    const response = await api.post('/test/invite/register', {
-      token: token,
-      userId: parseInt(userId),
-      lang: 'ko',
+    const response = await api.post('/test/invite/register', null, {
+      params: {
+        token: token,
+        userId: parseInt(userId),
+        lang: 'ko',
+      },
     })
+
     console.log('테스트 추가 성공:', response.data)
     alert('테스트에 성공적으로 참여했습니다!')
+
     const joinedTestInfo = response.data?.resultData?.testDetails || response.data?.testDetails
+
     if (joinedTestInfo && joinedTestInfo.testId) {
       router.push({
         name: 'TraineeTestGuide',
@@ -271,9 +287,6 @@ const handleTestCardAction = (test, actionType) => {
       },
     })
   } else if (actionType === 'attend') {
-    // This 'attend' action is used for both initial test taking and retaking (via the "재응시" button).
-    // The key here is to always push to TraineeTestGuide if the action is 'attend'
-    // and the button is enabled (which is handled by :disabled on the button itself).
     router.push({
       name: 'TraineeTestGuide',
       params: { testId: test.testId.toString() },
@@ -281,12 +294,10 @@ const handleTestCardAction = (test, actionType) => {
         testName: test.name,
         limitedTimeM: test.limitedTime,
         difficultyLevel: test.difficultyLevel,
-        isRetake: test.isRetake, // Pass the isRetake status of the test itself
+        isRetake: test.isRetake,
       },
     })
   }
-  // The 'retake' action type was removed here because the '재응시' button now directly emits 'attend'.
-  // This simplifies the logic by routing all test-taking/retaking attempts through 'attend'.
 }
 
 onMounted(() => {
