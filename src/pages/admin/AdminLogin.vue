@@ -9,7 +9,7 @@
       <!-- 관리자 로그인 버튼 추가 -->
       <div style="background: white; padding: 10px; height: 10%;">
         <div class="extra-options" style="background: white; margin: 10px;">
-          <a href="#" @click.prevent="goToAdminLogin" style="color: #F0F0F0;">관리자 로그인</a>
+          <a href="#">관리자 로그인</a>
         </div>
       </div>
       <!-- 기존 로그인 영역 -->
@@ -47,10 +47,6 @@ import api from '@/config/axios'
 const id = ref('')
 const password = ref('')
 const router = useRouter()
-
-const goToAdminLogin = () => {
-  router.push('/admin/login')
-}
 
 const handleLogin = async () => {
   try {
