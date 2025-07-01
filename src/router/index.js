@@ -20,6 +20,10 @@ import TraineeTestResult from '@/pages/trainee/TraineeTestResult.vue'
 import TraineeTestFeedback from '@/pages/trainee/TraineeTestFeedback.vue'
 
 // Admin Pages
+import ProjectList from '@/pages/admin/ProjectList.vue'
+import TraineeList from '@/pages/admin/TraineeList.vue'
+import TrainerList from '@/pages/admin/TrainerList.vue'
+import AdminLogin from '@/pages/admin/AdminLogin.vue'
 
 const routes = [
   // General Routes
@@ -84,9 +88,13 @@ const routes = [
   },
 
   // Admin Routes
+  { path: '/admin/login', name: 'AdminLogin', component: AdminLogin },
+  { path: '/admin/projects', name: 'ProjectList', component: ProjectList },
+  { path: '/admin/trainees', name: 'TraineeList', component: TraineeList },
+  { path: '/admin/trainers', name: 'TrainerList', component: TrainerList },
 
   // Fall Back
-  // { path: '/:pathMatch(.*)*', redirect: '/login' },
+  { path: '/:pathMatch(.*)*', redirect: '/login' },
 ]
 
 const router = createRouter({
