@@ -6,14 +6,7 @@
     </div>
 
     <div>
-      <!-- 관리자 로그인 버튼 추가 -->
-      <div style="background: white; padding: 10px; height: 10%;">
-        <div class="extra-options" style="background: white; margin: 10px;">
-          <a href="#" @click.prevent="goToAdminLogin" style="color: #F0F0F0;">관리자 로그인</a>
-        </div>
-      </div>
-      <!-- 기존 로그인 영역 -->
-      <div class="login-form-box" style="height: 90%;">
+      <div class="login-form-box">
         <div style="width: 60%; margin: 0 auto;">
           <h2 class="form-title">로그인</h2>
 

@@ -1,4 +1,5 @@
 <template>
+    <MinLayout :show-sidebar="true" :show-header="true">
     <!-- 전체 프로젝트 목록 페이지 컨테이너 -->
     <div class="project-list-container">
         <!-- 상단 헤더 영역 -->
@@ -141,6 +142,7 @@
         </div>
 
     </div>
+</MinLayout>
 </template>
 
 <script>
