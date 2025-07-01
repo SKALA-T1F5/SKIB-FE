@@ -84,9 +84,9 @@
 <script>
 import api from '@/config/axios'
 
-
 export default {
     name: 'TraineeList',
+    emits: ['confirm-delete-trainee'],
     data() {
         return {
             allTrainees: [],
