@@ -50,7 +50,8 @@
                                     <td>{{ project.createdDate }}</td>
                                     <td class="actions-column">
                                         <button class="delete-button"
-                                            @click="showConfirmDialog(project.id)">🗑️</button>
+                                            @click="showConfirmDialog(project.id)">
+                                            <span class="material-icons">delete</span></button>
                                     </td>
                                 </tr>
                             </tbody>

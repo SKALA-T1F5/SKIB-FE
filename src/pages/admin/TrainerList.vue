@@ -27,13 +27,7 @@
             <td class="actions-column">
               <button class="delete-button" @click="confirmDelete(quizzer.id)">
                 <span class="material-icons">delete</span>
-                <span class="material-icons">delete_outline</span>
-                <span class="material-icons">remove_circle</span>
-                <span class="material-icons">remove_circle_outline</span>
-                <span class="material-icons">close</span>
-                <span class="material-icons">backspace</span>
-                <span class="material-icons">cancel</span>
-                <span class="material-icons">do_not_disturb</span>
+                <!-- <span class="material-icons">delete_outline</span> -->
               </button>
             </td>
           </tr>

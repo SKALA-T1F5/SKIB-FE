@@ -30,7 +30,9 @@
                     <td>{{ trainee.affiliation }}</td>
                     <td>{{ trainee.createdDate }}</td>
                     <td class="actions-column">
-                        <button class="delete-button" @click="confirmDelete(trainee.id)">🗑️</button>
+                        <button class="delete-button" @click="confirmDelete(trainee.id)">
+                            <span class="material-icons">delete</span>
+                        </button>
                     </td>
                 </tr>
             </tbody>
