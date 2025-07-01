@@ -34,12 +34,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import DocumentUpload from '@/components/trainer/document/DocumentUpload.vue'
 import DocumentFilters from '@/components/trainer/document/DocumentFilters.vue'
 import DocumentList from '@/components/trainer/document/DocumentList.vue'
 import DocumentPreviewDialog from '@/components/trainer/document/DocumentPreviewDialog.vue'
 import api from '@/config/axios'
+
+const route = useRoute()
 
 const documents = ref([])
 const searchQuery = ref('')
@@ -47,12 +50,11 @@ const searchQuery = ref('')
 const previewDialog = ref(false)
 const selectedDocument = ref(null)
 
-const projectId = ref(1) // 기본값 설정. 로컬 스토리지에서 값을 불러올 예정.
+const projectId = ref(1)
 
-// 각 문서의 상태 업데이트 인터벌을 관리하기 위한 맵
 const documentStatusIntervals = ref(new Map())
+const isDocumentTabActive = ref(false) // 문서 관리 탭 활성화 여부를 나타내는 새로운 플래그
 
-// API 상태(enum) 값을 한글로 매핑하는 함수
 const mapApiStatusToKorean = (status) => {
   switch (status) {
     case 'UPLOAD_COMPLETED':
@@ -70,8 +72,13 @@ const mapApiStatusToKorean = (status) => {
   }
 }
 
-// 문서 목록을 가져오는 함수. initialLoad는 초기 로드인지 여부를 구분합니다.
-const fetchDocuments = async (initialLoad = true) => {
+const fetchDocuments = async () => {
+  // isDocumentTabActive 플래그가 true일 때만 API 통신 진행
+  if (!isDocumentTabActive.value) {
+    console.warn('fetchDocuments 호출이 문서 관리 탭이 활성화되지 않은 상태에서 무시됩니다.')
+    return
+  }
+
   try {
     const response = await api.get(`/documents`, {
       params: {
@@ -88,25 +95,19 @@ const fetchDocuments = async (initialLoad = true) => {
         status: mapApiStatusToKorean(doc.status),
       }))
 
-      // 기존 문서 목록과 새로운 문서 목록을 비교하여 업데이트 및 상태 업데이트 시작
       fetchedDocs.forEach((fetchedDoc) => {
         const existingDocIndex = documents.value.findIndex((doc) => doc.id === fetchedDoc.id)
 
         if (existingDocIndex === -1) {
-          // 새로 추가된 문서
           documents.value.push(fetchedDoc)
-          // 새로 추가된 문서는 초기 로드이거나 업로드 후이거나 관계없이 상태 업데이트 시작
           if (fetchedDoc.status !== '요약 완료' && fetchedDoc.status !== '실패') {
             startStatusUpdateForDocument(fetchedDoc.id)
           }
         } else {
-          // 기존 문서인 경우 상태만 업데이트
           documents.value[existingDocIndex].status = fetchedDoc.status
-          // 기존 문서 중 상태가 완료되지 않은 경우에만 인터벌 시작/유지
           if (fetchedDoc.status === '요약 완료' || fetchedDoc.status === '실패') {
             stopStatusUpdateForDocument(fetchedDoc.id)
           } else {
-            // 완료되지 않은 상태이고, 아직 인터벌이 시작되지 않았다면 시작
             if (!documentStatusIntervals.value.has(fetchedDoc.id)) {
               startStatusUpdateForDocument(fetchedDoc.id)
             }
@@ -114,7 +115,6 @@ const fetchDocuments = async (initialLoad = true) => {
         }
       })
 
-      // 서버에는 없지만 클라이언트 목록에는 남아있는 문서 제거 (삭제된 문서)
       documents.value = documents.value.filter((doc) =>
         fetchedDocs.some((fetchedDoc) => fetchedDoc.id === doc.id),
       )
@@ -128,8 +128,16 @@ const fetchDocuments = async (initialLoad = true) => {
   }
 }
 
-// 특정 문서의 상태를 가져오는 함수
 const fetchDocumentStatus = async (documentId) => {
+  // isDocumentTabActive 플래그가 true일 때만 API 통신 진행
+  if (!isDocumentTabActive.value) {
+    console.warn(
+      `문서 ID ${documentId}의 상태 조회 호출이 문서 관리 탭이 활성화되지 않은 상태에서 무시됩니다.`,
+    )
+    stopStatusUpdateForDocument(documentId) // 비활성화 상태에서 호출되면 바로 인터벌 중지
+    return
+  }
+
   try {
     const response = await api.get(`/document/status`, {
       params: {
@@ -142,37 +150,38 @@ const fetchDocumentStatus = async (documentId) => {
       const docIndex = documents.value.findIndex((doc) => doc.id === documentId)
       if (docIndex !== -1) {
         documents.value[docIndex].status = updatedStatus
-        // 상태가 '요약 완료' 또는 '실패'이면 해당 문서의 인터벌 중지
         if (updatedStatus === '요약 완료' || updatedStatus === '실패') {
           stopStatusUpdateForDocument(documentId)
         }
       }
     } else {
       console.error(`문서 ID ${documentId}의 상태 조회 실패:`, response.data.resultMsg)
-      // API 통신 실패 시에도 인터벌 중지
       stopStatusUpdateForDocument(documentId)
     }
   } catch (error) {
     console.error(`문서 ID ${documentId}의 상태를 가져오는 중 오류 발생:`, error)
-    // 네트워크 오류 등 발생 시에도 인터벌 중지
     stopStatusUpdateForDocument(documentId)
   }
 }
 
-// 특정 문서에 대한 상태 업데이트를 시작하는 함수
 const startStatusUpdateForDocument = (documentId) => {
-  // 이미 인터벌이 실행 중이면 중복 실행 방지
+  // isDocumentTabActive 플래그가 true일 때만 상태 업데이트 시작 허용
+  if (!isDocumentTabActive.value) {
+    console.warn(
+      `문서 ID ${documentId}의 상태 업데이트 시작 시도가 문서 관리 탭이 활성화되지 않은 상태에서 무시됩니다.`,
+    )
+    return
+  }
   if (documentStatusIntervals.value.has(documentId)) {
     return
   }
   console.log(`문서 ID ${documentId} 상태 업데이트 시작.`)
   const intervalId = setInterval(() => {
     fetchDocumentStatus(documentId)
-  }, 5000) // 5초 간격
+  }, 5000)
   documentStatusIntervals.value.set(documentId, intervalId)
 }
 
-// 특정 문서에 대한 상태 업데이트를 중지하는 함수
 const stopStatusUpdateForDocument = (documentId) => {
   if (documentStatusIntervals.value.has(documentId)) {
     console.log(`문서 ID ${documentId} 상태 업데이트 중지.`)
@@ -181,9 +190,9 @@ const stopStatusUpdateForDocument = (documentId) => {
   }
 }
 
-// 파일 업로드 완료 시 호출되는 핸들러
 const handleFilesUploaded = () => {
-  fetchDocuments(false) // 새로 업로드된 경우 (초기 로드가 아님)
+  // 파일 업로드 후에도 isDocumentTabActive 플래그에 따라 fetchDocuments가 동작하도록 위임
+  fetchDocuments()
 }
 
 const deleteDocument = async (documentId) => {
@@ -199,8 +208,7 @@ const deleteDocument = async (documentId) => {
 
     if (response.data.statusCode === 'OK') {
       alert('문서가 성공적으로 삭제되었습니다.')
-      stopStatusUpdateForDocument(documentId) // 삭제된 문서의 상태 업데이트 중지
-      // 목록에서 해당 문서 제거
+      stopStatusUpdateForDocument(documentId)
       documents.value = documents.value.filter((doc) => doc.id !== documentId)
     } else {
       console.error('문서 삭제 실패:', response.data.resultMsg)
@@ -217,23 +225,46 @@ const preview = (doc) => {
   previewDialog.value = true
 }
 
-// Lifecycle hooks
 onMounted(() => {
-  // 로컬 스토리지에서 projectId 가져오기
   const storedProjectId = localStorage.getItem('projectId')
   if (storedProjectId) {
-    projectId.value = parseInt(storedProjectId) // 문자열을 숫자로 변환
+    projectId.value = parseInt(storedProjectId)
   } else {
     console.warn("로컬 스토리지에 'projectId'가 없습니다. 기본값 1을 사용합니다.")
   }
 
-  fetchDocuments(true) // 컴포넌트 마운트 시 초기 로드로 간주하여 모든 문서 상태를 가져옴
+  // 컴포넌트 마운트 시 현재 라우트가 '문서 관리' 탭 경로인지 확인하고 플래그 설정 및 fetchDocuments 호출
+  if (route.path.includes('/document')) {
+    isDocumentTabActive.value = true
+    fetchDocuments()
+  }
 })
 
+watch(
+  () => route.path,
+  (newPath, oldPath) => {
+    const isCurrentDocumentTab = newPath.includes('/document')
+    const wasDocumentTab = oldPath && oldPath.includes('/document')
+
+    if (isCurrentDocumentTab && !wasDocumentTab) {
+      console.log('문서 관리 탭으로 진입, 문서 목록 새로고침 및 상태 업데이트 시작.')
+      isDocumentTabActive.value = true // 플래그 활성화
+      fetchDocuments()
+    } else if (!isCurrentDocumentTab && wasDocumentTab) {
+      console.log('문서 관리 탭 이탈, 모든 문서 상태 업데이트 중지.')
+      isDocumentTabActive.value = false // 플래그 비활성화
+      documentStatusIntervals.value.forEach((intervalId) => clearInterval(intervalId))
+      documentStatusIntervals.value.clear()
+    }
+  },
+  { immediate: false },
+)
+
 onBeforeUnmount(() => {
-  // 컴포넌트 언마운트 시 모든 인터벌 정리
+  // 컴포넌트 언마운트 시 모든 인터벌 정리 및 플래그 초기화
   documentStatusIntervals.value.forEach((intervalId) => clearInterval(intervalId))
   documentStatusIntervals.value.clear()
+  isDocumentTabActive.value = false
 })
 
 const filteredDocuments = computed(() => {
