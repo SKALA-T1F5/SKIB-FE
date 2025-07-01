@@ -82,28 +82,14 @@
 </template>
 
 <script>
+import api from '@/config/axios'
+
+
 export default {
     name: 'TraineeList',
     data() {
         return {
-            allTrainees: [
-                { id: 1, name: '홍길동', email: 'gildong@gmail.com', affiliation: 'NTQ Solution', createdDate: '2025-05-18' },
-                { id: 2, name: '홍길순', email: 'gildong@gmail.com', affiliation: 'VTI', createdDate: '2025-05-18' },
-                { id: 3, name: '김철수', email: 'gildong@gmail.com', affiliation: 'FPT', createdDate: '2025-05-18' },
-                { id: 4, name: '이영희', email: 'gildong@gmail.com', affiliation: 'CMC', createdDate: '2025-05-18' },
-                { id: 5, name: '박보검', email: 'gildong@gmail.com', affiliation: 'VTI', createdDate: '2025-05-18' },
-                { id: 6, name: '김고은', email: 'gildong@gmail.com', affiliation: 'Co-well', createdDate: '2025-05-18' },
-                { id: 7, name: '마동석', email: 'gildong@gmail.com', affiliation: 'FPT', createdDate: '2025-05-18' },
-                { id: 8, name: '손흥민', email: 'gildong@gmail.com', affiliation: 'GMO-Z.com RUNSYSTEM', createdDate: '2025-05-18' },
-                { id: 9, name: '마동석', email: 'gildong@gmail.com', affiliation: 'FPT', createdDate: '2025-05-18' },
-                { id: 10, name: '손흥민', email: 'gildong@gmail.com', affiliation: 'GMO-Z.com RUNSYSTEM', createdDate: '2025-05-18' },
-                { id: 11, name: '박보검', email: 'gildong@gmail.com', affiliation: 'VTI', createdDate: '2025-05-18' },
-                { id: 12, name: '김고은', email: 'gildong@gmail.com', affiliation: 'Co-well', createdDate: '2025-05-18' },
-                { id: 13, name: '마동석', email: 'gildong@gmail.com', affiliation: 'FPT', createdDate: '2025-05-18' },
-                { id: 14, name: '손흥민', email: 'gildong@gmail.com', affiliation: 'GMO-Z.com RUNSYSTEM', createdDate: '2025-05-18' },
-                { id: 15, name: '마동석', email: 'gildong@gmail.com', affiliation: 'FPT', createdDate: '2025-05-18' },
-                { id: 16, name: '손흥민', email: 'gildong@gmail.com', affiliation: 'GMO-Z.com RUNSYSTEM', createdDate: '2025-05-18' },
-            ],
+            allTrainees: [],
             currentPage: 1,
             itemsPerPage: 7,
             showAddModal: false,
@@ -187,6 +173,42 @@ export default {
                 this.currentPage--;
             }
         },
+        async fetchTrainees() {
+            try {
+                const token = localStorage.getItem('token');
+                const headers = {};
+                if (token) {
+                    headers.Authorization = `Bearer ${token}`;
+                }
+                const response = await api.get('/user/trainees', { headers });
+                if (response.data.statusCode === 'OK' && response.data.resultData && Array.isArray(response.data.resultData.users)) {
+                    this.allTrainees = response.data.resultData.users.map(u => ({
+                        id: u.userId,
+                        name: u.name ? u.name : (u.email ? u.email.split('@')[0] : ''),
+                        email: u.email,
+                        affiliation: u.department || '',
+                        createdDate: u.createdAt ? u.createdAt.slice(0, 10) : '',
+                    }));
+                } else {
+                    this.allTrainees = [];
+                }
+            } catch (error) {
+                if (error.response) {
+                    console.error(`학습자 목록 불러오기 실패: ${error.response.status} - ${error.response.statusText}`);
+                    if (error.response.status === 500) {
+                        console.error('서버 내부 오류입니다. 백엔드 서버를 확인해주세요.');
+                    }
+                } else if (error.request) {
+                    console.error('학습자 목록 불러오기 실패: 서버에 연결할 수 없습니다.');
+                } else {
+                    console.error('학습자 목록 불러오기 실패:', error.message);
+                }
+                this.allTrainees = [];
+            }
+        }
+    },
+    created() {
+        this.fetchTrainees();
     }
 };
 </script>
