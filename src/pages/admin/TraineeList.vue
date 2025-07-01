@@ -24,7 +24,9 @@
             <tbody>
                 <!-- 예시 학습자 데이터 -->
                 <tr v-for="trainee in paginatedTrainees" :key="trainee.id">
-                    <td class="checkbox-column"><input type="checkbox" /></td>
+                    <td class="checkbox-column">
+                        <!-- <input type="checkbox" /> -->
+                    </td>
                     <td>{{ trainee.name }}</td>
                     <td>{{ trainee.email }}</td>
                     <td>{{ trainee.affiliation }}</td>
@@ -131,7 +133,6 @@ export default {
                     headers.Authorization = `Bearer ${token}`;
                 }
                 headers['Content-Type'] = 'application/json';
-                // DELETE 요청에 body를 담으려면 axios의 data 옵션 사용
                 await api.delete('/user/delete', {
                     headers,
                     data:  traineeId 

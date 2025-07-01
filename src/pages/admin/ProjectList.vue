@@ -51,8 +51,7 @@
                                     <td>{{ project.description }}</td>
                                     <td>{{ project.createdDate }}</td>
                                     <td class="actions-column">
-                                        <button class="delete-button"
-                                            @click="showConfirmDialog(project.id)">
+                                        <button class="delete-button" @click="showConfirmDialog(project.id)">
                                             <span class="material-icons">delete</span></button>
                                     </td>
                                 </tr>
@@ -105,7 +104,8 @@
                         <div class="dialog-form">
                             <div class="form-group">
                                 <label for="project-name">프로젝트명</label>
-                                <input type="text" id="project-name" placeholder="ex) 프로젝트A" v-model="newProject.name" />
+                                <input type="text" id="project-name" placeholder="ex) 프로젝트A"
+                                    v-model="newProject.name" />
                             </div>
                             <div class="form-group">
                                 <label for="project-description">프로젝트 설명</label>
@@ -114,20 +114,20 @@
                             </div>
                         </div>
                         <div class="form-group">
-                                <label for="project-manager">담당자 이메일 목록</label>
-                                <!-- 이메일 태그 입력 필드 -->
-                                <div class="manager-input-container">
-                                    <span v-for="(manager, index) in newProject.managers" :key="index"
-                                        class="manager-tag">
-                                        {{ manager }}
-                                        <span class="remove-tag" @click="removeManager(index)">×</span>
-                                    </span>
-
-                                    <input type="text" id="project-manager"
-                                        :placeholder="newProject.managers.length === 0 ? '프로젝트 담당자 이메일 입력 후 Enter' : ''"
-                                        v-model="currentManagerInput" @keydown.enter.prevent="addManager" />
-                                </div>
-                            </div>
+                            <label for="project-manager">담당자 이메일 목록</label>
+                            <select id="project-manager" @change="addManagerBySelect($event)" :value="''">
+                                <option disabled value="">담당자 선택</option>
+                                <option v-for="option in emailOptions" :key="option.email" :value="option.email">
+                                    {{ option.name }} ({{ option.email }})
+                                </option>
+                            </select>
+                        </div>
+                        <div class="manager-input-container">
+                            <span v-for="(manager, index) in newProject.managers" :key="index" class="manager-tag">
+                                {{ getManagerName(manager) }} ({{ manager }})
+                                <span class="remove-tag" @click="removeManager(index)">×</span>
+                            </span>
+                        </div>
                         <div class="dialog-buttons">
                             <button class="confirm-button" @click="confirmCreate">확인</button>
                             <button class="cancel-button" @click="cancelCreate">취소</button>
@@ -168,6 +168,7 @@ export default {
             },
             currentManagerInput: '', // 현재 입력 중인 담당자 이메일
             currentMenu: 'projects', // 현재 활성화된 메뉴 ('projects', 'quizzers', 'learners')
+            emailOptions: [], // { email, name } 객체 배열
             // quizzers: [ ... ] // 출제자 예시 데이터는 QuizzerList.vue로 이동
         };
     },
@@ -377,11 +378,40 @@ export default {
             // 삭제 확인 모달 표시 (프로젝트/출제자와 동일한 모달 사용)
             this.itemToDeleteId = traineeId; // 삭제할 학습자 ID 저장
             this.showDeleteConfirm = true; // 삭제 확인 모달 표시
+        },
+
+        addManagerBySelect(event) {
+            const email = event.target.value;
+            if (email && !this.newProject.managers.includes(email)) {
+                this.newProject.managers.push(email);
+            }
+            event.target.value = '';
+        },
+
+        getManagerName(email) {
+            const found = this.emailOptions.find(opt => opt.email === email);
+            return found ? found.name : email;
+        },
+
+        async fetchTrainerEmails() {
+            try {
+                const token = localStorage.getItem('token');
+                const headers = {};
+                if (token) headers.Authorization = `Bearer ${token}`;
+                const response = await api.get('/user/trainers', { headers });
+                this.emailOptions = response.data.resultData.users.map(u => ({
+                    email: u.email,
+                    name: u.name ? u.name : u.email.split('@')[0]
+                }));
+            } catch (e) {
+                this.emailOptions = [];
+            }
         }
     },
-    created() {
+    async created() {
         // 컴포넌트 생성 시 백엔드에서 프로젝트 데이터 로드
         this.fetchProjects();
+        await this.fetchTrainerEmails();
     }
 };
 </script>
