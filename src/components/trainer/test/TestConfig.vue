@@ -346,7 +346,10 @@ const emitUpdateRevenues = () => {
 }
 
 .hide-number-spinners :deep(input[type='number']) {
-  -moz-appearance: textfield; /* Firefox */
+  -webkit-appearance: none; /* Chrome, Safari 등 WebKit/Blink 기반 브라우저 */
+  -moz-appearance: none; /* Firefox */
+  appearance: none; /* 표준 (미래를 대비) */
+  /* 원래 적용했던 다른 CSS 스타일은 그대로 유지 */
 }
 
 /* 숫자 입력 필드 텍스트 가운데 정렬 */
