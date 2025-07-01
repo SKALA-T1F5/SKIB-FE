@@ -1,6 +1,6 @@
 <template>
   <div class="main-layout">
-    <Header :name="userName" :role="userRole" />
+      <Header :name="userName" :role="userRole" />
 
     <div class="layout-body">
       <aside v-if="showSidebar" :class="['sidebar-container', { collapsed: isSidebarCollapsed }]">

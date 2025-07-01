@@ -1,5 +1,6 @@
 <template>
-    <MinLayout :show-sidebar="true" :show-header="true">
+    <MainLayout :show-sidebar="false" :show-header="true">
+        <template #content>
     <!-- 전체 프로젝트 목록 페이지 컨테이너 -->
     <div class="project-list-container">
         <!-- 상단 헤더 영역 -->
@@ -142,16 +143,20 @@
         </div>
 
     </div>
-</MinLayout>
+</template>
+</MainLayout>
 </template>
 
-<script>
+<script> 
+// import MainLayout from '@/components/layouts/MainLayout.vue'
+import MainLayout from '@/components/layouts/MainLayout.vue'
 import TrainerList from '@/pages/admin/TrainerList.vue'; // TrainerList 컴포넌트 임포트
 import TraineeList from '@/pages/admin/TraineeList.vue'; // TraineeList 컴포넌트 임포트
 
 export default {
     name: 'ProjectList', // 컴포넌트 이름 정의
     components: { // 사용할 하위 컴포넌트 등록
+        MainLayout, // MainLayout 컴포넌트 등록
         TrainerList, // QuizzerList 대신 TrainerList 사용
         TraineeList // TraineeList 컴포넌트 등록
     },
