@@ -25,28 +25,52 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiWeb } from '@mdi/js'
 
-const currentLang = ref('ko')
+// --- 수정 시작 ---
+
+// 현재 언어 상태를 관리합니다. 쿠키에서 초기값을 가져오도록 변경합니다.
+const currentLang = ref(getLangFromCookie() || 'ko') // 쿠키에서 가져오거나 기본값 'ko'
+
+// 쿠키에서 'googtrans' 값을 읽어 현재 언어를 파싱하는 함수
+function getLangFromCookie() {
+  const name = 'googtrans='
+  const decodedCookie = decodeURIComponent(document.cookie)
+  const ca = decodedCookie.split(';')
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i]
+    while (c.charAt(0) === ' ') {
+      c = c.substring(1)
+    }
+    if (c.indexOf(name) === 0) {
+      const langPair = c.substring(name.length, c.length)
+      // '/ko/en' 형식에서 'en' 부분만 추출
+      const parts = langPair.split('/')
+      if (parts.length === 3) {
+        return parts[2] // 번역된 언어 코드 (예: 'en', 'vi', 'ko')
+      }
+    }
+  }
+  return '' // 쿠키를 찾지 못하거나 파싱 실패 시 빈 문자열 반환
+}
+// --- 수정 끝 ---
+
 const showLangMenu = ref(false)
 const googleTranslateInitialized = ref(false)
 const pendingLang = ref(null)
-// const showLoadingPopup = ref(false); // 팝업 표시 여부 삭제
 
 let observer = null
 let globalBarObserver = null
 let triggerTimeout = null
-// let popupTimeout = null; // 팝업 타이머 삭제
 
 // 현재 언어에 따라 버튼에 표시될 텍스트 계산
 const displayLangText = computed(() => {
   if (currentLang.value === 'ko') return 'KOR'
   if (currentLang.value === 'en') return 'ENG'
-  if (currentLang.value === 'vi') return 'VIE' // 베트남어 약자
+  if (currentLang.value === 'vi') return 'VIE'
   return 'KOR' // 기본값
 })
 
 // Google Translate Bar 및 로딩 메시지를 숨기는 함수
 const hideGoogleTranslateBar = () => {
-  // console.log('hideGoogleTranslateBar called'); // 로그 추가
   document.body.style.setProperty('top', '0px', 'important')
   document.body.style.setProperty('margin-top', '0px', 'important')
   document.body.style.setProperty('padding-top', '0px', 'important')
@@ -77,7 +101,6 @@ const hideGoogleTranslateBar = () => {
 
   elementsToHide.forEach((selector) => {
     document.querySelectorAll(selector).forEach((el) => {
-      // console.log(`Attempting to hide: ${selector}`); // 로그 추가
       if (
         el.style.display !== 'none' ||
         el.style.visibility !== 'hidden' ||
@@ -90,13 +113,11 @@ const hideGoogleTranslateBar = () => {
         el.style.setProperty('top', '0px', 'important')
         el.style.setProperty('margin', '0px', 'important')
         el.style.setProperty('padding', '0px', 'important')
-        // console.log(`Hidden element: ${selector}`); // 로그 추가
       }
     })
   })
 
   document.querySelectorAll('body .skiptranslate').forEach((el) => {
-    // console.log('Attempting to hide body .skiptranslate'); // 로그 추가
     if (
       el.style.display !== 'none' ||
       el.style.visibility !== 'hidden' ||
@@ -109,7 +130,6 @@ const hideGoogleTranslateBar = () => {
       el.style.setProperty('top', '0px', 'important')
       el.style.setProperty('margin', '0px', 'important')
       el.style.setProperty('padding', '0px', 'important')
-      // console.log('Hidden body .skiptranslate'); // 로그 추가
     }
   })
 
@@ -127,9 +147,7 @@ const hideGoogleTranslateBar = () => {
 }
 
 const loadGoogleTranslate = () => {
-  // console.log('loadGoogleTranslate called'); // 로그 추가
   if (document.getElementById('google-translate-script')) {
-    // console.log('Google Translate script already exists.'); // 로그 추가
     return
   }
 
@@ -139,73 +157,57 @@ const loadGoogleTranslate = () => {
   script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'
   script.async = true
   script.onerror = (e) => {
-    console.error('Google Translate script failed to load:', e) // 에러 로그 추가
-    // 스크립트 로드 실패 시 사용자에게 메시지를 표시하는 등의 추가 처리를 할 수 있습니다.
+    console.error('Google Translate script failed to load:', e)
   }
   document.head.appendChild(script)
 
   window.googleTranslateElementInit = () => {
-    // console.log('googleTranslateElementInit callback fired.'); // 로그 추가
-    // Google 객체가 완전히 준비될 때까지 조금 더 긴 지연 시간을 줍니다.
     setTimeout(() => {
       if (!window.google || !window.google.translate || !window.google.translate.TranslateElement) {
         console.error(
           'window.google.translate.TranslateElement is not available after timeout. Retrying script load or initialization.',
-        ) // 에러 로그 추가
-        // 이 경우 스크립트 로드 또는 초기화를 다시 시도하거나 사용자에게 오류를 알릴 수 있습니다.
-        // 현재는 콘솔 로그만 남기고 리턴합니다.
+        )
         return
       }
       try {
-        // console.log('Attempting to create new google.translate.TranslateElement'); // 로그 추가
         new google.translate.TranslateElement(
           {
             pageLanguage: 'ko',
-            includedLanguages: 'ko,en,vi', // 베트남어(vi) 추가
+            includedLanguages: 'ko,en,vi',
             layout: google.translate.TranslateElement.InlineLayout.DROPDOWN,
             autoDisplay: false,
           },
           'google_translate_element',
         )
-        // console.log('google.translate.TranslateElement created successfully.'); // 로그 추가
 
         const targetNode = document.getElementById('google_translate_element')
         if (targetNode) {
-          // console.log('#google_translate_element found. Setting up MutationObserver.'); // 로그 추가
           observer = new MutationObserver((mutationsList, obs) => {
-            // console.log('MutationObserver callback fired.'); // 로그 추가
             for (const mutation of mutationsList) {
               if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
                 const combo = targetNode.querySelector('.goog-te-combo')
                 if (combo) {
-                  // console.log('Google Translate combo box found via Observer!'); // 로그 추가
                   googleTranslateInitialized.value = true
                   obs.disconnect()
                   if (pendingLang.value) {
-                    // console.log(`Triggering pending translation to: ${pendingLang.value}`); // 로그 추가
                     triggerGoogleTranslate(pendingLang.value)
                     pendingLang.value = null
                   } else {
-                    // 초기 로드 시 현재 페이지 언어를 Google 번역 위젯에 설정
-                    // (새로고침 시 한국어 유지)
-                    // console.log(`Initial page load, ensuring translation to: ${currentLang.value}`); // 로그 추가
+                    // 페이지 로드 시 쿠키에서 읽어온 언어로 초기 번역을 시도합니다.
                     triggerGoogleTranslate(currentLang.value)
                   }
                   hideGoogleTranslateBar()
                   break
-                } else {
-                  // console.log('Mutation detected but combo box not found yet.'); // 로그 추가
                 }
               }
             }
           })
           observer.observe(targetNode, { childList: true, subtree: true })
         } else {
-          console.error('#google_translate_element not found for MutationObserver.') // 에러 로그 추가
+          console.error('#google_translate_element not found for MutationObserver.')
         }
 
         if (!globalBarObserver) {
-          // console.log('Setting up globalBarObserver on document.body.'); // 로그 추가
           globalBarObserver = new MutationObserver(hideGoogleTranslateBar)
           globalBarObserver.observe(document.body, {
             childList: true,
@@ -215,16 +217,18 @@ const loadGoogleTranslate = () => {
           })
         }
       } catch (e) {
-        console.error('Failed to initialize Google Translate Element in try-catch block:', e) // 에러 로그 추가
+        console.error('Failed to initialize Google Translate Element in try-catch block:', e)
       }
-    }, 500) // 지연 시간을 500ms로 증가 (기존 100ms)
+    }, 500)
   }
 }
 
 onMounted(() => {
-  // console.log('LangSwitcher component mounted.'); // 로그 추가
   loadGoogleTranslate()
-  setTimeout(hideGoogleTranslateBar, 200) // 초기 숨김 시도
+  setTimeout(hideGoogleTranslateBar, 200)
+
+  // 페이지 로드 시 현재 쿠키 언어에 따라 currentLang을 업데이트하고 버튼 텍스트를 설정합니다.
+  // 이 부분은 loadGoogleTranslate 내에서 초기 번역 트리거 전에 currentLang.value가 설정되므로 추가적인 작업이 필요 없습니다.
 })
 
 onUnmounted(() => {
@@ -241,7 +245,6 @@ onUnmounted(() => {
 })
 
 const toggleLangMenu = () => {
-  // console.log('toggleLangMenu called. Current showLangMenu:', showLangMenu.value); // 로그 추가
   showLangMenu.value = !showLangMenu.value
 }
 
@@ -252,14 +255,11 @@ const triggerGoogleTranslate = (lang) => {
     window.google.translate.TranslateElement &&
     document.querySelector('.goog-te-combo')
   ) {
-    // console.log('Google Translate API and combo box are ready.'); // 로그 추가
     const frame = document.querySelector('.goog-te-combo')
     if (frame) {
-      // console.log(`Setting combo box value to ${lang} and dispatching change event.`); // 로그 추가
       frame.value = lang
       frame.dispatchEvent(new Event('change', { bubbles: true }))
 
-      // 번역이 트리거된 직후에 숨김 함수를 여러 번 호출하여 확실히 숨김
       setTimeout(hideGoogleTranslateBar, 50)
       setTimeout(hideGoogleTranslateBar, 200)
       setTimeout(hideGoogleTranslateBar, 500)
@@ -269,16 +269,12 @@ const triggerGoogleTranslate = (lang) => {
         triggerTimeout = null
       }
     } else {
-      // frame이 null인 경우, 즉 .goog-te-combo를 찾지 못한 경우 재시도
-      // console.warn('Google Translate combo box not found during direct trigger attempt. Retrying...'); // 경고 로그 추가
       if (triggerTimeout) {
         clearTimeout(triggerTimeout)
       }
       triggerTimeout = setTimeout(() => triggerGoogleTranslate(lang), 100)
     }
   } else {
-    // API가 아직 준비되지 않은 경우 재시도
-    // console.warn('Google Translate API or combo box not ready. Retrying in 100ms...'); // 경고 로그 추가
     if (triggerTimeout) {
       clearTimeout(triggerTimeout)
     }
@@ -287,8 +283,7 @@ const triggerGoogleTranslate = (lang) => {
 }
 
 const selectLang = (lang) => {
-  // console.log(`selectLang called for: ${lang}`); // 로그 추가
-  currentLang.value = lang
+  currentLang.value = lang // 언어 선택 시 currentLang 업데이트
   showLangMenu.value = false
   triggerGoogleTranslate(lang)
 }
