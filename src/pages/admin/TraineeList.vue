@@ -1,16 +1,16 @@
 <template>
     <!-- 학습자 목록 컨텐츠 -->
-    <div style="flex: 1;">
-        <div style="display: flex; flex-direction: row;">
-            <!-- 페이지 제목 영역 -->
-            <div class="page-header">
-                <h1>학습자 목록</h1>
-            </div>
-            <!-- 학습자 추가 버튼 영역 -->
-            <div class="add-button-container">
-                <button class="add-trainee-button" @click="openAddModal">학습자 추가</button>
-            </div>
+
+
+    <div class="title">
+        <div class="page-header">
+            <h1>학습자 목록</h1>
         </div>
+        <div class="add-button-container">
+            <button class="add-trainee-button" @click="openAddModal">학습자 추가</button>
+        </div>
+    </div>
+    <div class="table-area">
         <!-- 학습자 목록을 표시하는 테이블 -->
         <table class="trainee-table">
             <thead>
@@ -41,6 +41,15 @@
                 </tr>
             </tbody>
         </table>
+    </div>
+    <div class="pagination-controls">
+        <button @click="prevPage" :disabled="currentPage === 1" class="page-button prev-next-button">이전</button>
+        <button v-for="page in totalPages" :key="page" @click="goToPage(page)"
+            :class="{ 'active-page': page === currentPage }" class="page-button">
+            {{ page }}
+        </button>
+        <button @click="nextPage" :disabled="currentPage === totalPages"
+            class="page-button prev-next-button">다음</button>
     </div>
 
     <!-- 학습자 추가 모달 -->
@@ -77,17 +86,6 @@
                 <button class="cancel-button" @click="cancelAddTrainee">취소</button>
             </div>
         </div>
-    </div>
-
-    <!-- 페이지네이션 컨트롤 UI -->
-    <div class="pagination-controls">
-        <button @click="prevPage" :disabled="currentPage === 1" class="page-button prev-next-button">이전</button>
-        <button v-for="page in totalPages" :key="page" @click="goToPage(page)"
-            :class="{ 'active-page': page === currentPage }" class="page-button">
-            {{ page }}
-        </button>
-        <button @click="nextPage" :disabled="currentPage === totalPages"
-            class="page-button prev-next-button">다음</button>
     </div>
 </template>
 
@@ -268,27 +266,41 @@ export default {
 </script>
 
 <style scoped>
-.page-header {
+.main-content {
+    width: 100%;
+    max-width: 1200px;
+    min-height: 700px;
+    height: 800px;
+    margin: 0 auto;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    width: 90%;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 30px;
+    flex-direction: column;
+    background: #f60101;
+    box-sizing: border-box;
+    position: relative;
 }
 
-.page-header h1 {
-    font-size: 32px;
-    font-weight: bold;
-    color: #000000;
+.title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 90%;
+    margin: 40px auto 0 auto;
+    min-height: 60px;
+    /* background-color: #f60101; */
+}
+
+.page-header {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    margin: 0;
 }
 
 .add-button-container {
-    width: 90%;
-    margin: auto;
-    text-align: right;
+    flex: 0 0 200px;
+    display: flex;
+    justify-content: flex-end;
+    margin: 0;
 }
 
 .add-trainee-button {
@@ -346,18 +358,25 @@ export default {
     color: #666;
 }
 
+.table-area {
+    width: 90%;
+    margin: 0 auto;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    background: #ff0f0f00;
+}
+
 .pagination-controls {
+    width: 90%;
+    margin: 0 auto 30px auto;
     display: flex;
     justify-content: center;
     align-items: center;
-    /* margin-top: 20px; 테이블과의 간격 */
-    margin-bottom: 70px;
-    /* ProjectList.vue와 동일한 푸터와의 간격 */
-    width: 90%;
-    margin-left: auto;
-    margin-right: auto;
-    background-color: #f9f9f9;
-    /* 메인 컨텐츠 배경색과 동일하게 설정 */
+    background: #f9f9f9;
+    min-height: 60px;
+    margin-top: auto;
 }
 
 .page-button {

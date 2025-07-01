@@ -22,69 +22,71 @@
                 <main class="main-content" style="display: flex; flex-direction: column;">
 
                     <!-- 프로젝트 목록 컨텐츠 -->
-                    <div v-if="currentMenu === 'projects'">
+                    <div class="container" v-if="currentMenu === 'projects'"
+                        style="flex: 1; display: flex; flex-direction: column;">
                         
-                        <div style="display: flex; flex-direction: row;">
-                            <!-- 페이지 제목 영역 -->
+                        <div class="title">
                             <div class="page-header">
                                 <h1>프로젝트 목록</h1>
                             </div>
-                            <!-- 프로젝트 추가 버튼 영역 -->
                             <div class="add-button-container">
                                 <button class="add-project-button" @click="showCreateModal">프로젝트 추가</button>
                             </div>
                         </div>
-                        <!-- 프로젝트 목록을 표시하는 테이블 -->
-                        <table class="project-table">
-                            <thead>
-                                <tr class="table-header">
-                                    <th class="checkbox-column"></th>
-                                    <th>프로젝트명</th>
-                                    <th>프로젝트 설명</th>
-                                    <th>생성 일자</th>
-                                    <th class="actions-column"></th> <!-- 동작(예: 삭제 버튼)을 위한 컬럼 -->
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- paginatedProjects 배열을 순회하며 현재 페이지의 프로젝트 정보만 표시 -->
-                                <tr v-for="project in paginatedProjects" :key="project.id">
-                                    <td class="checkbox-column">
-                                        <!-- <input type="checkbox" /> -->
-                                    </td>
-                                    <td>{{ project.name }}</td>
-                                    <td>{{ project.description }}</td>
-                                    <td>{{ project.createdDate }}</td>
-                                    <td class="actions-column">
-                                        <button class="delete-button" @click="showConfirmDialog(project.id)">
-                                            <span class="material-icons">delete</span></button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="table-area">
+                            <table class="project-table">
+                                <thead>
+                                    <tr class="table-header">
+                                        <th class="checkbox-column"></th>
+                                        <th>프로젝트명</th>
+                                        <th>프로젝트 설명</th>
+                                        <th>생성 일자</th>
+                                        <th class="actions-column"></th> <!-- 동작(예: 삭제 버튼)을 위한 컬럼 -->
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- paginatedProjects 배열을 순회하며 현재 페이지의 프로젝트 정보만 표시 -->
+                                    <tr v-for="project in paginatedProjects" :key="project.id">
+                                        <td class="checkbox-column">
+                                            <!-- <input type="checkbox" /> -->
+                                        </td>
+                                        <td>{{ project.name }}</td>
+                                        <td>{{ project.description }}</td>
+                                        <td>{{ project.createdDate }}</td>
+                                        <td class="actions-column">
+                                            <button class="delete-button" @click="showConfirmDialog(project.id)">
+                                                <span class="material-icons">delete</span></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination-controls">
+                            <button @click="prevPage" :disabled="currentPage === 1"
+                                class="page-button prev-next-button">이전</button>
+                            <button v-for="page in totalPages" :key="page" @click="goToPage(page)"
+                                :class="{ 'active-page': page === currentPage }" class="page-button">
+                                {{ page }}
+                            </button>
+                            <button @click="nextPage" :disabled="currentPage === totalPages"
+                                class="page-button prev-next-button">다음</button>
+                        </div>
                     </div>
 
                     <!-- 출제자 목록 컨텐츠 -->
-                    <div v-if="currentMenu === 'quizzers'" style="flex: 1; display: flex; flex-direction: column;">
+                    <div class="container" v-if="currentMenu === 'quizzers'"
+                        style="flex: 1; display: flex; flex-direction: column;">
                         <TrainerList ref="trainerListRef" @confirm-delete-quizzer="handleDeleteQuizzer" />
                     </div>
 
                     <!-- 학습자 목록 컨텐츠 -->
-                    <div v-if="currentMenu === 'learners'" style="flex: 1; display: flex; flex-direction: column;">
+                    <div class="container" v-if="currentMenu === 'learners'"
+                        style="flex: 1; display: flex; flex-direction: column;">
                         <TraineeList ref="traineeListRef" @confirm-delete-trainee="handleDeleteTrainee" />
                     </div>
                 </main>
 
-                <!-- 페이지네이션 컨트롤 UI -->
-                <div class="pagination-controls" v-if="currentMenu === 'projects'">
-                    <button @click="prevPage" :disabled="currentPage === 1"
-                        class="page-button prev-next-button">이전</button>
-                    <button v-for="page in totalPages" :key="page" @click="goToPage(page)"
-                        :class="{ 'active-page': page === currentPage }" class="page-button">
-                        {{ page }}
-                    </button>
-                    <button @click="nextPage" :disabled="currentPage === totalPages"
-                        class="page-button prev-next-button">다음</button>
-                </div>
+
 
 
                 <!-- 삭제 확인 모달 -->
@@ -441,6 +443,7 @@ export default {
     background-color: #f9f9f9;
 }
 
+
 /* 앱 헤더 스타일 */
 .app-header {
     display: flex;
@@ -536,24 +539,15 @@ export default {
     padding: 300px;
     padding-top: 10px;
     padding-bottom: 20px;
-    background-color: #f9f9f9;
-    height: 650px;
+    background-color: #00ff2200;
+    height: 700px;
 }
 
-/* 페이지 헤더 (제목) 영역 스타일 */
 .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    width: 70%;
-    /* 테이블과의 정렬을 위해 너비 설정 */
-    margin-left: auto;
-    /* 테이블과의 정렬을 위해 추가 */
-    margin-right: auto;
-    /* 테이블과의 정렬을 위해 추가 */
-    margin-top: 30px;
-    /* 상단 여백 추가 */
+  flex: 1;
+  display: flex;
+  align-items: center;
+  margin: 0;
 }
 
 .page-header h1 {
@@ -603,6 +597,7 @@ export default {
 /* 테이블 헤더(th) 및 셀(td) 공통 스타일 */
 .project-table th,
 .project-table td {
+    height: 10px;
     padding: 12px 15px;
     text-align: left;
     /* 텍스트 왼쪽 정렬 */
@@ -642,19 +637,15 @@ export default {
     color: #666;
 }
 
-/* 페이지네이션 컨트롤 스타일 */
 .pagination-controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    /* margin-top: 20px; 테이블과의 간격 */
-    margin-bottom: 70px;
-    /* 푸터와의 간격 */
-    width: 90%;
-    margin-left: auto;
-    margin-right: auto;
-    background-color: #f9f9f9;
-    /* 메인 컨텐츠 배경색과 동일하게 설정 */
+  width: 90%;
+  margin: 0 auto 30px auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f9f9f9;
+  min-height: 60px;
+  margin-top: auto !important; 
 }
 
 .page-button {
@@ -909,5 +900,29 @@ export default {
     top: 50%;
     transform: translateY(-50%);
     pointer-events: none;
+}
+
+.title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 90%;
+    margin: 40px auto 0 auto;
+    min-height: 60px;
+    /* background-color: #f60101; */
+}
+
+.table-area {
+    width: 90%;
+    margin: 0 auto;
+}
+
+.pagination-controls {
+    width: 90%;
+    margin: 0 auto 70px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f9f9f9;
 }
 </style>

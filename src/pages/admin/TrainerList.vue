@@ -1,57 +1,52 @@
 <template>
   <!-- 출제자 목록 컨텐츠 -->
-  <div style="flex: 1; display: flex; flex-direction: column;">
-    <div style="display: flex; flex-direction: row;">
-      <!-- 페이지 제목 영역 -->
-      <div class="page-header">
-        <h1>출제자 목록</h1>
-      </div>
-      <!-- 프로젝트 추가 버튼 영역 -->
-      <div class="add-button-container">
-        <!-- <button class="add-project-button"></button> -->
-      </div>
+  <div class="title">
+    <div class="page-header">
+      <h1>출제자 목록</h1>
     </div>
-    <!-- 출제자 목록을 표시하는 테이블 -->
-    <div style="flex: 1;">
-      <table class="trainer-table">
-        <thead>
-          <tr class="table-header">
-            <th class="checkbox-column"></th>
-            <th class="name-column">이름</th>
-            <th class="email-column">이메일</th>
-            <th class="department-column">소속명</th>
-            <th class="actions-column"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- 예시 출제자 데이터 -->
-          <tr v-for="quizzer in paginatedQuizzers" :key="quizzer.id">
-            <td class="checkbox-column">
-              <!-- <input type="checkbox" /> -->
-            </td>
-            <td class="name-column">{{ quizzer.name }}</td>
-            <td class="email-column">{{ quizzer.email }}</td>
-            <td class="department-column">{{ quizzer.department }}</td>
-            <td class="actions-column">
-              <button class="delete-button" @click="confirmDelete(quizzer.id)">
-                <span class="material-icons">delete</span>
-                <!-- <span class="material-icons">delete_outline</span> -->
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <!-- 페이지네이션 컨트롤 UI -->
-    <div class="pagination-controls">
-      <button @click="prevPage" :disabled="currentPage === 1" class="page-button prev-next-button">이전</button>
-      <button v-for="page in totalPages" :key="page" @click="goToPage(page)"
-        :class="{ 'active-page': page === currentPage }" class="page-button">
-        {{ page }}
-      </button>
-      <button @click="nextPage" :disabled="currentPage === totalPages" class="page-button prev-next-button">다음</button>
+    <div class="add-button-container">
+      <button class="add-trainer-button"></button>
     </div>
   </div>
+  <div class="table-area">
+    <table class="trainer-table">
+      <thead>
+        <tr class="table-header">
+          <th class="checkbox-column"></th>
+          <th class="name-column">이름</th>
+          <th class="email-column">이메일</th>
+          <th class="department-column">소속명</th>
+          <th class="actions-column"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 예시 출제자 데이터 -->
+        <tr v-for="quizzer in paginatedQuizzers" :key="quizzer.id">
+          <td class="checkbox-column">
+            <!-- <input type="checkbox" /> -->
+          </td>
+          <td class="name-column">{{ quizzer.name }}</td>
+          <td class="email-column">{{ quizzer.email }}</td>
+          <td class="department-column">{{ quizzer.department }}</td>
+          <td class="actions-column">
+            <button class="delete-button" @click="confirmDelete(quizzer.id)">
+              <span class="material-icons">delete</span>
+              <!-- <span class="material-icons">delete_outline</span> -->
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="pagination-controls">
+    <button @click="prevPage" :disabled="currentPage === 1" class="page-button prev-next-button">이전</button>
+    <button v-for="page in totalPages" :key="page" @click="goToPage(page)"
+      :class="{ 'active-page': page === currentPage }" class="page-button">
+      {{ page }}
+    </button>
+    <button @click="nextPage" :disabled="currentPage === totalPages" class="page-button prev-next-button">다음</button>
+  </div>
+
 </template>
 
 <script>
@@ -160,15 +155,62 @@ export default {
 </script>
 
 <style scoped>
-.page-header {
+.main-content {
+  width: 100%;
+  max-width: 1200px;
+  min-height: 700px;
+  height: 700px;
+  margin: 0 auto;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  background: #f60101;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 90%;
+    margin: 40px auto 0 auto;
+    min-height: 60px;
+    /* background-color: #f60101; */
+}
+
+.page-header {
+  flex: 1;
+  display: flex;
   align-items: center;
-  margin-bottom: 12px;
+  margin: 0;
+}
+
+.add-button-container {
+  flex: 0 0 200px;
+  display: flex;
+  justify-content: flex-end;
+  margin: 0;
+}
+
+.table-area {
   width: 90%;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 30px;
+  margin: 0 auto;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background: #ff0f0f00;
+}
+
+.pagination-controls {
+  width: 90%;
+  margin: 0 auto 30px auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f9f9f9;
+  min-height: 60px;
+  margin-top: auto;
 }
 
 .page-header h1 {
@@ -178,24 +220,14 @@ export default {
 }
 
 /* 프로젝트 추가 버튼 컨테이너 스타일 */
-.add-button-container {
-    width: 30%;
-    /* 테이블과 동일한 너비 */
-    margin: auto;
-    /* 가운데 정렬 */
-    text-align: right;
-    /* 버튼을 오른쪽으로 정렬 */
-}
-
-/* 프로젝트 추가 버튼 스타일 */
 .add-project-button {
-    background-color: #1C2053;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1em;
+  background-color: #1C2053;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
 }
 
 .trainer-table {
@@ -253,20 +285,6 @@ export default {
   cursor: pointer;
   font-size: 1.2em;
   color: #666;
-}
-
-.pagination-controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 20px;
-  margin-bottom: 70px;
-  width: 90%;
-  margin-left: auto;
-  margin-right: auto;
-  background-color: #f9f9f9;
-  padding: 10px 0;
-  bottom: 60px;
 }
 
 .page-button {
