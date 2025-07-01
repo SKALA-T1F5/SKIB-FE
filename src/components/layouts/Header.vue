@@ -4,7 +4,7 @@
     <div class="header-right">
       <LangSwitcher />
       <div class="vertical-divider"></div>
-      <UserMenu :name="name" :role="role" />
+      <UserMenu />
     </div>
   </header>
 </template>
@@ -14,10 +14,7 @@ import LogoArea from './header/LogoArea.vue'
 import LangSwitcher from './header/LangSwitcher.vue'
 import UserMenu from './header/UserMenu.vue'
 
-const props = defineProps({
-  name: { type: String, default: 'Nickname' },
-  role: { type: String, default: 'Trainee' },
-})
+// name과 role은 UserMenu 컴포넌트 내부에서 localStorage에서 가져오므로 여기서는 필요 없습니다.
 </script>
 
 <style scoped>

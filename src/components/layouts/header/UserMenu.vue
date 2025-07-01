@@ -2,8 +2,8 @@
   <div class="user-info" @click="toggleUserMenu">
     <svg-icon type="mdi" :path="mdiAccount" class="user-icon" />
     <div class="user-text">
-      <span class="nickname">{{ name }}</span>
-      <span class="role">{{ role }}</span>
+      <span class="nickname notranslate">{{ name }}</span>
+      <span class="role">{{ roleText }}</span>
     </div>
     <svg-icon
       type="mdi"
@@ -11,49 +11,104 @@
       :class="['user-menu', { 'locked-icon': isExamMode }]"
     />
     <div v-if="showUserMenu" class="dropdown user-dropdown">
-      <div @click.stop="goToMyPage">마이페이지</div>
-      <div @click.stop="logout">로그아웃</div>
+      <div @click.stop="goToMyPage">{{ myPageText }}</div>
+      <div @click.stop="logout">{{ logoutText }}</div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue' // defineProps는 사용하지 않으므로 제거
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiAccount, mdiMenuDown, mdiLock } from '@mdi/js'
 
 const router = useRouter()
 const showUserMenu = ref(false)
-const isExamMode = ref(false) // 시험 모드 상태 추가 (mdiLock 아이콘 제어를 위함)
+const isExamMode = ref(false)
 
-// ✅ 사용자 정보 가져오기
 const name = ref('')
 const role = ref('')
+const currentLang = ref('ko') // 현재 언어를 추적하기 위한 ref 추가
 
 onMounted(() => {
   name.value = localStorage.getItem('name') || '사용자'
   role.value = localStorage.getItem('role') || ''
 
-  // 예시: 시험 모드 상태를 설정할 수 있는 로직 (필요하다면 추가)
-  // isExamMode.value = someConditionBasedOnExamStatus;
+  // Google Translate 위젯이 설정한 언어를 가져와 currentLang에 반영
+  const googleTranslateCookie = getCookie('googtrans')
+  if (googleTranslateCookie) {
+    const langMatch = googleTranslateCookie.match(/\/auto\/(ko|en|vi)/)
+    if (langMatch && langMatch[1]) {
+      currentLang.value = langMatch[1]
+    }
+  }
+
+  // Google Translate 위젯의 언어 변경을 감지하기 위한 MutationObserver 추가
+  const observer = new MutationObserver(() => {
+    const combo = document.querySelector('.goog-te-combo')
+    if (combo && combo.value !== currentLang.value) {
+      currentLang.value = combo.value
+    }
+  })
+  observer.observe(document.body, { subtree: true, childList: true })
 })
 
-// 드롭다운 메뉴 토글 함수
+// 쿠키에서 값을 가져오는 헬퍼 함수
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop().split(';').shift()
+  return null
+}
+
+// 'role' 텍스트를 현재 언어에 따라 계산
+const roleText = computed(() => {
+  if (currentLang.value === 'ko') {
+    if (role.value === 'TRAINER') return '트레이너'
+    if (role.value === 'TRAINEE') return '훈련생'
+    return role.value
+  } else if (currentLang.value === 'en') {
+    if (role.value === 'TRAINER') return 'Trainer'
+    if (role.value === 'TRAINEE') return 'Trainee'
+    return role.value
+  } else if (currentLang.value === 'vi') {
+    if (role.value === 'TRAINER') return 'Huấn luyện viên'
+    if (role.value === 'TRAINEE') return 'Thực tập sinh'
+    return role.value
+  }
+  return role.value
+})
+
+// '마이페이지' 텍스트를 현재 언어에 따라 계산
+const myPageText = computed(() => {
+  if (currentLang.value === 'ko') return '마이페이지'
+  if (currentLang.value === 'en') return 'My Page'
+  if (currentLang.value === 'vi') return 'Trang của tôi'
+  return '마이페이지'
+})
+
+// '로그아웃' 텍스트를 현재 언어에 따라 계산
+const logoutText = computed(() => {
+  if (currentLang.value === 'ko') return '로그아웃'
+  if (currentLang.value === 'en') return 'Logout'
+  if (currentLang.value === 'vi') return 'Đăng xuất'
+  return '로그아웃'
+})
+
 const toggleUserMenu = () => {
-  // 시험 모드가 아닐 때만 메뉴를 토글
   if (!isExamMode.value) {
     showUserMenu.value = !showUserMenu.value
   }
 }
 
 const goToMyPage = () => {
-  showUserMenu.value = false // 메뉴 닫기
+  showUserMenu.value = false
   router.push('/mypage')
 }
 
 const logout = () => {
-  showUserMenu.value = false // 메뉴 닫기
+  showUserMenu.value = false
   localStorage.clear()
   router.push('/login')
 }
@@ -107,13 +162,12 @@ const logout = () => {
   width: 16px;
   color: #000;
   margin-left: 2px;
-  transition: color 0.25s ease; /* 색상 전환 효과 추가 */
+  transition: color 0.25s ease;
 }
 
-/* 시험 중일 때 잠금 아이콘 색상 변경 */
 .user-menu.locked-icon {
-  color: #868686; /* 회색으로 변경하여 비활성화 느낌 */
-  cursor: not-allowed; /* 커서 변경 */
+  color: #868686;
+  cursor: not-allowed;
 }
 
 .dropdown {

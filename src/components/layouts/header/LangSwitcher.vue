@@ -16,10 +16,6 @@
       <div @click.stop="selectLang('vi')">Tiếng Việt</div>
     </div>
 
-    <div v-if="showLoadingPopup" class="loading-popup">
-      <p>잠시만 기다려주세요...</p>
-    </div>
-
     <div id="google_translate_element"></div>
   </div>
 </template>
@@ -33,12 +29,12 @@ const currentLang = ref('ko')
 const showLangMenu = ref(false)
 const googleTranslateInitialized = ref(false)
 const pendingLang = ref(null)
-const showLoadingPopup = ref(false) // 팝업 표시 여부
+// const showLoadingPopup = ref(false); // 팝업 표시 여부 삭제
 
 let observer = null
 let globalBarObserver = null
 let triggerTimeout = null
-let popupTimeout = null // 팝업 타이머
+// let popupTimeout = null; // 팝업 타이머 삭제
 
 // 현재 언어에 따라 버튼에 표시될 텍스트 계산
 const displayLangText = computed(() => {
@@ -242,10 +238,6 @@ onUnmounted(() => {
     clearTimeout(triggerTimeout)
     triggerTimeout = null
   }
-  if (popupTimeout) {
-    clearTimeout(popupTimeout)
-    popupTimeout = null
-  }
 })
 
 const toggleLangMenu = () => {
@@ -254,16 +246,6 @@ const toggleLangMenu = () => {
 }
 
 const triggerGoogleTranslate = (lang) => {
-  // console.log(`triggerGoogleTranslate called for lang: ${lang}`); // 로그 추가
-  // 팝업 표시
-  showLoadingPopup.value = true
-  // 3초 후 팝업 자동 숨김 (번역 완료 여부와 무관하게)
-  if (popupTimeout) clearTimeout(popupTimeout)
-  popupTimeout = setTimeout(() => {
-    // console.log('Loading popup hidden after 3 seconds timeout.'); // 로그 추가
-    showLoadingPopup.value = false
-  }, 3000) // 3초 후 팝업 숨김
-
   if (
     window.google &&
     window.google.translate &&
@@ -281,11 +263,6 @@ const triggerGoogleTranslate = (lang) => {
       setTimeout(hideGoogleTranslateBar, 50)
       setTimeout(hideGoogleTranslateBar, 200)
       setTimeout(hideGoogleTranslateBar, 500)
-
-      // 번역 성공 시 로딩 팝업 즉시 숨김
-      if (popupTimeout) clearTimeout(popupTimeout)
-      showLoadingPopup.value = false
-      // console.log('Loading popup hidden immediately after successful trigger.'); // 로그 추가
 
       if (triggerTimeout) {
         clearTimeout(triggerTimeout)
@@ -379,8 +356,9 @@ const selectLang = (lang) => {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   z-index: 999;
   padding: 4px 0;
-  min-width: 75px;
-  text-align: left;
+  min-width: 90px;
+  text-align: center; /* 가운데 정렬로 변경 */
+  white-space: nowrap;
 }
 
 .dropdown div {
@@ -391,21 +369,5 @@ const selectLang = (lang) => {
 
 .dropdown div:hover {
   background-color: #f5f5f5;
-}
-
-/* "잠시만 기다려주세요" 팝업 스타일 */
-.loading-popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 20px 30px;
-  border-radius: 10px;
-  z-index: 10000; /* 다른 요소 위에 표시 */
-  font-size: 16px;
-  text-align: center;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 </style>

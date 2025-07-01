@@ -21,7 +21,7 @@ const goToMain = () => {
     router.push('/trainee/main')
   } else {
     // role이 없거나 예상치 못한 값일 경우 기본 경로로 이동 (예: 로그인 페이지 또는 홈페이지)
-    console.warn('User role not found or invalid. Redirecting to default.')
+    console.warn('User role not found or invalid. Redirecting to default.') // 번역된 언어에 맞춰서 수정
     router.push('/login') // 또는 '/login' 등 적절한 기본 경로
   }
 }
