@@ -1,9 +1,5 @@
 <template>
-  <MainLayout
-    :show-sidebar="allQuestions.length > 0"
-    sidebar-type="project"
-    :project="associatedProject"
-  >
+  <MainLayout :show-sidebar="true" sidebar-type="project" :project="associatedProject">
     <template #sidebar="{ isCollapsed }">
       <TrainerSideBar
         :is-collapsed="isCollapsed"
@@ -48,7 +44,10 @@
               />
             </div>
             <div v-else class="loading-message">
-              <p>문제를 로딩 중입니다...</p>
+              <p v-if="!currentQuestion && allQuestions.length === 0 && !isLoading">
+                테스트 내 문제가 없습니다.
+              </p>
+              <p v-else>문제를 로딩 중입니다...</p>
             </div>
 
             <div class="exit-button-container">
@@ -70,13 +69,14 @@ import TrainerQuestionArea from '@/components/trainer/question/TrainerQuestionAr
 import TrainerSolutionArea from '@/components/trainer/question/TrainerSolutionArea.vue'
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js'
-import axios from '@/config/axios' // axios 임포트
+import axios from '@/config/axios'
 
 const router = useRouter()
 const route = useRoute()
 
 const allQuestions = ref([])
 const currentQuestionId = ref(null)
+const isLoading = ref(true)
 
 const associatedProject = ref(null)
 const userProjects = ref([])
@@ -97,37 +97,56 @@ const hasPreviousQuestion = computed(() => currentQuestionIndex.value > 0)
 const hasNextQuestion = computed(() => currentQuestionIndex.value < allQuestions.value.length - 1)
 
 onMounted(() => {
-  // 라우트에서 testId를 가져옴
   const testId = route.params.testId
   if (testId) {
     fetchTestQuestions(testId)
   } else {
     console.warn('라우트 파라미터에 testId가 없습니다.')
-    // testId가 없을 경우, 적절한 처리 (예: 문제 로딩 실패 메시지 표시, 이전 페이지로 리다이렉트)
+    isLoading.value = false
   }
 
-  const projectIdFromRoute = route.params.projectId
-  if (projectIdFromRoute) {
-    fetchAssociatedProject(projectIdFromRoute)
+  let resolvedProjectId = route.params.projectId
+  if (!resolvedProjectId) {
+    resolvedProjectId = localStorage.getItem('projectId')
+  }
+
+  // resolvedProjectId를 숫자로 변환
+  if (resolvedProjectId) {
+    resolvedProjectId = parseInt(resolvedProjectId, 10)
+    if (isNaN(resolvedProjectId)) {
+      console.error(
+        'Resolved projectId가 유효한 숫자가 아닙니다:',
+        route.params.projectId || localStorage.getItem('projectId'),
+      )
+      resolvedProjectId = null
+    } else {
+      console.log('최종 resolvedProjectId (숫자):', resolvedProjectId)
+      localStorage.setItem('projectId', resolvedProjectId.toString()) // localStorage에는 문자열로 저장
+    }
+  } else {
+    console.warn('라우트 파라미터와 Local Storage에 projectId가 없습니다.')
+  }
+
+  if (resolvedProjectId) {
+    fetchAssociatedProject(resolvedProjectId)
     fetchUserProjects()
   } else {
-    console.warn('라우트 파라미터에 projectId가 없습니다. 기본 프로젝트를 로드합니다.')
+    console.warn('프로젝트 ID를 찾을 수 없어 관련 프로젝트 정보를 로드하지 않습니다.')
     fetchUserProjects()
   }
 })
 
-// fetchTestQuestions 함수를 API 호출에 맞게 수정
 const fetchTestQuestions = async (testId) => {
+  isLoading.value = true
   try {
-    // API 호출
     const response = await axios.get('/test/getTest', {
       params: {
         testId: testId,
-        lang: 'ko', // 기본값 'ko'
+        lang: 'ko',
       },
     })
 
-    const fetchedData = response.data.questions // API 응답 구조에 따라 'questions' 키 사용
+    const fetchedData = response.data.questions
     if (Array.isArray(fetchedData)) {
       allQuestions.value = fetchedData.map((rawQ, index) => {
         const generatedId = `Q${(index + 1).toString().padStart(2, '0')}`
@@ -147,59 +166,92 @@ const fetchTestQuestions = async (testId) => {
 
       if (allQuestions.value.length > 0) {
         currentQuestionId.value = allQuestions.value[0].id
+      } else {
+        currentQuestionId.value = null
+        console.log('테스트 내 문제가 없습니다.')
       }
     } else {
       console.warn('API 응답이 예상된 문제 배열 형태가 아닙니다.', fetchedData)
       allQuestions.value = []
+      currentQuestionId.value = null
     }
   } catch (error) {
     console.error('테스트 문제를 로드하는 데 실패했습니다:', error)
     alert('테스트 데이터를 불러오는 데 실패했습니다. 콘솔을 확인해주세요.')
-    allQuestions.value = [] // 에러 발생 시 문제 목록 초기화
+    allQuestions.value = []
+    currentQuestionId.value = null
+  } finally {
+    isLoading.value = false
   }
 }
 
 const fetchAssociatedProject = async (projectId) => {
-  // 실제 API 호출 로직을 여기에 구현합니다.
-  // 예: const response = await axios.get(`/api/projects/${projectId}`);
-  // const projectData = response.data;
-
-  // 임시 데이터 (실제 프로젝트 정보라고 가정)
-  const sampleProjectData = {
-    id: parseInt(projectId),
-    projectName: `데모 프로젝트 ${projectId}: 신입 역량 평가`,
-    description: '신입 트레이니의 기본 역량 평가를 위한 프로젝트입니다.',
+  try {
+    const response = await axios.get('/project/getProject', {
+      params: {
+        projectId: projectId,
+      },
+    })
+    if (response.data?.statusCode === 'OK' && response.data?.resultData) {
+      associatedProject.value = {
+        id: parseInt(response.data.resultData.projectId, 10), // 숫자로 변환
+        projectName: response.data.resultData.projectName,
+      }
+      console.log('연결된 프로젝트 정보:', associatedProject.value)
+    } else {
+      console.error('API 응답에 오류가 있거나 resultData가 없습니다.', response.data)
+      associatedProject.value = {
+        id: parseInt(projectId, 10),
+        projectName: `프로젝트 ${projectId}`,
+      } // 에러 발생 시에도 숫자로 변환
+    }
+  } catch (error) {
+    console.error('연결된 프로젝트 정보를 불러오는 데 실패했습니다:', error)
+    associatedProject.value = { id: parseInt(projectId, 10), projectName: `프로젝트 ${projectId}` } // 에러 발생 시에도 숫자로 변환
   }
-  associatedProject.value = sampleProjectData
-  console.log('연결된 프로젝트 정보:', associatedProject.value)
 }
 
 const fetchUserProjects = async () => {
-  // 실제 API 호출 로직을 여기에 구현합니다.
-  // 예: const response = await axios.get('/api/users/current/projects');
-  // userProjects.value = response.data;
+  try {
+    const userId = localStorage.getItem('userId')
+    if (!userId) {
+      console.error('사용자 ID를 찾을 수 없어 사용자 프로젝트 목록을 로드할 수 없습니다.')
+      userProjects.value = []
+      return
+    }
 
-  // 임시 데이터
-  const dummyProjects = [
-    { id: 1, name: '프로젝트 A: AI 기반 추천 시스템' },
-    { id: 2, name: '프로젝트 B: 웹 서비스 성능 개선' },
-    { id: 3, name: '프로젝트 C: 모바일 앱 UI/UX 리뉴얼' },
-    { id: 123, name: '데모 프로젝트: 신입 역량 평가' },
-  ]
-  userProjects.value = dummyProjects
-  console.log('사용자 프로젝트 목록:', userProjects.value)
+    const response = await axios.get('/project/getUserProjectList', {
+      params: {
+        userId: parseInt(userId),
+      },
+    })
+
+    const fetchedProjectData = response.data?.resultData?.projects
+    if (Array.isArray(fetchedProjectData)) {
+      userProjects.value = fetchedProjectData.map((project) => ({
+        id: parseInt(project.projectId, 10), // 숫자로 변환
+        name: project.projectName,
+        description: project.projectDescription,
+        startDate: project.createdAt?.slice(0, 10) || '',
+      }))
+    } else {
+      console.warn('API 응답이 예상된 프로젝트 배열 형태가 아닙니다.', fetchedProjectData)
+      userProjects.value = []
+    }
+    console.log('사용자 프로젝트 목록:', userProjects.value)
+  } catch (error) {
+    console.error('사용자 프로젝트 목록을 불러오는 데 실패했습니다:', error)
+    userProjects.value = []
+  }
 }
 
 const handleProjectSelectFromSidebar = (projectId) => {
   console.log(`사이드바에서 프로젝트 ID ${projectId} 선택됨`)
+  localStorage.setItem('projectId', projectId.toString()) // localStorage에는 문자열로 저장
   router.push({
     name: 'TrainerTestQuestion',
     params: { projectId: projectId, testId: route.params.testId },
   })
-  fetchAssociatedProject(projectId)
-  // 프로젝트가 변경되면 해당 프로젝트의 testId를 사용하여 fetchTestQuestions를 다시 호출해야 할 수도 있습니다.
-  // 현재 코드에서는 testId가 route.params에서 한 번만 가져오므로, 필요하다면 이 부분을 수정해야 합니다.
-  // 예를 들어, 새로운 testId를 가져오는 로직을 추가하거나, 프로젝트 변경 시 라우트 이동을 통해 페이지를 다시 로드하게 할 수 있습니다.
 }
 
 const handleQuestionSelectFromSidebar = (questionId) => {
@@ -221,21 +273,19 @@ const goToNextQuestion = () => {
 }
 
 const exitPage = () => {
-  if (confirm('문제 목록 화면을 종료하시겠습니까?')) {
-    console.log('문제 목록 화면 종료 (실제 앱에서는 이전 페이지로 이동)')
-    router.go(-1)
-  }
+  console.log('문제 목록 화면 종료 (이전 페이지로 이동)')
+  router.go(-1)
 }
 </script>
 
 <style scoped>
-/* 기존 스타일은 변경 없습니다. */
+/* 기존 스타일 유지 */
 .trainer-test-question-content-wrapper {
   display: flex;
   flex: 1;
   gap: 25px;
   height: 100%;
-  overflow: hidden; /* 전체 래퍼의 오버플로우는 숨김 */
+  overflow: hidden;
 }
 
 .trainer-test-question-main-content {
@@ -243,28 +293,28 @@ const exitPage = () => {
   display: flex;
   flex-direction: column;
   padding: 0;
-  overflow: hidden; /* 내부 컨텐츠 잘림 방지를 위해 여기도 hidden */
-  gap: 25px; /* top-nav와 question-solution-area 사이의 간격 */
+  overflow: hidden;
+  gap: 25px;
   box-sizing: border-box;
   height: 100%;
-  position: relative; /* 나가기 버튼 absolute 포지셔닝의 기준이 됨 */
+  position: relative;
 }
 
 .trainer-test-question-container-inner {
   display: flex;
   flex-direction: column;
   flex: 1;
-  overflow: hidden; /* 내부 요소가 넘치지 않도록 hidden */
-  padding-bottom: 20px; /* 나가기 버튼과의 최소한의 하단 패딩 유지 */
+  overflow: hidden;
+  padding-bottom: 20px;
 }
 
 .top-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px; /* question-solution-area와의 간격 */
-  flex-shrink: 0; /* 공간이 부족해도 축소되지 않도록 */
-  height: 48px; /* 명확한 높이 설정 */
+  margin-bottom: 25px;
+  flex-shrink: 0;
+  height: 48px;
 }
 
 .question-number-top {
@@ -319,19 +369,19 @@ const exitPage = () => {
 }
 
 .question-solution-area {
-  display: flex; /* 가로로 배치 */
-  flex-direction: row; /* 가로 방향으로 정렬 */
-  flex: 1; /* 남은 수직 공간을 모두 차지 */
-  gap: 25px; /* 문제 영역과 풀이 영역 사이의 간격 */
-  overflow: hidden; /* 개별 컴포넌트 내부에서 스크롤 처리하므로 여기는 hidden */
-  min-height: 0; /* flex 아이템의 기본 min-height 충돌 방지 */
-  height: calc(100% - 48px - 25px); /* top-nav 높이와 gap을 제외한 나머지 높이 */
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  gap: 25px;
+  overflow: hidden;
+  min-height: 0;
+  height: calc(100% - 48px - 25px);
 }
 
 .exit-button-container {
-  position: absolute; /* 부모(trainer-test-question-main-content) 기준 위치 */
-  bottom: 20px; /* 하단에서 20px 위로 */
-  right: 0; /* 우측에 정렬 */
+  position: absolute;
+  bottom: 20px;
+  right: 0;
   text-align: right;
   flex-shrink: 0;
 }
