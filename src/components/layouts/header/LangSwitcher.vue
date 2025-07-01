@@ -326,6 +326,8 @@ const selectLang = (lang) => {
   justify-content: center;
   cursor: pointer;
   transition: background-color 0.25s ease;
+  width: 70px;
+  height: 30px;
 }
 
 .lang-button.active,
@@ -335,7 +337,7 @@ const selectLang = (lang) => {
 
 .lang-icon {
   height: 16px;
-  margin-right: 4px;
+  margin-right: 2px;
   color: #000;
 }
 

@@ -117,7 +117,7 @@ const logout = () => {
 <style scoped>
 .user-info {
   display: flex;
-  align-items: center;
+  align-items: center; /* 다시 중앙 정렬로 복귀 */
   gap: 3px;
   cursor: pointer;
   position: relative;
@@ -140,16 +140,19 @@ const logout = () => {
 .user-text {
   display: flex;
   flex-direction: column;
+  justify-content: flex-end; /* 이 부분을 추가하여 텍스트를 아래로 정렬 */
   align-items: flex-start;
   text-align: left;
   line-height: 1.1;
   margin-left: 1px;
+  height: 28px; /* 아이콘과 동일한 높이로 설정하여 정렬 기준 제공 */
 }
 
 .nickname {
   font-size: 12px;
   font-weight: 600;
   color: #000;
+  margin-bottom: auto; /* 닉네임을 상단으로 밀어 올림 */
 }
 
 .role {
