@@ -128,8 +128,7 @@ const formattedCreatedAt = computed(() => {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-
-  width: 100%;
+  width: 100%; /* 카드가 부모 컨테이너의 전체 너비를 사용하도록 설정 */
   height: 100%;
   min-height: 380px;
   flex-grow: 1;
@@ -149,22 +148,23 @@ const formattedCreatedAt = computed(() => {
   font-weight: bold;
   color: #333;
   margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: calc(100% - 30px);
+  white-space: nowrap; /* 제목이 한 줄로 유지되도록 */
+  overflow: hidden; /* 넘치는 부분 숨김 */
+  text-overflow: ellipsis; /* 숨겨진 부분은 말줄임표로 표시 */
+  max-width: calc(100% - 30px); /* 아이콘을 위한 공간 확보 */
 }
 
 .test-description {
   font-size: 14px;
   color: #555;
   margin-bottom: 4px;
-  white-space: normal;
+  white-space: normal; /* 설명 텍스트는 길이가 길어지면 자동으로 줄바꿈되도록 */
+  word-break: break-word; /* 긴 단어가 잘릴 경우 강제로 줄바꿈 */
 }
 
 .difficulty-level {
   font-weight: bold;
-  color: #191d5a; /* 강조 색상 적용 */
+  color: #191d5a;
 }
 
 .statistics-visual-section {
@@ -193,18 +193,25 @@ const formattedCreatedAt = computed(() => {
   justify-content: space-between;
   width: 100%;
   align-items: flex-end;
+  /* 텍스트가 너무 길어 한 줄에 다 안 들어갈 경우 자동으로 줄바꿈 */
+  flex-wrap: wrap; /* 추가: 레이블과 값 사이 공간 부족 시 줄바꿈 허용 */
 }
 
 .visual-label {
   font-size: 13px;
   color: #777;
   margin-bottom: 0;
+  /* 길이에 따라 레이블이 너무 작아지지 않도록 최소 너비 설정 (선택 사항) */
+  /* min-width: 50px; */
 }
 
 .visual-value {
   font-size: 16px;
   font-weight: bold;
   color: #333;
+  /* 값이 너무 길어 한 줄에 안 들어갈 경우 줄바꿈 허용 */
+  white-space: normal;
+  word-break: break-all; /* 긴 숫자나 단어가 잘릴 경우 강제로 줄바꿈 */
 }
 
 .progress-bar-container {
@@ -222,10 +229,8 @@ const formattedCreatedAt = computed(() => {
 }
 
 .progress-bar.primary-bar {
-  /* 모든 프로그레스 바에 강조 색상 적용 */
   background-color: #191d5a;
 }
-/* 기존 .green-bar, .blue-bar는 제거하거나 .primary-bar로 대체 */
 
 .test-footer-trainer {
   display: flex;
@@ -233,12 +238,15 @@ const formattedCreatedAt = computed(() => {
   align-items: center;
   margin-top: auto;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: wrap; /* 버튼들이 공간 부족 시 다음 줄로 이동 */
 }
 
 .action-button-trainer {
-  flex: 1 1 48%;
-  min-width: 100px;
+  /* flex-basis를 auto로 설정하여 콘텐츠 크기(텍스트 길이)에 따라 기본 너비 결정. */
+  /* flex-grow와 flex-shrink는 여전히 작동하여 남는 공간을 채우거나 줄어들 수 있음. */
+  flex: 1 1 auto;
+  min-width: 100px; /* 버튼의 최소 너비. 텍스트가 아무리 짧아도 이보다 작아지지 않음 */
+  max-width: 100%; /* 버튼이 너무 넓어지는 것을 방지 */
   background-color: #e0e0e0;
   color: #555;
   border: 1px solid #ccc;
@@ -253,7 +261,43 @@ const formattedCreatedAt = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  white-space: nowrap;
+  white-space: nowrap; /* 버튼 내부 텍스트는 한 줄로 유지 (베트남어가 길 경우 문제가 될 수 있음) */
+}
+
+/* 추가: 베트남어처럼 긴 텍스트로 인해 버튼 내부 줄바꿈이 필요한 경우 */
+/* .action-button-trainer의 white-space: nowrap;을 제거하고 아래를 추가 */
+/*
+.action-button-trainer {
+  white-space: normal;
+  word-break: keep-all; // 단어 단위로 줄바꿈 시도
+  overflow-wrap: break-word; // 단어가 길면 강제로 줄바꿈
+}
+*/
+/* 또는 폰트 크기를 조절하는 미디어 쿼리 추가 */
+/*
+@media (max-width: 450px) {
+  .action-button-trainer {
+    font-size: 12px; // 작은 화면에서 폰트 크기 줄이기
+    padding: 6px 8px;
+  }
+}
+*/
+
+/* 화면 너비가 600px 이하일 때 버튼이 두 개씩 한 줄에 배치되도록 조정 */
+@media (max-width: 600px) {
+  .action-button-trainer {
+    /* 50%에서 gap의 절반을 빼주는 calc. 8px gap의 경우 4px */
+    flex-basis: calc(50% - 4px);
+    max-width: calc(50% - 4px); /* 50% 이상 늘어나지 않도록 명시적 설정 */
+  }
+}
+
+/* 화면 너비가 400px 이하일 때 버튼이 한 줄에 하나씩 배치되도록 조정 */
+@media (max-width: 400px) {
+  .action-button-trainer {
+    flex-basis: 100%; /* 각 버튼이 한 줄을 전부 차지 */
+    max-width: 100%;
+  }
 }
 
 .action-button-trainer:hover {
@@ -262,25 +306,24 @@ const formattedCreatedAt = computed(() => {
 }
 
 .action-button-trainer.primary-button {
-  background-color: #191d5a; /* 강조 색상 적용 */
+  background-color: #191d5a;
   color: white;
-  border-color: #191d5a; /* 강조 색상 적용 */
+  border-color: #191d5a;
 }
 
 .action-button-trainer.primary-button:hover {
-  background-color: #0c0f3c; /* 강조 색상에 맞춘 호버 색상 */
-  border-color: #0c0f3c; /* 강조 색상에 맞춘 호버 색상 */
+  background-color: #0c0f3c;
+  border-color: #0c0f3c;
 }
 
-/* 삭제 버튼 스타일 추가 */
 .action-button-trainer.delete-button {
-  background-color: #ef5350; /* 붉은색 계열 */
+  background-color: #ef5350;
   color: white;
   border-color: #ef5350;
 }
 
 .action-button-trainer.delete-button:hover {
-  background-color: #c62828; /* 더 진한 붉은색 */
+  background-color: #c62828;
   border-color: #c62828;
 }
 
