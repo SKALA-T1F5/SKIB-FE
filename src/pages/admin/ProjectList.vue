@@ -115,12 +115,15 @@
                         </div>
                         <div class="form-group">
                             <label for="project-manager">담당자 이메일 목록</label>
-                            <select id="project-manager" @change="addManagerBySelect($event)" :value="''">
-                                <option disabled value="">담당자 선택</option>
-                                <option v-for="option in emailOptions" :key="option.email" :value="option.email">
-                                    {{ option.name }} ({{ option.email }})
-                                </option>
-                            </select>
+                            <div style="position: relative; width: 100%;">
+                                <select id="project-manager" class="manager-select" @change="addManagerBySelect($event)" :value="''">
+                                    <option disabled value="">담당자 선택</option>
+                                    <option v-for="option in emailOptions" :key="option.email" :value="option.email">
+                                        {{ option.name }} ({{ option.email }})
+                                    </option>
+                                </select>
+                                <span class="manager-select-arrow"><span class="material-icons">arrow_drop_down</span></span>
+                            </div>
                         </div>
                         <div class="manager-input-container">
                             <span v-for="(manager, index) in newProject.managers" :key="index" class="manager-tag">
@@ -841,18 +844,16 @@ export default {
 
 /* Manager Input Specific Styles */
 .manager-input-container {
+    width: 100%;
+    min-height: 50px;
+    box-sizing: border-box;
     border: 1px solid #292F8B;
-    /* 이미지의 테두리 색상 */
     border-radius: 4px;
     padding: 5px 10px;
-    /* 내부 여백 */
     display: flex;
     flex-wrap: wrap;
-    /* 태그가 넘칠 경우 다음 줄로 이동 */
     align-items: center;
-    /* 세로 중앙 정렬 */
-    min-height: 50px;
-    /* 최소 높이 설정 (입력 필드 높이 고려) */
+    margin-bottom: 10px;
 }
 
 .manager-tag {
@@ -882,18 +883,24 @@ export default {
     /* X 버튼 색상 */
 }
 
-.manager-input-container input[type="text"] {
-    flex-grow: 1;
-    /* 남은 공간을 모두 차지하도록 설정 */
-    border: none;
-    /* 기본 테두리 제거 */
-    outline: none;
-    /* 포커스 시 아웃라인 제거 */
-    padding: 0;
-    /* 기본 패딩 제거 */
-    margin: 0;
-    /* 기본 마진 제거 */
-    min-width: 100px;
-    /* 입력 필드 최소 너비 */
+.manager-select {
+    width: 100%;
+    min-height: 50px;
+    box-sizing: border-box;
+    border: 1px solid #292F8B;
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 1em;
+    margin-bottom: 10px;
+    background: #fff;
+    /* manager-input-container와 동일하게 맞춤 */
+}
+
+.manager-select-arrow {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
 }
 </style>
