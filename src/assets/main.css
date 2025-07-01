@@ -1,8 +1,14 @@
+/* main.css */
+
 html,
 body {
-  margin: 0;
+  margin: 0 !important; /* 모든 마진 강제 제거 */
+  padding: 0 !important; /* 모든 패딩 강제 제거 */
   height: 100%;
   overflow: auto !important;
+  /* Google Translate가 동적으로 삽입하는 inline style을 덮어쓰기 위해 */
+  top: 0 !important;
+  position: static !important; /* fixed, relative 등 다른 position을 초기화 */
 }
 
 #app {
@@ -50,4 +56,78 @@ body {
   justify-content: center;
   font-size: 12px;
   color: #666;
+}
+
+/* --- Google Translate Bar 숨김을 위한 스타일 재강화 시작 --- */
+
+/* Google Translate 바의 iframe 자체를 숨김 */
+.goog-te-banner-frame {
+  display: none !important;
+  height: 0 !important; /* 높이도 강제로 0으로 설정 */
+  visibility: hidden !important; /* 시각적으로도 숨김 */
+  top: 0 !important; /* 혹시 모를 top 값 재설정 방지 */
+  margin-top: 0 !important; /* 마진도 강제 제거 */
+}
+
+/* body 바로 아래에 삽입되는 skiptranslate div를 숨김 */
+/* 이것이 가장 흔한 Google Translate 바의 최상위 컨테이너일 가능성이 높습니다. */
+body > .skiptranslate:first-child {
+  display: none !important;
+  height: 0 !important; /* 높이도 0으로 설정하여 공간 차지 방지 */
+  /* overflow: hidden !important; */
+  visibility: hidden !important; /* 시각적으로도 숨김 */
+  top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Google 번역 위젯이 삽입될 때 body에 추가되는 클래스에 대한 처리 */
+body.skiptranslate {
+  top: 0 !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  position: static !important;
+  /* overflow: auto !important; /* 이 부분이 문제가 될 수도 있으니, 기존 값을 유지하거나 제거 */
+}
+
+/* 다른 Google 번역 관련 팝업/툴팁 및 잔여 요소들 숨김 */
+.goog-tooltip,
+.VIpgJd-ZVi9d0-LgbsSe, /* 일부 최신 Google 번역 바 클래스 */
+.goog-gb-top, /* Google 번역 관련 최상단 요소 */
+.goog-toolbar, /* Google 툴바 관련 요소 */
+#goog-gt-vt, /* 특정 번역 툴팁 */
+.goog-text-area {
+  /* 텍스트 영역 */
+  display: none !important;
+  height: 0 !important;
+  /* overflow: hidden !important; */
+  visibility: hidden !important;
+}
+
+/* 혹시 모를 배경 요소나 오버레이 숨김 */
+.goog-close-button {
+  /* 닫기 버튼 자체도 숨김 */
+  display: none !important;
+}
+
+/* --- Google Translate Bar 숨김을 위한 스타일 재강화 끝 --- */
+.goog-text-highlight {
+  /* 이 클래스가 로딩 메시지에 사용되는 경우가 많습니다. */
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 추가적으로, 로딩 메시지를 감싸는 요소가 있을 수 있으므로 광범위한 숨김 규칙을 강화합니다. */
+body > div[style*='top: 0px'][style*='left: 0px'][style*='width: 100%'][style*='height: 100%'] {
+  display: none !important; /* 전체 화면 오버레이 같은 로딩 요소 */
+}
+
+/* 때로는 span.skiptranslate 로딩 텍스트가 직접 삽입되기도 합니다. */
+span.skiptranslate.goog-text-highlight {
+  display: none !important;
+}
+
+/* 혹시 모를 로딩 바 같은 요소 */
+.goog-trans-section {
+  display: none !important;
 }

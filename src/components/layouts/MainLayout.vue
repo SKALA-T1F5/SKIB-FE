@@ -12,7 +12,7 @@
             <slot name="sidebar-header-content" :is-collapsed="isSidebarCollapsed"></slot>
           </div>
           <button class="collapse-btn" @click="toggleSidebar">
-            <span class="material-icons">{{
+            <span class="material-icons notranslate">{{
               isSidebarCollapsed ? 'chevron_right' : 'chevron_left'
             }}</span>
           </button>
