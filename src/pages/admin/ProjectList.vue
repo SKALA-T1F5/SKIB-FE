@@ -527,7 +527,7 @@ export default {
 .main-content {
     flex-grow: 1;
     /* 헤더와 푸터를 제외한 나머지 공간을 모두 차지 */
-    padding: 50px;
+    padding: 300px;
     padding-top: 10px;
     padding-bottom: 20px;
     background-color: #f9f9f9;
