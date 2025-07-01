@@ -257,7 +257,6 @@ export default {
 
         // 삭제 확인 (프로젝트/출제자 공용 사용)
         async confirmDelete() {
-            // 실제 삭제 로직 구현 (API 호출 등)
             if (this.currentMenu === 'projects') {
                 try {
                     const token = localStorage.getItem('token');
@@ -265,10 +264,10 @@ export default {
                     if (token) {
                         headers.Authorization = `Bearer ${token}`;
                     }
-                    headers['Content-Type'] = 'application/json';
-                    await api.delete('/project/delete', {
+                    // headers['Content-Type'] = 'application/json';
+                    await api.delete('/project/deleteProject', {
                         headers,
-                        data: this.itemToDeleteId
+                        params: { projectId: this.itemToDeleteId }
                     });
                     this.fetchProjects(); // 목록 새로고침
                 } catch (error) {
