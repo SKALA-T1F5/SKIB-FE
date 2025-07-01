@@ -1,140 +1,143 @@
 <template>
     <MainLayout :show-sidebar="false" :show-header="true">
         <template #content>
-    <!-- 전체 프로젝트 목록 페이지 컨테이너 -->
-    <div class="project-list-container">
-        <!-- 상단 헤더 영역 -->
-        <header class="app-header">
+            <!-- 전체 프로젝트 목록 페이지 컨테이너 -->
+            <div class="project-list-container">
+                <!-- 상단 헤더 영역 -->
+                <header class="app-header">
 
-            <!-- 메인 네비게이션 메뉴 -->
-            <nav class="main-nav">
-                <a href="#" class="nav-item" :class="{ active: currentMenu === 'projects' }"
-                    @click.prevent="selectMenu('projects')">프로젝트 관리</a>
-                <a href="#" class="nav-item" :class="{ active: currentMenu === 'quizzers' }"
-                    @click.prevent="selectMenu('quizzers')">출제자 관리</a>
-                <a href="#" class="nav-item" :class="{ active: currentMenu === 'learners' }"
-                    @click.prevent="selectMenu('learners')">학습자 관리</a>
-            </nav>
-      
-        </header>
+                    <!-- 메인 네비게이션 메뉴 -->
+                    <nav class="main-nav">
+                        <a href="#" class="nav-item" :class="{ active: currentMenu === 'projects' }"
+                            @click.prevent="selectMenu('projects')">프로젝트 관리</a>
+                        <a href="#" class="nav-item" :class="{ active: currentMenu === 'quizzers' }"
+                            @click.prevent="selectMenu('quizzers')">출제자 관리</a>
+                        <a href="#" class="nav-item" :class="{ active: currentMenu === 'learners' }"
+                            @click.prevent="selectMenu('learners')">학습자 관리</a>
+                    </nav>
 
-        <!-- 메인 컨텐츠 영역 -->
-        <main class="main-content" style="display: flex; flex-direction: column;">
-            <!-- 프로젝트 목록 컨텐츠 -->
-            <div v-if="currentMenu === 'projects'">
-                <!-- 페이지 제목 영역 -->
-                <div class="page-header">
-                    <h1>프로젝트 목록</h1>
+                </header>
+
+                <!-- 메인 컨텐츠 영역 -->
+                <main class="main-content" style="display: flex; flex-direction: column;">
+                    <!-- 프로젝트 목록 컨텐츠 -->
+                    <div v-if="currentMenu === 'projects'">
+                        <!-- 페이지 제목 영역 -->
+                        <div class="page-header">
+                            <h1>프로젝트 목록</h1>
+                        </div>
+                        <!-- 프로젝트 추가 버튼 영역 -->
+                        <div class="add-button-container">
+                            <button class="add-project-button" @click="showCreateModal">프로젝트 추가</button>
+                        </div>
+                        <!-- 프로젝트 목록을 표시하는 테이블 -->
+                        <table class="project-table">
+                            <thead>
+                                <tr class="table-header">
+                                    <th class="checkbox-column"></th>
+                                    <th>프로젝트명</th>
+                                    <th>프로젝트 설명</th>
+                                    <th>생성 일자</th>
+                                    <th class="actions-column"></th> <!-- 동작(예: 삭제 버튼)을 위한 컬럼 -->
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- paginatedProjects 배열을 순회하며 현재 페이지의 프로젝트 정보만 표시 -->
+                                <tr v-for="project in paginatedProjects" :key="project.id">
+                                    <td class="checkbox-column"><input type="checkbox" /></td>
+                                    <td>{{ project.name }}</td>
+                                    <td>{{ project.description }}</td>
+                                    <td>{{ project.createdDate }}</td>
+                                    <td class="actions-column">
+                                        <button class="delete-button"
+                                            @click="showConfirmDialog(project.id)">🗑️</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 출제자 목록 컨텐츠 -->
+                    <div v-if="currentMenu === 'quizzers'" style="flex: 1; display: flex; flex-direction: column;">
+                        <TrainerList ref="trainerListRef" @confirm-delete-quizzer="handleDeleteQuizzer" />
+                    </div>
+
+                    <!-- 학습자 목록 컨텐츠 -->
+                    <div v-if="currentMenu === 'learners'" style="flex: 1; display: flex; flex-direction: column;">
+                        <TraineeList ref="traineeListRef" @confirm-delete-trainee="handleDeleteTrainee" />
+                    </div>
+                </main>
+
+                <!-- 페이지네이션 컨트롤 UI -->
+                <div class="pagination-controls" v-if="currentMenu === 'projects'">
+                    <button @click="prevPage" :disabled="currentPage === 1"
+                        class="page-button prev-next-button">이전</button>
+                    <button v-for="page in totalPages" :key="page" @click="goToPage(page)"
+                        :class="{ 'active-page': page === currentPage }" class="page-button">
+                        {{ page }}
+                    </button>
+                    <button @click="nextPage" :disabled="currentPage === totalPages"
+                        class="page-button prev-next-button">다음</button>
                 </div>
-                <!-- 프로젝트 추가 버튼 영역 -->
-                <div class="add-button-container">
-                    <button class="add-project-button" @click="showCreateModal">프로젝트 추가</button>
-                </div>
-                <!-- 프로젝트 목록을 표시하는 테이블 -->
-                <table class="project-table">
-                    <thead>
-                        <tr class="table-header">
-                            <th class="checkbox-column"></th>
-                            <th>프로젝트명</th>
-                            <th>프로젝트 설명</th>
-                            <th>생성 일자</th>
-                            <th class="actions-column"></th> <!-- 동작(예: 삭제 버튼)을 위한 컬럼 -->
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- paginatedProjects 배열을 순회하며 현재 페이지의 프로젝트 정보만 표시 -->
-                        <tr v-for="project in paginatedProjects" :key="project.id">
-                            <td class="checkbox-column"><input type="checkbox" /></td>
-                            <td>{{ project.name }}</td>
-                            <td>{{ project.description }}</td>
-                            <td>{{ project.createdDate }}</td>
-                            <td class="actions-column">
-                                <button class="delete-button" @click="showConfirmDialog(project.id)">🗑️</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- 출제자 목록 컨텐츠 -->
-            <div v-if="currentMenu === 'quizzers'" style="flex: 1; display: flex; flex-direction: column;">
-                <TrainerList ref="trainerListRef" @confirm-delete-quizzer="handleDeleteQuizzer" />
-            </div>
-
-            <!-- 학습자 목록 컨텐츠 -->
-            <div v-if="currentMenu === 'learners'" style="flex: 1; display: flex; flex-direction: column;">
-                <TraineeList ref="traineeListRef" @confirm-delete-trainee="handleDeleteTrainee" />
-            </div>
-        </main>
-
-        <!-- 페이지네이션 컨트롤 UI -->
-        <div class="pagination-controls" v-if="currentMenu === 'projects'">
-            <button @click="prevPage" :disabled="currentPage === 1" class="page-button prev-next-button">이전</button>
-            <button v-for="page in totalPages" :key="page" @click="goToPage(page)"
-                :class="{ 'active-page': page === currentPage }" class="page-button">
-                {{ page }}
-            </button>
-            <button @click="nextPage" :disabled="currentPage === totalPages"
-                class="page-button prev-next-button">다음</button>
-        </div>
 
 
-        <!-- 삭제 확인 모달 -->
-        <div v-if="showDeleteConfirm" class="modal-overlay">
-            <div class="confirm-dialog">
-                <div class="dialog-content">
-                    <div class="warning-icon">▲ 경고</div>
-                    <p class="dialog-text">삭제하시면 복구할 수 없습니다.<br>정말로 삭제하시겠습니까?</p>
-                </div>
-                <div class="dialog-buttons">
-                    <button class="confirm-button" @click="confirmDelete">확인</button>
-                    <button class="cancel-button" @click="cancelDelete">취소</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 프로젝트 생성 모달 -->
-        <div v-if="showCreateProjectModal" class="modal-overlay">
-            <div class="create-project-dialog">
-                <h2>프로젝트 생성</h2>
-                <div class="dialog-form">
-                    <div class="form-group">
-                        <!-- 이메일 태그 입력 필드 -->
-                        <div class="manager-input-container">
-                            <span v-for="(manager, index) in newProject.managers" :key="index" class="manager-tag">
-                                {{ manager }}
-                                <span class="remove-tag" @click="removeManager(index)">×</span>
-                            </span>
-                            <input type="text" id="project-manager"
-                                :placeholder="newProject.managers.length === 0 ? '이메일 입력 후 Enter' : ''"
-                                v-model="currentManagerInput" @keydown.enter.prevent="addManager" />
+                <!-- 삭제 확인 모달 -->
+                <div v-if="showDeleteConfirm" class="modal-overlay">
+                    <div class="confirm-dialog">
+                        <div class="dialog-content">
+                            <div class="warning-icon">▲ 경고</div>
+                            <p class="dialog-text">삭제하시면 복구할 수 없습니다.<br>정말로 삭제하시겠습니까?</p>
+                        </div>
+                        <div class="dialog-buttons">
+                            <button class="confirm-button" @click="confirmDelete">확인</button>
+                            <button class="cancel-button" @click="cancelDelete">취소</button>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <input type="text" id="project-name" placeholder="프로젝트명" v-model="newProject.name" />
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="project-description" placeholder="프로젝트 설명 (50자 이내)" maxlength="100"
-                            v-model="newProject.description" />
+                </div>
+
+                <!-- 프로젝트 생성 모달 -->
+                <div v-if="showCreateProjectModal" class="modal-overlay">
+                    <div class="create-project-dialog">
+                        <h2>프로젝트 생성</h2>
+                        <div class="dialog-form">
+                            <div class="form-group">
+                                <!-- 이메일 태그 입력 필드 -->
+                                <div class="manager-input-container">
+                                    <span v-for="(manager, index) in newProject.managers" :key="index"
+                                        class="manager-tag">
+                                        {{ manager }}
+                                        <span class="remove-tag" @click="removeManager(index)">×</span>
+                                    </span>
+                                    <input type="text" id="project-manager"
+                                        :placeholder="newProject.managers.length === 0 ? '프로젝트 담당자 이메일' : ''"
+                                        v-model="currentManagerInput" @keydown.enter.prevent="addManager" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" id="project-name" placeholder="프로젝트명" v-model="newProject.name" />
+                            </div>
+                            <div class="form-group">
+                                <input type="text" id="project-description" placeholder="프로젝트 설명 (50자 이내)"
+                                    maxlength="100" v-model="newProject.description" />
+                            </div>
+                        </div>
+                        <div class="dialog-buttons">
+                            <button class="confirm-button" @click="confirmCreate">확인</button>
+                            <button class="cancel-button" @click="cancelCreate">취소</button>
+                        </div>
                     </div>
                 </div>
-                <div class="dialog-buttons">
-                    <button class="confirm-button" @click="confirmCreate">확인</button>
-                    <button class="cancel-button" @click="cancelCreate">취소</button>
-                </div>
+
             </div>
-        </div>
-
-    </div>
-</template>
-</MainLayout>
+        </template>
+    </MainLayout>
 </template>
 
-<script> 
-// import MainLayout from '@/components/layouts/MainLayout.vue'
+<script>
 import MainLayout from '@/components/layouts/MainLayout.vue'
 import TrainerList from '@/pages/admin/TrainerList.vue'; // TrainerList 컴포넌트 임포트
 import TraineeList from '@/pages/admin/TraineeList.vue'; // TraineeList 컴포넌트 임포트
+import api from '@/config/axios'
 
 export default {
     name: 'ProjectList', // 컴포넌트 이름 정의
@@ -192,26 +195,27 @@ export default {
                 this.currentPage--;
             }
         },
-        // 예시 프로젝트 데이터 초기화 (실제 사용 시 API 호출 등으로 대체)
-        initializeProjects() {
-            this.allProjects = [
-                { id: 1, name: '차세대 ERP 구축', description: '차세대 ERP 구축 및 운영 프로세스 이전', createdDate: '2025-05-15' },
-                { id: 2, name: '모바일 앱 개발', description: '신규 모바일 서비스 앱 개발 프로젝트', createdDate: '2025-06-01' },
-                { id: 3, name: '클라우드 마이그레이션', description: '기존 시스템 클라우드 환경으로 이전', createdDate: '2025-06-15' },
-                { id: 4, name: '데이터 분석 플랫폼', description: '빅데이터 분석 플랫폼 구축', createdDate: '2025-07-01' },
-                { id: 5, name: 'AI 챗봇 개발', description: '고객 지원용 AI 챗봇 개발', createdDate: '2025-07-10' },
-                { id: 6, name: '블록체인 시스템 도입', description: '공급망 관리를 위한 블록체인 시스템', createdDate: '2025-08-01' },
-                { id: 7, name: '스마트 팩토리 구축', description: '제조 공정 자동화를 위한 스마트 팩토리', createdDate: '2025-08-20' },
-                { id: 8, name: '사내 포털 리뉴얼', description: '사용자 경험 개선을 위한 포털 리뉴얼', createdDate: '2025-09-05' },
-                { id: 9, name: '데이터 분석 플랫폼', description: '빅데이터 분석 플랫폼 구축', createdDate: '2025-07-01' },
-                { id: 10, name: 'AI 챗봇 개발', description: '고객 지원용 AI 챗봇 개발', createdDate: '2025-07-10' },
-                { id: 11, name: '블록체인 시스템 도입', description: '공급망 관리를 위한 블록체인 시스템', createdDate: '2025-08-01' },
-                { id: 12, name: '스마트 팩토리 구축', description: '제조 공정 자동화를 위한 스마트 팩토리', createdDate: '2025-08-20' },
-                { id: 13, name: '사내 포털 리뉴얼', description: '사용자 경험 개선을 위한 포털 리뉴얼', createdDate: '2025-09-05' }
-                // 필요에 따라 더 많은 프로젝트 데이터 추가
-            ];
-        },
+        // 프로젝트 목록을 백엔드에서 불러오는 메서드
+        async fetchProjects() {
+            const token = localStorage.getItem('token');
 
+            const response = await api.get('/project/getAllProjects', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const projects = response.data.resultData?.projects ?? [];
+
+            this.allProjects = projects.map(p => ({
+                id: p.projectId,
+                name: p.projectName,
+                description: p.projectDescription,
+                createdDate: p.createdAt ? p.createdAt.slice(0, 10) : ''
+            }));
+
+
+        },
         // 메뉴 선택 핸들러
         selectMenu(menu) {
             this.currentMenu = menu;
@@ -345,8 +349,8 @@ export default {
         }
     },
     created() {
-        // 컴포넌트 생성 시 예시 프로젝트 데이터 로드
-        this.initializeProjects();
+        // 컴포넌트 생성 시 백엔드에서 프로젝트 데이터 로드
+        this.fetchProjects();
     }
 };
 </script>
