@@ -282,7 +282,7 @@ const fetchTestQuestions = async () => {
           isAnswered: false,
         }
       })
-      console.log('🟩 백엔드에서 받은 질문 목록:', resultData.questions)
+      // console.log('🟩 백엔드에서 받은 질문 목록:', resultData.questions)
       if (allQuestions.value.length > 0) {
         currentQuestionId.value = allQuestions.value[0].id
       } else {
@@ -371,9 +371,9 @@ const submitFinalTest = async () => {
       questionType: q.type,
     }
   })
-  console.log('🔍 요청 URL:', api.defaults.baseURL + '/answer')
-  console.log('🔍 파라미터:', userId.value, testId)
-  console.log('🔍 바디:', answersToSend)
+  // console.log('🔍 요청 URL:', api.defaults.baseURL + '/answer')
+  // console.log('🔍 파라미터:', userId.value, testId)
+  // console.log('🔍 바디:', answersToSend)
   try {
     await api.post('/answer',
       { answers: answersToSend },
