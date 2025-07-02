@@ -55,6 +55,7 @@
 import { ref, watch, nextTick } from 'vue'
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiSend, mdiRobot } from '@mdi/js'
+import axios from 'axios'
 
 const props = defineProps({
   currentQuestionId: {
@@ -67,6 +68,45 @@ const newMessage = ref('')
 const messages = ref([])
 const messagesContainer = ref(null) // 메시지 컨테이너 참조
 
+// FastAPI 챗봇 API 연동 함수들
+const userId = 'trainee-001' // 실제 서비스에서는 로그인 정보 등에서 받아와야 함
+
+// 테스트 문항 초기화
+async function initializeTest(testQuestions) {
+  try {
+    await axios.post('/api/chat/init', {
+      userId,
+      testQuestions,
+    })
+  } catch (e) {
+    alert('테스트 문항 초기화 실패')
+  }
+}
+
+// LangGraph로 질문
+async function askWithLanggraph(question, questionId) {
+  try {
+    const res = await axios.post('/api/chat/ask-graph', {
+      userId,
+      question,
+      id: questionId,
+    })
+    return res.data.answer
+  } catch (e) {
+    alert('챗봇 답변 요청 실패')
+    return '답변을 가져오지 못했습니다.'
+  }
+}
+
+// 세션 리셋
+async function resetSession() {
+  try {
+    await axios.post('/api/chat/session/reset', null, { params: { user_id: userId } })
+  } catch (e) {
+    alert('세션 초기화 실패')
+  }
+}
+
 const sendMessage = async () => {
   if (newMessage.value.trim() === '') {
     return
@@ -77,6 +117,7 @@ const sendMessage = async () => {
     text: newMessage.value.trim(),
   })
 
+  const questionText = newMessage.value.trim()
   newMessage.value = ''
 
   await nextTick()
@@ -84,17 +125,16 @@ const sendMessage = async () => {
     messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
   }
 
-  // 챗봇 응답 시뮬레이션
-  setTimeout(async () => {
-    messages.value.push({
-      sender: 'bot',
-      text: `"${messages.value[messages.value.length - 1].text}" 에 대한 답변을 준비 중입니다.`,
-    })
-    await nextTick()
-    if (messagesContainer.value) {
-      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
-    }
-  }, 1000)
+  // 실제 챗봇 답변 요청
+  const answer = await askWithLanggraph(questionText, props.currentQuestionId || 'Q01')
+  messages.value.push({
+    sender: 'bot',
+    text: answer,
+  })
+  await nextTick()
+  if (messagesContainer.value) {
+    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+  }
 }
 
 // currentQuestionId가 변경될 때마다 챗봇 메시지 초기화 (선택 사항)
