@@ -518,7 +518,7 @@ onMounted(() => {
   padding: 16px 0;
   border-top: 1px solid #eee;
   z-index: 100;
-  max-width: 1150px;
+  max-width: 100%;
   left: 0;
   right: 0;
   margin: 0 auto;
