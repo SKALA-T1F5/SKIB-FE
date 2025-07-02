@@ -1,83 +1,59 @@
 <template>
-  <MainLayout
-    :show-sidebar="true"
-    sidebar-type="test"
-    :test-questions="allQuestions"
-    :current-test-question-id="currentQuestionId"
-    @select-question-from-sidebar="handleQuestionSelectFromSidebar"
-  >
-  <template #sidebar="{ isCollapsed }">
-      <TraineeTestSideBar
-        :is-collapsed="isCollapsed"
-        :questions="allQuestions"
-        :current-question-id="currentQuestionId"
-        @select-question="handleQuestionSelectFromSidebar"
-      />
+  <MainLayout :show-sidebar="true" sidebar-type="test" :test-questions="allQuestions"
+    :current-test-question-id="currentQuestionId" @select-question-from-sidebar="handleQuestionSelectFromSidebar">
+    <template #sidebar="{ isCollapsed }">
+      <TraineeTestSideBar :is-collapsed="isCollapsed" :questions="allQuestions" :current-question-id="currentQuestionId"
+        @select-question="handleQuestionSelectFromSidebar" />
     </template>
 
     <template #content>
       <div class="test-taking-container-inner">
         <div class="time-progress">
           <span class="time-progress-clock">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#191d5a" stroke-width="2"/><path d="M12 7v5l3 3" stroke="#191d5a" stroke-width="2" stroke-linecap="round"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="#191d5a" stroke-width="2" />
+              <path d="M12 7v5l3 3" stroke="#191d5a" stroke-width="2" stroke-linecap="round" />
+            </svg>
             <span class="time-progress-text">{{ formattedTime }}</span>
           </span>
           <div class="time-progress-bar-bg">
-            <div class="time-progress-bar" :style="{ width: `${progressPercentage}%`, backgroundColor: progressColor }"></div>
+            <div class="time-progress-bar" :style="{ width: `${progressPercentage}%`, backgroundColor: progressColor }">
+            </div>
           </div>
         </div>
-        <div class="top-nav">
+        <!-- <div class="top-nav">
           <h3 class="question-number-top" v-if="currentQuestion">{{ currentQuestion.id }}.</h3>
           <div class="nav-buttons-wrapper">
-            <button
-              class="nav-button"
-              @click="goToPreviousQuestion"
-              :disabled="!hasPreviousQuestion || showGradingOverlay"
-            >
+            <button class="nav-button" @click="goToPreviousQuestion"
+              :disabled="!hasPreviousQuestion || showGradingOverlay">
               <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> 이전 문제
             </button>
-            <button
-              class="nav-button"
-              @click="goToNextQuestion"
-              :disabled="!hasNextQuestion || showGradingOverlay"
-            >
+            <button class="nav-button" @click="goToNextQuestion" :disabled="!hasNextQuestion || showGradingOverlay">
               다음 문제 <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
             </button>
           </div>
-        </div>
+        </div> -->
 
         <div class="question-taking-area" v-if="currentQuestion">
           <div class="question-section">
             <div class="question-text-fixed">
-              <p class="question-text">{{ currentQuestion.questionText }}</p>
+              <p class="question-text"><strong>{{ currentQuestion.id }}</strong>. {{ currentQuestion.questionText }}</p>
             </div>
             <div class="question-content-scrollable">
               <div class="options-container" v-if="currentQuestion.type === 'OBJECTIVE'">
-                <div
-                  v-for="(option, index) in currentQuestion.options"
-                  :key="index"
-                  :class="[
-                    'option-item',
-                    { 'is-selected': userAnswers.get(currentQuestion.id) === option },
-                  ]"
-                  @click="selectOption(option)"
-                >
+                <div v-for="(option, index) in currentQuestion.options" :key="index" :class="[
+                  'option-item',
+                  { 'is-selected': userAnswers.get(currentQuestion.id) === option },
+                ]" @click="selectOption(option)">
                   <span class="option-label">{{ getOptionLabel(index) }}</span>
                   <span class="option-content">{{ option }}</span>
                 </div>
               </div>
-              <div
-                class="subjective-answer-section"
-                v-else-if="currentQuestion.type === 'SUBJECTIVE'"
-              >
+              <div class="subjective-answer-section" v-else-if="currentQuestion.type === 'SUBJECTIVE'">
                 <div class="answer-group">
                   <p class="answer-label">나의 답변</p>
-                  <textarea
-                    class="answer-box user-answer-box"
-                    v-model="userAnswers.get(currentQuestion.id).value"
-                    placeholder="답변을 입력하세요."
-                    :disabled="showGradingOverlay"
-                  ></textarea>
+                  <textarea class="answer-box user-answer-box" v-model="userAnswers.get(currentQuestion.id).value"
+                    placeholder="답변을 입력하세요." :disabled="showGradingOverlay"></textarea>
                 </div>
               </div>
             </div>
@@ -89,13 +65,24 @@
       </div>
 
       <div class="submit-and-exit-buttons">
-        <button
-          class="submit-button"
-          @click="handleSubmitAnswer"
-          :disabled="!currentQuestion || showGradingOverlay"
-        >
-          제출
-        </button>
+        <div class="left-buttons">
+          <button class="nav-button" @click="goToPreviousQuestion" :disabled="!hasPreviousQuestion || showGradingOverlay">
+            <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> 이전 문제
+          </button>
+        </div>
+        <div class="right-buttons">
+          <button class="nav-button" @click="goToNextQuestion" :disabled="!hasNextQuestion || showGradingOverlay">
+            다음 문제 <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
+          </button>
+          <button
+            class="submit-button"
+            @click="handleSubmitAnswer"
+            :class="{ 'not-all-answered': !answerStatusList.every(Boolean) }"
+            :disabled="!currentQuestion || showGradingOverlay"
+          >
+            제출
+          </button>
+        </div>
       </div>
 
       <AiGradingLoading :show="showGradingOverlay" />
@@ -121,7 +108,7 @@ import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js'
 import MainLayout from '@/components/layouts/MainLayout.vue'
 import TraineeTestSideBar from '@/components/trainee/test/TraineeTestSideBar.vue'
-import axios from '@/config/axios'
+import api from '@/config/axios'
 import AiGradingLoading from '@/components/trainee/test/AiGradingLoading.vue'
 
 // ===== [2] 라우터 및 기본 변수 선언 =====
@@ -167,11 +154,11 @@ const answerStatusList = computed(() =>
 const totalTime = ref(0) // 서버에서 받아올 제한시간 (초)
 const remainingTime = ref(0) // 남은 시간 (초)
 const timerInterval = ref(null) // 타이머 인터벌 ID
+const animationFrameId = ref(null) // progress bar 애니메이션 ID
+const startTimestamp = ref(0) // 타이머 시작 시각(ms)
+const endTimestamp = ref(0) // 타이머 종료 시각(ms)
 
-const progressPercentage = computed(() => {
-  if (totalTime.value === 0) return 0
-  return (remainingTime.value / totalTime.value) * 100
-})
+const progressPercentage = ref(100)
 const progressColor = computed(() => remainingTime.value <= 10 ? '#e74c3c' : '#191d5a')
 const formattedTime = computed(() => {
   const m = String(Math.floor(remainingTime.value / 60)).padStart(2, '0')
@@ -179,40 +166,62 @@ const formattedTime = computed(() => {
   return `${m}:${s}`
 })
 
-// ===== [7-1] 타이머 시작 함수 =====
-const startTimer = () => {
-  if (timerInterval.value) {
-    clearInterval(timerInterval.value)
+// ===== [7-1] progress bar 실시간 애니메이션 함수 =====
+const updateProgressBar = () => {
+  const now = Date.now()
+  const total = endTimestamp.value - startTimestamp.value
+  const left = Math.max(endTimestamp.value - now, 0)
+  progressPercentage.value = total > 0 ? (left / total) * 100 : 0
+
+  if (left > 0 && !showGradingOverlay.value && !showCompletionButtons.value) {
+    animationFrameId.value = requestAnimationFrame(updateProgressBar)
   }
-  
+}
+
+// ===== [7-2] 타이머 시작 함수 =====
+const startTimer = () => {
+  if (timerInterval.value) clearInterval(timerInterval.value)
+  if (animationFrameId.value) cancelAnimationFrame(animationFrameId.value)
+
+  startTimestamp.value = Date.now()
+  endTimestamp.value = startTimestamp.value + remainingTime.value * 1000
+
+  // 1초마다 남은 시간 감소
   timerInterval.value = setInterval(() => {
-    if (remainingTime.value > 0) {
-      remainingTime.value--
-    } else {
-      // 시간 만료 시 자동 제출
+    const now = Date.now()
+    const leftSec = Math.max(Math.ceil((endTimestamp.value - now) / 1000), 0)
+    remainingTime.value = leftSec
+    if (leftSec <= 0) {
       clearInterval(timerInterval.value)
       handleTimeExpired()
     }
   }, 1000)
+
+  // progress bar 자연스럽게
+  updateProgressBar()
 }
 
-// ===== [7-2] 타이머 정지 함수 =====
+// ===== [7-3] 타이머 정지 함수 =====
 const stopTimer = () => {
   if (timerInterval.value) {
     clearInterval(timerInterval.value)
     timerInterval.value = null
   }
+  if (animationFrameId.value) {
+    cancelAnimationFrame(animationFrameId.value)
+    animationFrameId.value = null
+  }
 }
 
-// ===== [7-3] 시간 만료 시 자동 제출 함수 =====
+// ===== [7-4] 시간 만료 시 자동 제출 함수 =====
 const handleTimeExpired = () => {
   if (showGradingOverlay.value || showCompletionButtons.value) return
-  
+
   alert('시험 시간이 만료되었습니다. 답변이 자동으로 제출됩니다.')
   submitFinalTest()
 }
 
-// ===== [7-4] 컴포넌트 언마운트 시 타이머 정리 =====
+// ===== [7-5] 컴포넌트 언마운트 시 타이머 정리 =====
 onUnmounted(() => {
   stopTimer()
 })
@@ -232,7 +241,7 @@ const fetchTestQuestions = async () => {
     return
   }
   try {
-    const response = await axios.get('/test/getUserTest', {
+    const response = await api.get('/test/getUserTest', {
       params: { userId: userId.value, testId: testId },
     })
     const { statusCode, resultMsg, resultData } = response.data
@@ -243,7 +252,7 @@ const fetchTestQuestions = async () => {
         remainingTime.value = totalTime.value
         startTimer() // 타이머 시작
       }
-      
+
       allQuestions.value = resultData.questions.map((rawQ, index) => {
         const questionId = `Q${(index + 1).toString().padStart(2, '0')}`
         let initialAnswerValue
@@ -314,7 +323,7 @@ const selectOption = (option) => {
   if (showGradingOverlay.value || showCompletionButtons.value) return
   if (currentQuestion.value) {
     userAnswers.value.set(currentQuestion.value.id, option)
-    
+
     // 객관식 답변 완료 상태 업데이트
     const questionToUpdate = allQuestions.value.find((q) => q.id === currentQuestion.value.id)
     if (questionToUpdate) {
@@ -347,17 +356,20 @@ const handleSubmitAnswer = () => {
 const submitFinalTest = async () => {
   showGradingOverlay.value = true
   stopTimer() // 타이머 정지
-  
+
   const answersToSend = Array.from(userAnswers.value.entries()).map(([questionId, answer]) => {
     const question = allQuestions.value.find((q) => q.id === questionId)
     return {
-      id: questionId,
+      id: parseInt(questionId.replace(/[^\d]/g, '')),  // "Q01" → 1
       response: typeof answer === 'object' ? answer.value : answer,
       questionType: question ? question.type : 'UNKNOWN',
     }
   })
+  console.log('🔍 요청 URL:', api.defaults.baseURL + '/answer')
+  console.log('🔍 파라미터:', userId.value, testId)
+  console.log('🔍 바디:', answersToSend)
   try {
-    await axios.post('/api/answer',
+    await api.post('/answer',
       { answers: answersToSend },
       {
         params: {
@@ -417,9 +429,10 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  min-height: 0;
+  min-height: 550px;
   overflow: hidden;
-  padding-bottom: 120px; /* 제출 버튼 공간 확보 */
+
+  /* 제출 버튼 공간 확보 */
 }
 
 .question-taking-area {
@@ -500,6 +513,7 @@ onMounted(() => {
   margin: 0 5px;
   color: #6c757d;
 }
+
 .nav-button:hover:not(:disabled) .nav-icon {
   color: #495057;
 }
@@ -525,13 +539,16 @@ onMounted(() => {
 .question-content-scrollable::-webkit-scrollbar {
   width: 6px;
 }
+
 .question-content-scrollable::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .question-content-scrollable::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 10px;
 }
+
 .question-content-scrollable::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.4);
 }
@@ -576,6 +593,7 @@ onMounted(() => {
   color: #6c757d;
   flex-shrink: 0;
 }
+
 .option-item.is-selected .option-label {
   color: #2b6cb0;
 }
@@ -626,14 +644,25 @@ onMounted(() => {
 }
 
 .submit-and-exit-buttons {
-  position: absolute;
-  bottom: 85px;
-  right: 25px;
   display: flex;
-  justify-content: flex-end;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
   gap: 15px;
   flex-shrink: 0;
   z-index: 10;
+  margin-top: auto;
+  padding: 0 25px 30px 25px;
+}
+
+.left-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.right-buttons {
+  display: flex;
+  gap: 15px;
 }
 
 .submit-button {
@@ -649,6 +678,11 @@ onMounted(() => {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   background-color: #28a745;
   color: white;
+}
+
+.submit-button.not-all-answered {
+  background-color: #92b192;
+  color: #f3f3f3;
 }
 
 .submit-button:hover:not(:disabled) {
@@ -678,7 +712,8 @@ onMounted(() => {
 
 /* 채점 완료 후 선택 버튼 오버레이 스타일 */
 .completion-overlay {
-  position: fixed; /* MainLayout의 content 슬롯 안에 있으므로 absolute 대신 fixed를 사용하여 전체 화면을 덮습니다. */
+  position: fixed;
+  /* MainLayout의 content 슬롯 안에 있으므로 absolute 대신 fixed를 사용하여 전체 화면을 덮습니다. */
   top: 0;
   left: 0;
   width: 100%;
@@ -687,7 +722,8 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9998; /* AiGradingLoading 보다 낮은 z-index */
+  z-index: 9998;
+  /* AiGradingLoading 보다 낮은 z-index */
 }
 
 .completion-card {
@@ -764,21 +800,24 @@ onMounted(() => {
   gap: 16px;
   margin-left: 25px;
   margin-right: 25px;
-  margin-bottom: 25px;
+  /* margin-bottom: 25px; */
   width: 94%;
   max-width: 100%;
 }
+
 .time-progress-clock {
   display: flex;
   align-items: center;
   gap: 6px;
   min-width: 60px;
 }
+
 .time-progress-text {
   font-size: 16px;
   font-weight: 700;
   color: #191d5a;
 }
+
 .time-progress-bar-bg {
   flex: 1;
   background: #e0e0e0;
@@ -790,10 +829,11 @@ onMounted(() => {
   min-width: 120px;
   direction: rlt;
 }
+
 .time-progress-bar {
   height: 100%;
   border-radius: 6px;
   transition: width 0.5s, background-color 0.3s;
-  float:right;
+  float: right;
 }
 </style>

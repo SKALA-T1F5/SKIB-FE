@@ -47,7 +47,7 @@ const selectQuestion = (questionId) => {
 watch(
   () => props.questions,
   (newVal) => {
-    console.log('TraineeTestSideBar: questions updated', newVal)
+    // console.log('TraineeTestSideBar: questions updated', newVal)
   },
   { deep: true },
 )
@@ -55,7 +55,7 @@ watch(
 watch(
   () => props.currentQuestionId,
   (newVal) => {
-    console.log('TraineeTestSideBar: currentQuestionId updated', newVal)
+    // console.log('TraineeTestSideBar: currentQuestionId updated', newVal)
   },
 )
 </script>
