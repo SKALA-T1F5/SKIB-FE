@@ -34,7 +34,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiSend, mdiRobot } from '@mdi/js'
 import axios from 'axios'
@@ -135,14 +135,34 @@ const sendMessage = async () => {
 }
 
 // =========================
+// 8. 컴포넌트 마운트/언마운트 시 챗봇 세션 관리
+// =========================
+onMounted(() => {
+  // 챗봇 인사 메시지 추가
+  messages.value = [
+    {
+      sender: 'bot',
+      text: '안녕하세요! 궁금한 점이 있으면 언제든 질문해 주세요 :)',
+    },
+  ]
+  // 실제 서비스에서는 testQuestions를 prop 또는 상위에서 받아와야 함
+  // 여기서는 예시로 빈 배열 전달
+  initializeTest([])
+})
+
+onUnmounted(() => {
+  resetSession()
+})
+
+// =========================
 // 7. 문제 변경 시 대화 초기화
 // =========================
-watch(
-  () => props.currentQuestionId,
-  () => {
-    messages.value = []
-  },
-)
+// watch(
+//   () => props.currentQuestionId,
+//   () => {
+//     messages.value = []
+//   },
+// )
 </script>
 
 <style scoped>
