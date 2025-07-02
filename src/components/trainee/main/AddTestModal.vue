@@ -7,17 +7,33 @@
           <button class="close-button" @click="emit('close')">×</button>
         </div>
         <div class="modal-body">
-          <p class="body-description">테스트 초대 링크를 입력하세요.</p>
-          <input
-            type="text"
-            v-model="linkInput"
-            placeholder="초대 링크를 입력하세요."
-            class="invitation-input"
-            :class="{ 'input-error': invitationLinkError }"
-          />
-          <p v-if="invitationLinkError" class="error-message">
-            <span class="error-icon"></span> {{ invitationLinkError }}
-          </p>
+          <p class="body-description">테스트 초대 링크를 입력하고 언어를 선택하세요.</p>
+          <div class="input-group">
+            <label for="invite-link" class="input-label">초대 링크</label>
+            <input
+              id="invite-link"
+              type="text"
+              v-model="linkInput"
+              placeholder="예: http://localhost:5173/trainee/test/123/abc"
+              class="invitation-input"
+              :class="{ 'input-error': invitationLinkError }"
+            />
+            <p v-if="invitationLinkError" class="error-message">
+              <span class="error-icon"></span> {{ invitationLinkError }}
+            </p>
+          </div>
+
+          <div class="input-group">
+            <label for="language-select" class="input-label">언어 선택</label>
+            <div class="select-wrapper">
+              <select id="language-select" v-model="selectedLang" class="language-select">
+                <option value="ko">한국어</option>
+                <option value="en">영어</option>
+                <option value="vi">베트남어</option>
+              </select>
+              <span class="select-arrow"></span>
+            </div>
+          </div>
         </div>
         <div class="modal-footer">
           <button class="modal-button primary" @click="handleAddTest">응시</button>
@@ -40,20 +56,40 @@ const props = defineProps({
 const emit = defineEmits(['close', 'addTest']) // 'addTest' 이벤트를 통해 부모에게 유효성 검사 결과 전달
 
 const linkInput = ref('')
+const selectedLang = ref('ko') // 기본 언어는 한국어로 설정
 const router = useRouter()
 
-// 모달이 열릴 때마다 링크 입력값 초기화
+// 임시 userId. 실제 프로젝트에서는 로그인된 사용자 정보를 가져와야 합니다.
+// 예: Vuex store, Pinia store, Local Storage 또는 인증 모듈에서 가져오기
+const getUserId = () => {
+  // 실제 userId를 가져오는 로직 (예시: localStorage에서 가져오기)
+  return localStorage.getItem('userId') || 'mockUserId123' // 또는 실제 로그인된 사용자 ID
+}
+
+// 모달이 열릴 때마다 입력값 초기화
 watch(
   () => props.isVisible,
   (newVal) => {
     if (newVal) {
       linkInput.value = ''
+      selectedLang.value = 'ko' // 모달 열릴 때마다 언어도 기본값으로 초기화
     }
   },
 )
 
-// 링크에서 testId와 linkToken을 추출하는 함수 (백엔드 요청에는 필요 없지만, 이동 시 필요)
-const extractTestParams = (url) => {
+// 전체 초대 링크에서 linkToken만 추출하는 함수
+const extractLinkToken = (url) => {
+  // http://localhost:5173/trainee/test/:testId/:linkToken
+  const regex = /\/trainee\/test\/[^/]+\/([^/]+)$/
+  const match = url.match(regex)
+  if (match && match.length === 2) {
+    return match[1] // 두 번째 캡처 그룹이 linkToken
+  }
+  return null
+}
+
+// 라우터 이동을 위해 testId까지 추출하는 함수 (API 요청에 직접 사용되진 않지만, 이동 시 필요할 경우)
+const extractTestIdAndToken = (url) => {
   const regex = /\/trainee\/test\/([^/]+)\/([^/]+)$/
   const match = url.match(regex)
   if (match && match.length === 3) {
@@ -67,53 +103,78 @@ const extractTestParams = (url) => {
 
 const handleAddTest = async () => {
   if (!linkInput.value) {
-    // 링크가 비어있으면 에러를 부모 컴포넌트에 알립니다.
     emit('addTest', { isValid: false, message: '초대 링크를 입력해주세요.' })
     return
   }
 
-  // 백엔드 URL에서 testId와 linkToken을 파싱 (라우터 이동 시 사용)
-  const params = extractTestParams(linkInput.value)
+  const tokenToRegister = extractLinkToken(linkInput.value)
+  if (!tokenToRegister) {
+    emit('addTest', {
+      isValid: false,
+      message: '유효하지 않은 초대 링크 형식입니다. 정확한 링크를 입력해주세요.',
+    })
+    return
+  }
 
-  if (!params) {
-    // 링크 형식이 맞지 않으면 백엔드 요청 전에 에러 처리
-    emit('addTest', { isValid: false, message: '유효하지 않은 초대 링크 형식입니다.' })
+  const userId = getUserId()
+  if (!userId) {
+    emit('addTest', {
+      isValid: false,
+      message: '사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.',
+    })
     return
   }
 
   try {
-    // 백엔드로 POST 요청을 보내 유효성 검사 (실제 API 엔드포인트에 맞게 수정 필요)
-    // 초대 링크 자체가 body에 들어가거나, 파싱된 testId와 linkToken을 보낼 수 있습니다.
-    // 여기서는 testId와 linkToken을 보내는 것으로 가정합니다.
-    const response = await api.post('/trainee/test/verify-invitation', {
-      testId: params.testId,
-      linkToken: params.linkToken,
+    const response = await api.post('/test/invite/register', null, {
+      params: {
+        token: tokenToRegister, // 추출한 초대 토큰
+        userId: userId, // 현재 로그인된 사용자 ID
+        lang: selectedLang.value, // 선택된 언어
+      },
     })
 
-    if (response.data.statusCode === 'OK' && response.data.resultData.isValid) {
-      // 백엔드로부터 유효하다는 응답을 받으면 해당 링크로 이동
-      router.push(linkInput.value)
-      emit('close') // 이동 후 모달 닫기
+    console.log('API 응답:', response.data)
+
+    // API 응답 구조에 따라 성공 여부 판단 로직 수정
+    // 여기서는 `statusCode: 'OK'`를 성공 기준으로 가정합니다.
+    if (response.data.statusCode === 'OK') {
+      // API 응답에서 이동할 URL이나 필요한 정보를 직접 받지 않으므로,
+      // 입력된 링크 그대로 혹은 필요한 정보를 조합하여 라우터를 이동합니다.
+      // 만약 API 응답에 testId 등 추가 정보가 있다면, 그걸 활용할 수 있습니다.
+      // 현재는 입력된 전체 링크로 이동한다고 가정합니다.
+      const testParamsForRoute = extractTestIdAndToken(linkInput.value)
+      if (testParamsForRoute) {
+        // 예를 들어, /trainee/test/:testId/:linkToken 으로 라우트 이동
+        router.push(`/trainee/test/${testParamsForRoute.testId}/${testParamsForRoute.linkToken}`)
+      } else {
+        // 링크에서 testId와 token 추출에 실패했으나 API는 성공한 경우 (예외 상황)
+        console.warn(
+          'API는 성공했으나 라우트 이동을 위한 testId와 token 추출에 실패했습니다. 기본 링크로 이동합니다.',
+        )
+        router.push('/trainee/dashboard') // 또는 적절한 기본 경로
+      }
+      emit('close') // 모달 닫기
     } else {
-      // 백엔드로부터 유효하지 않다는 응답을 받으면 에러 메시지 표시
-      // response.data.resultMsg를 사용하여 백엔드 에러 메시지를 표시할 수 있습니다.
-      const errorMessage = response.data.resultMsg || '유효하지 않은 초대 링크입니다.'
+      const errorMessage = response.data.resultMsg || '초대 등록에 실패했습니다.'
       emit('addTest', { isValid: false, message: errorMessage })
     }
   } catch (error) {
-    console.error('초대 링크 유효성 검사 중 오류 발생:', error)
-    // 네트워크 오류, 서버 오류 등 예외 발생 시 에러 메시지 표시
-    emit('addTest', {
-      isValid: false,
-      message: '링크 검사 중 오류가 발생했습니다. 다시 시도해주세요.',
-    })
+    console.error('초대 등록 API 호출 중 오류 발생:', error)
+    if (error.response && error.response.data && error.response.data.resultMsg) {
+      emit('addTest', { isValid: false, message: error.response.data.resultMsg })
+    } else {
+      emit('addTest', {
+        isValid: false,
+        message: '서버 통신 오류가 발생했습니다. 다시 시도해주세요.',
+      })
+    }
   }
 }
 </script>
 
 <style scoped>
-/* (이전과 동일한 스타일 코드) */
-/* --- Modal (팝업) 스타일 --- */
+/* 기존 스타일 유지 */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -137,7 +198,7 @@ const handleAddTest = async () => {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 15px; /* input-group 간 간격 조절 */
 }
 
 .modal-header {
@@ -167,28 +228,72 @@ const handleAddTest = async () => {
   color: #666;
 }
 
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* body 내 요소 간 간격 */
+}
+
 .body-description {
-  margin-bottom: 8px;
+  margin-bottom: 0; /* 내부 gap으로 대체 */
   color: #555;
   font-size: 0.9em;
 }
 
-.invitation-input {
-  width: calc(100% - 20px);
-  padding: 8px;
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px; /* label과 input 사이 간격 */
+}
+
+.input-label {
+  font-size: 0.9em;
+  color: #333;
+  font-weight: 600;
+}
+
+/* 드롭다운 화살표를 위한 래퍼 추가 */
+.select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.invitation-input,
+.language-select {
+  width: 100%;
+  padding: 8px 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 0.95em;
   outline: none;
   transition: border-color 0.2s;
+  box-sizing: border-box;
+  appearance: none; /* 기본 드롭다운 화살표 숨김 */
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
-.invitation-input:focus {
+.invitation-input:focus,
+.language-select:focus {
   border-color: #007bff;
 }
 
 .invitation-input.input-error {
   border-color: #f44336;
+}
+
+/* 커스텀 드롭다운 화살표 스타일 */
+.select-arrow {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #666; /* 아래 방향 화살표 모양 */
+  pointer-events: none; /* 화살표 클릭 시 select 활성화 방지 */
 }
 
 .error-message {
