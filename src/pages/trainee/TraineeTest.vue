@@ -6,6 +6,15 @@
     :current-test-question-id="currentQuestionId"
     @select-question-from-sidebar="handleQuestionSelectFromSidebar"
   >
+  <template #sidebar="{ isCollapsed }">
+      <TraineeTestSideBar
+        :is-collapsed="isCollapsed"
+        :questions="allQuestions"
+        :current-question-id="currentQuestionId"
+        @select-question="handleQuestionSelectFromSidebar"
+      />
+    </template>
+
     <template #content>
       <div class="test-taking-container-inner">
         <div class="top-nav">
@@ -102,6 +111,7 @@ import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js'
 
 import MainLayout from '@/components/layouts/MainLayout.vue'
+import TraineeTestSideBar from '@/components/trainee/test/TraineeTestSideBar.vue'
 import axios from '@/config/axios'
 import AiGradingLoading from '@/components/trainee/test/AiGradingLoading.vue'
 
