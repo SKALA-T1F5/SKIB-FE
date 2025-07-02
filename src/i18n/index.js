@@ -7,6 +7,7 @@ const messages = {
     prev: '이전 문제',
     next: '다음 문제',
     exit: '나가기',
+    welcome: '{userName} 매니저님, 반갑습니다!',
     // ...추가 번역
   },
   en: {
@@ -15,6 +16,7 @@ const messages = {
     prev: 'Previous',
     next: 'Next',
     exit: 'Exit',
+    welcome: 'Welcome, Manager {userName}!',
     // ...more translations
   },
 }

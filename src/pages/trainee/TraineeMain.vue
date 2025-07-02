@@ -25,7 +25,7 @@
 
     <template #content>
       <div class="main-header">
-        <h2 class="welcome-message">{{ userName }} 매니저님, 반갑습니다!</h2>
+        <h2 class="welcome-message">{{ $t('welcome', { userName }) }}</h2>
         <button class="add-test-button" @click="showAddTestModal">+ 테스트 추가</button>
       </div>
 
