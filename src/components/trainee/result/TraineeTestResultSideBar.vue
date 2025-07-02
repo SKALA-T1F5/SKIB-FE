@@ -23,9 +23,9 @@
       </div>
     </div>
     <div v-else class="question-list-collapsed">
-      <span class="collapsed-question-count">
+      <!-- <span class="collapsed-question-count">
         정답: {{ correctCount }} / 오답: {{ wrongCount }} / 총: {{ questions.length }}
-      </span>
+      </span> -->
     </div>
   </div>
 </template>

@@ -33,15 +33,15 @@
       </div>
       <div class="subjective-answer-section" v-else-if="question.type === 'SUBJECTIVE'">
         <div class="answer-group">
-          <p class="answer-label">나의 답변</p>
+          <p class="answer-label">{{ $t('myAnswer') }}</p>
           <div class="answer-box user-answer-box">
-            <p>{{ question.userAnswer || '답변 없음' }}</p>
+            <p>{{ question.userAnswer || $t('noAnswer') }}</p>
           </div>
         </div>
         <div class="answer-group mt-3">
-          <p class="answer-label">예시 답안</p>
+          <p class="answer-label">{{ $t('exampleAnswer') }}</p>
           <div class="answer-box example-answer-box">
-            <p>{{ question.correctAnswer || '예시 답안 없음' }}</p>
+            <p>{{ question.correctAnswer || $t('noExampleAnswer') }}</p>
           </div>
         </div>
       </div>
@@ -52,6 +52,9 @@
 <script setup>
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiCheckCircle, mdiCloseCircle } from '@mdi/js'
+
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 const props = defineProps({
   question: {

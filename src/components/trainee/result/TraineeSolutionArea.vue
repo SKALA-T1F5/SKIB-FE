@@ -1,6 +1,6 @@
 <template>
   <div class="solution-section">
-    <h4 class="solution-title">풀이</h4>
+    <h4 class="solution-title">{{ $t('solutionTitle') }}</h4>
     <div v-if="explanation" class="solution-text-scrollable">
       {{ explanation }}
     </div>
@@ -8,20 +8,21 @@
       v-else-if="gradingCriteria && gradingCriteria.length > 0"
       class="grading-criteria-scrollable"
     >
-      <h4 class="criteria-title">채점 기준:</h4>
+      <h4 class="criteria-title">{{ $t('gradingTitle') }}</h4>
       <ul>
         <li v-for="(criterion, index) in gradingCriteria" :key="index">
-          <strong>점수: {{ criterion.score }}점</strong> - {{ criterion.criteria }}
-          <p v-if="criterion.example" class="criteria-sub-text">예시: {{ criterion.example }}</p>
-          <p v-if="criterion.note" class="criteria-sub-text">참고: {{ criterion.note }}</p>
+          <strong>{{ $t('score') }}: {{ criterion.score }}{{ $t('point') }}</strong> - {{ criterion.criteria }}
+          <p v-if="criterion.example" class="criteria-sub-text">{{ $t('example') }}: {{ criterion.example }}</p>
+          <p v-if="criterion.note" class="criteria-sub-text">{{ $t('note') }}: {{ criterion.note }}</p>
         </li>
       </ul>
     </div>
     <div v-else class="no-solution">
-      <p>이 문제에 대한 풀이 또는 채점 기준이 없습니다.</p>
+      <p>{{ $t('noExplanation') }}</p>
     </div>
   </div>
 </template>
+
 
 <script setup>
 const props = defineProps({

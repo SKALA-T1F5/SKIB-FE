@@ -3,9 +3,9 @@ import { createI18n } from 'vue-i18n'
 const messages = {
   ko: {
     //MainLayout.vue
-    test:'문제 현황',
-    testResult:'시험 결과',
-    project:'프로젝트 현황',
+    test: '문제 현황',
+    testResult: '시험 결과',
+    project: '프로젝트 현황',
     //TraineeMain.vue
     main_welcome: '{userName} 매니저님, 반갑습니다!',
     main_alert: '해당 조건에 일치하는 테스트가 없습니다.',
@@ -80,12 +80,33 @@ const messages = {
     invalidDate: '유효하지 않은 날짜',
     //TraineeTestResult.vue
     exit: '나가기',
+    //TraineeQuestionArea.vue
+    exampleAnswer: '예시 답안',
+    noAnswer: '답변 없음',
+    noExampleAnswer: '예시 답안 없음',
+    //TraineeQuestionArea.vue
+    solutionTitle: '풀이',
+    gradingTitle: '채점 기준:',
+    score: '점수',
+    point: '점',
+    example: '예시',
+    note: '참고',
+    noExplanation: '이 문제에 대한 풀이 또는 채점 기준이 없습니다.',
+    //TraineeChatbot.vue
+    chatbotTitle: '챗봇',
+    chatbotInputPlaceholder: '메세지를 입력하세요',
+    greeting: '안녕하세요! 궁금한 점이 있으면 언제든 질문해 주세요 :)',
+    initFail: '테스트 문항 초기화 실패',
+    answerFail: '챗봇 답변 요청 실패',
+    noAnswerFallback: '답변을 가져오지 못했습니다.',
+    resetFail: '세션 초기화 실패',
+
   },
   en: {
     //MainLayout.vue
-    test:'Questions',
-    testResult:'Test Result',
-    project:'Project Status',
+    test: 'Questions',
+    testResult: 'Test Result',
+    project: 'Project Status',
     main_welcome: 'Welcome, Manager {userName}!',
     main_alert: 'No test exist.',
     main_addTest: '+ Add Test',
@@ -158,6 +179,26 @@ const messages = {
     invalidDate: 'Invalid date',
     //TraineeTestResult.vue
     exit: 'Exit',
+    //TraineeQuestionArea.vue
+    exampleAnswer: 'Example Answer',
+    noAnswer: 'No Answer',
+    noExampleAnswer: 'No Example Answer',
+    //TraineeSolutionArea.vue
+    solutionTitle: 'Solution',
+    gradingTitle: 'Grading Criteria:',
+    score: 'Score',
+    point: 'pts',
+    example: 'Example',
+    note: 'Note',
+    noExplanation: 'There is no solution or grading criteria for this question.',
+    //TraineeChatbot.vue
+    chatbotTitle: 'Chatbot',
+    chatbotInputPlaceholder: 'Type a message...',
+    greeting: 'Hello! Feel free to ask me any questions :)',
+    initFail: 'Failed to initialize test questions.',
+    answerFail: 'Failed to request chatbot answer.',
+    noAnswerFallback: 'Unable to retrieve answer.',
+    resetFail: 'Failed to reset session.',
   },
 }
 

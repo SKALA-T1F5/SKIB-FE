@@ -2,7 +2,7 @@
   <div class="chatbot-section">
     <div class="chatbot-header">
       <svg-icon type="mdi" :path="mdiRobot" class="chatbot-header-icon" />
-      <span class="chatbot-header-text">챗봇</span>
+      <span class="chatbot-header-text">{{ $t('chatbotTitle') }}</span>
     </div>
 
     <div class="chatbot-messages" ref="messagesContainer">
@@ -18,7 +18,7 @@
     <div class="chatbot-input-area">
       <input
         type="text"
-        placeholder="메세지를 입력하세요"
+        :placeholder="$t('chatbotInputPlaceholder')"
         class="message-input"
         v-model="newMessage"
         @keyup.enter="sendMessage"
@@ -33,11 +33,18 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiSend, mdiRobot } from '@mdi/js'
 import axios from 'axios'
+import { useI18n } from 'vue-i18n'
+
+// =========================
+// 1. i18n 인스턴스 사용
+// =========================
+const { t } = useI18n()
 
 // =========================
 // 2. props 정의
@@ -52,19 +59,18 @@ const props = defineProps({
 // =========================
 // 3. 상태 변수 및 ref 선언
 // =========================
-const newMessage = ref('') // 입력창 메시지
-const messages = ref([])   // 대화 메시지 목록
-const messagesContainer = ref(null) // 메시지 영역 DOM 참조
+const newMessage = ref('')
+const messages = ref([])
+const messagesContainer = ref(null)
 
 // =========================
-// 4. 사용자 ID (실제 서비스에서는 동적으로 받아야 함)
+// 4. 사용자 ID
 // =========================
 const userId = 'trainee-001'
 
 // =========================
 // 5. FastAPI 챗봇 API 함수
 // =========================
-// (1) 테스트 문항 초기화
 async function initializeTest(testQuestions) {
   try {
     await axios.post('/api/chat/init', {
@@ -72,11 +78,10 @@ async function initializeTest(testQuestions) {
       testQuestions,
     })
   } catch (e) {
-    alert('테스트 문항 초기화 실패')
+    alert(t('initFail'))
   }
 }
 
-// (2) LangGraph로 질문
 async function askWithLanggraph(question, questionId) {
   try {
     const res = await axios.post('/api/chat/ask-graph', {
@@ -86,17 +91,16 @@ async function askWithLanggraph(question, questionId) {
     })
     return res.data.answer
   } catch (e) {
-    alert('챗봇 답변 요청 실패')
-    return '답변을 가져오지 못했습니다.'
+    alert(t('answerFail'))
+    return t('noAnswerFallback')
   }
 }
 
-// (3) 세션 리셋
 async function resetSession() {
   try {
     await axios.post('/api/chat/session/reset', null, { params: { user_id: userId } })
   } catch (e) {
-    alert('세션 초기화 실패')
+    alert(t('resetFail'))
   }
 }
 
@@ -108,7 +112,6 @@ const sendMessage = async () => {
     return
   }
 
-  // 사용자 메시지 추가
   messages.value.push({
     sender: 'user',
     text: newMessage.value.trim(),
@@ -122,7 +125,6 @@ const sendMessage = async () => {
     messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
   }
 
-  // 챗봇 답변 요청 및 추가
   const answer = await askWithLanggraph(questionText, props.currentQuestionId || 'Q01')
   messages.value.push({
     sender: 'bot',
@@ -135,35 +137,23 @@ const sendMessage = async () => {
 }
 
 // =========================
-// 8. 컴포넌트 마운트/언마운트 시 챗봇 세션 관리
+// 8. 컴포넌트 마운트/언마운트
 // =========================
 onMounted(() => {
-  // 챗봇 인사 메시지 추가
   messages.value = [
     {
       sender: 'bot',
-      text: '안녕하세요! 궁금한 점이 있으면 언제든 질문해 주세요 :)',
+      text: t('greeting'),
     },
   ]
-  // 실제 서비스에서는 testQuestions를 prop 또는 상위에서 받아와야 함
-  // 여기서는 예시로 빈 배열 전달
   initializeTest([])
 })
 
 onUnmounted(() => {
   resetSession()
 })
-
-// =========================
-// 7. 문제 변경 시 대화 초기화
-// =========================
-// watch(
-//   () => props.currentQuestionId,
-//   () => {
-//     messages.value = []
-//   },
-// )
 </script>
+
 
 <style scoped>
 .chatbot-section {
