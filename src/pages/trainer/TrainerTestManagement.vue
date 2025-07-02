@@ -533,24 +533,31 @@ const fetchTests = async () => {
   }
 }
 
-// handleCopyLink 함수 수정: testId와 token을 인자로 받도록 변경
-const handleCopyLink = async (testId) => {
+// handleCopyLink 함수 수정: testId를 인자로 받습니다.
+// API 응답은 오로지 Token이므로, 해당 testId와 받아온 token으로 링크를 조합합니다.
+const handleCopyLink = async (testIdToCopy) => {
   isLoading.value = true
   loadingMessage.value = '초대 링크를 생성 중입니다...'
   try {
+    // API 호출: testId를 쿼리 파라미터로 전달하여 해당 테스트의 토큰을 요청
     const response = await axios.get('/test/getInviteLink', {
-      params: { testId: testId },
+      params: { testId: testIdToCopy },
     })
 
     if (response.data.statusCode === 'OK' && response.data.resultData) {
-      const link = response.data.resultData
+      const inviteToken = response.data.resultData // API 응답이 오로지 토큰이라고 하셨으므로 바로 할당
+
+      // 복사할 링크 조합 (http://localhost:5173/trainee/test/:testId/:inviteToken)
+      const baseUrl = 'http://localhost:5173' // 또는 환경 변수 등으로 관리되는 실제 프론트엔드 URL
+      const copiedLink = `${baseUrl}/trainee/test/${testIdToCopy}/${inviteToken}`
+
       if (navigator.clipboard) {
         navigator.clipboard
-          .writeText(link)
-          .then(() => alert(`링크 복사 완료: ${link}`))
+          .writeText(copiedLink)
+          .then(() => alert(`링크 복사 완료: ${copiedLink}`))
           .catch((err) => console.error('링크 복사 실패:', err))
       } else {
-        alert(`링크를 복사해주세요: ${link}`)
+        alert(`링크를 복사해주세요: ${copiedLink}`)
       }
     } else {
       alert('초대 링크를 가져오는 데 실패했습니다: ' + response.data.resultMsg)
