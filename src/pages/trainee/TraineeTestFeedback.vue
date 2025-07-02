@@ -3,67 +3,73 @@
     <template #content>
       <div class="feedback-main-content">
         <div class="feedback-dashboard-layout">
-          <h1 class="dashboard-title">시험 피드백 결과</h1>
+          <h1 class="dashboard-title">{{ $t('feedback_title') }}</h1>
 
-          <div v-if="isLoading" class="loading-indicator">데이터를 불러오는 중입니다...</div>
+          <div v-if="isLoading" class="loading-indicator">{{ $t('feedback_loading') }}</div>
           <div v-else-if="fetchError" class="error-message">
-            <p>피드백 데이터를 불러오는 데 실패했습니다. 잠시 후 다시 시도해주세요.</p>
-            <p>오류: {{ fetchError.message }}</p>
+            <p>{{ $t('feedback_load_fail') }}</p>
+            <p>{{ $t('feedback_error') }}: {{ fetchError.message }}</p>
           </div>
           <div v-else-if="!hasData" class="no-data-message">
-            <p>표시할 피드백 데이터가 없습니다.</p>
+            <p>{{ $t('feedback_no_data') }}</p>
           </div>
           <div v-else>
             <div class="top-row-grid">
               <section class="dashboard-card summary-card">
-                <h2 class="card-title">종합 평가</h2>
+                <h2 class="card-title">{{ $t('feedback_summary_title') }}</h2>
                 <div class="summary-content">
                   <div class="pass-fail-indicator">
                     <p :class="['pass-fail-text', feedbackData.isPassed ? 'pass' : 'fail']">
-                      {{ feedbackData.isPassed ? 'PASS' : 'FAIL' }}
+                      {{ feedbackData.isPassed ? $t('feedback_pass') : $t('feedback_fail') }}
                     </p>
-                    <p class="congratulations" v-if="feedbackData.isPassed">축하합니다!</p>
-                    <p class="encouragement" v-else>아쉽네요.</p>
+                    <p class="congratulations" v-if="feedbackData.isPassed">{{ $t('feedback_congrats') }}</p>
+                    <p class="encouragement" v-else>{{ $t('feedback_try_again') }}</p>
                   </div>
                   <div class="summary-details">
                     <p>
-                      총 정답률:
+                      {{ $t('feedback_total_correct_rate') }}:
                       <span class="detail-value">{{ feedbackData.totalCorrectRate }}%</span>
                     </p>
                     <p>
-                      총 응시문제 수: <span class="detail-value">{{ totalQuestions }}</span>
+                      {{ $t('feedback_total_questions') }}:
+                      <span class="detail-value">{{ totalQuestions }}</span>
                     </p>
                     <p>
-                      맞은 문제 수: <span class="detail-value">{{ correctQuestions }}</span>
+                      {{ $t('feedback_correct_answers') }}:
+                      <span class="detail-value">{{ correctQuestions }}</span>
                     </p>
                     <p>
-                      틀린 문제 수: <span class="detail-value">{{ wrongQuestions }}</span>
+                      {{ $t('feedback_wrong_answers') }}:
+                      <span class="detail-value">{{ wrongQuestions }}</span>
                     </p>
                   </div>
                 </div>
               </section>
 
               <section class="dashboard-card document-accuracy-card">
-                <h2 class="card-title">문서별 정답률</h2>
+                <h2 class="card-title">{{ $t('feedback_document_accuracy') }}</h2>
                 <DocumentAccuracyChart :document-accuracy="feedbackData.documentAccuracy" />
               </section>
 
               <section class="dashboard-card tag-capacity-card">
-                <h2 class="card-title">항목별 평가</h2>
+                <h2 class="card-title">{{ $t('feedback_tag_evaluation') }}</h2>
                 <RadarChart :tag-accuracy="feedbackData.tagAccuracy" />
               </section>
             </div>
 
             <section class="dashboard-card my-level-card">
-              <h2 class="card-title">현재 나의 레벨</h2>
+              <h2 class="card-title">{{ $t('feedback_my_level') }}</h2>
               <LineAreaChart
                 :my-score="feedbackData.totalCorrectRate"
                 :all-participant-scores="allParticipantScores"
                 :my-user-id="myUserId"
               />
               <p class="rank-summary">
-                당신은 전체 응시자 중 <span class="highlight-rank">{{ myRank }}등</span>이며, 상위
-                <span class="highlight-percent">{{ topPercentage }}%</span>에 해당합니다.
+                {{ $t('feedback_rank_prefix') }}
+                <span class="highlight-rank">{{ myRank }}{{ $t('feedback_rank_suffix') }}</span>,
+                {{ $t('feedback_top_prefix') }}
+                <span class="highlight-percent">{{ topPercentage }}%</span>
+                {{ $t('feedback_top_suffix') }}
               </p>
             </section>
           </div>
@@ -72,6 +78,8 @@
     </template>
   </MainLayout>
 </template>
+
+
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'

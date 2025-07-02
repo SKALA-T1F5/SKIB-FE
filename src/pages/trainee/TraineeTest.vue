@@ -437,6 +437,10 @@ onMounted(() => {
   flex-grow: 1;
   min-height: 550px;
   overflow: hidden;
+  /* max-width:980px; */
+  /* margin-left: 250px;
+  margin-right: 250px; */
+  
 
   /* 제출 버튼 공간 확보 */
 }
