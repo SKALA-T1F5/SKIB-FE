@@ -6,24 +6,6 @@
     </div>
 
     <div class="chatbot-messages" ref="messagesContainer">
-      <div class="message trainee-msg" v-if="currentQuestionId === 'Q03'">
-        <p>PC.10.02 프로세스에서 정발행/역발행 건의 결재 요청 및 승인 절차를 자세히 알려주세요.</p>
-      </div>
-      <div class="message bot-msg" v-if="currentQuestionId === 'Q03'">
-        <p>
-          PC.10.02 프로세스는 검수/출장비 기반으로 발생한 정발행/역발행 건을 결재 요청하고, 결재
-          승인하는 절차입니다.
-        </p>
-      </div>
-      <div class="message trainee-msg">
-        <p>세금계산서 발행 프로세스에 대해 더 알려주세요.</p>
-      </div>
-      <div class="message bot-msg">
-        <p>
-          세금계산서 발행 프로세스는 크게 정발행과 역발행으로 나뉩니다. 정발행은 공급자가 발행하고,
-          역발행은 공급받는 자가 발행 요청하는 방식입니다. 어떤 부분이 궁금하신가요?
-        </p>
-      </div>
       <div
         v-for="(message, index) in messages"
         :key="index"
@@ -57,6 +39,9 @@ import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiSend, mdiRobot } from '@mdi/js'
 import axios from 'axios'
 
+// =========================
+// 2. props 정의
+// =========================
 const props = defineProps({
   currentQuestionId: {
     type: String,
@@ -64,14 +49,22 @@ const props = defineProps({
   },
 })
 
-const newMessage = ref('')
-const messages = ref([])
-const messagesContainer = ref(null) // 메시지 컨테이너 참조
+// =========================
+// 3. 상태 변수 및 ref 선언
+// =========================
+const newMessage = ref('') // 입력창 메시지
+const messages = ref([])   // 대화 메시지 목록
+const messagesContainer = ref(null) // 메시지 영역 DOM 참조
 
-// FastAPI 챗봇 API 연동 함수들
-const userId = 'trainee-001' // 실제 서비스에서는 로그인 정보 등에서 받아와야 함
+// =========================
+// 4. 사용자 ID (실제 서비스에서는 동적으로 받아야 함)
+// =========================
+const userId = 'trainee-001'
 
-// 테스트 문항 초기화
+// =========================
+// 5. FastAPI 챗봇 API 함수
+// =========================
+// (1) 테스트 문항 초기화
 async function initializeTest(testQuestions) {
   try {
     await axios.post('/api/chat/init', {
@@ -83,7 +76,7 @@ async function initializeTest(testQuestions) {
   }
 }
 
-// LangGraph로 질문
+// (2) LangGraph로 질문
 async function askWithLanggraph(question, questionId) {
   try {
     const res = await axios.post('/api/chat/ask-graph', {
@@ -98,7 +91,7 @@ async function askWithLanggraph(question, questionId) {
   }
 }
 
-// 세션 리셋
+// (3) 세션 리셋
 async function resetSession() {
   try {
     await axios.post('/api/chat/session/reset', null, { params: { user_id: userId } })
@@ -107,11 +100,15 @@ async function resetSession() {
   }
 }
 
+// =========================
+// 6. 메시지 전송 함수
+// =========================
 const sendMessage = async () => {
   if (newMessage.value.trim() === '') {
     return
   }
 
+  // 사용자 메시지 추가
   messages.value.push({
     sender: 'user',
     text: newMessage.value.trim(),
@@ -125,7 +122,7 @@ const sendMessage = async () => {
     messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
   }
 
-  // 실제 챗봇 답변 요청
+  // 챗봇 답변 요청 및 추가
   const answer = await askWithLanggraph(questionText, props.currentQuestionId || 'Q01')
   messages.value.push({
     sender: 'bot',
@@ -137,11 +134,13 @@ const sendMessage = async () => {
   }
 }
 
-// currentQuestionId가 변경될 때마다 챗봇 메시지 초기화 (선택 사항)
+// =========================
+// 7. 문제 변경 시 대화 초기화
+// =========================
 watch(
   () => props.currentQuestionId,
   () => {
-    messages.value = [] // 문제 변경 시 챗봇 대화 초기화
+    messages.value = []
   },
 )
 </script>
