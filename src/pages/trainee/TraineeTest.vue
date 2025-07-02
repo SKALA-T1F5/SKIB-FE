@@ -286,33 +286,27 @@ const handleSubmitAnswer = () => {
 const submitFinalTest = async () => {
   showGradingOverlay.value = true
 
+  // answers 배열 생성
   const answersToSend = Array.from(userAnswers.value.entries()).map(([questionId, answer]) => {
     const question = allQuestions.value.find((q) => q.id === questionId)
     return {
-      questionId: questionId, // 백엔드에서 받는 questionId 필드를 사용
+      id: questionId,
       response: typeof answer === 'object' ? answer.value : answer,
       questionType: question ? question.type : 'UNKNOWN',
     }
   })
 
-  const requestBody = {
-    userId: userId.value,
-    testId: parseInt(testId), // testId를 숫자로 변환
-    answers: answersToSend,
-  }
-
-  console.log('최종 제출될 요청 바디:', requestBody)
-
   try {
-    // 실제 API 호출 (예시: 채점 결과를 제출하는 API)
-    // Spring Boot에 채점 결과를 제출하는 API가 따로 있다면 해당 API를 호출해야 합니다.
-    // 예: await axios.post(`/api/test/submitTestResult`, requestBody);
-    // 현재 예시에서는 getUserTest API를 통해 문제를 가져왔으므로, 답안 제출 API는 별도로 가정합니다.
-    // 여기서는 시뮬레이션으로 대체합니다.
-
-    await new Promise((resolve) => setTimeout(resolve, 3000)) // 3초 대기 시뮬레이션
-
-    console.log('시험 제출 및 채점 완료 (시뮬레이션)')
+    // 실제 API 호출: /api/answer (userId, testId는 request param, answers는 body)
+    await axios.post('/api/answer',
+      { answers: answersToSend },
+      {
+        params: {
+          userId: userId.value,
+          testId: testId,
+        },
+      }
+    )
 
     showGradingOverlay.value = false
     showCompletionButtons.value = true
