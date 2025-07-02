@@ -37,7 +37,8 @@
         <div class="question-taking-area" v-if="currentQuestion">
           <div class="question-section">
             <div class="question-text-fixed">
-              <p class="question-text"><strong>{{ currentQuestion.id }}</strong>. {{ currentQuestion.questionText }}</p>
+              <p class="question-text"><strong>{{ currentQuestion.id }}. </strong></p>
+              <p class="question-text">{{ currentQuestion.questionText }}</p>
             </div>
             <div class="question-content-scrollable">
               <div class="options-container" v-if="currentQuestion.type === 'OBJECTIVE'">
