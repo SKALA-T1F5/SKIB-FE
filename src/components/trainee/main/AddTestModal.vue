@@ -28,8 +28,8 @@
             <div class="select-wrapper">
               <select id="language-select" v-model="selectedLang" class="language-select">
                 <option value="ko">한국어</option>
-                <option value="en">영어</option>
-                <option value="vi">베트남어</option>
+                <option value="en">English</option>
+                <option value="vi">Tiếng Việt</option>
               </select>
               <span class="select-arrow"></span>
             </div>

@@ -61,7 +61,7 @@
           </div>
         </div>
         <div v-else class="loading-message">
-          <p>시험 문제를 로딩 중입니다...</p>
+          <p>{{ $t('loadingQuestions') }}</p>
         </div>
       </div>
 
@@ -69,17 +69,17 @@
         <div class="left-buttons">
           <button class="nav-button" @click="goToPreviousQuestion"
             :disabled="!hasPreviousQuestion || showGradingOverlay">
-            <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> 이전 문제
+            <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> {{ $t('prev') }}
           </button>
         </div>
         <div class="right-buttons">
           <button class="nav-button" @click="goToNextQuestion" :disabled="!hasNextQuestion || showGradingOverlay">
-            다음 문제 <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
+            {{ $t('next') }} <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
           </button>
           <button class="submit-button" @click="handleSubmitAnswer"
             :class="{ 'not-all-answered': !answerStatusList.every(Boolean) }"
             :disabled="!currentQuestion || showGradingOverlay">
-            제출
+            {{ $t('submit') }}
           </button>
         </div>
       </div>
@@ -88,10 +88,10 @@
 
       <div class="completion-overlay" v-if="showCompletionButtons">
         <div class="completion-card">
-          <p class="completion-message">채점이 완료되었습니다!</p>
+          <p class="completion-message">{{ t('gradingComplete') }}</p>
           <div class="completion-buttons">
-            <button class="action-button primary" @click="goToTestResult">채점 결과 확인</button>
-            <button class="action-button secondary" @click="goToTraineeMain">메인 화면</button>
+            <button class="action-button primary" @click="goToTestResult">{{ $t('result') }}</button>
+            <button class="action-button secondary" @click="goToTraineeMain">{{ $t('mainPage') }}</button>
           </div>
         </div>
       </div>
@@ -109,6 +109,9 @@ import MainLayout from '@/components/layouts/MainLayout.vue'
 import TraineeTestSideBar from '@/components/trainee/test/TraineeTestSideBar.vue'
 import api from '@/config/axios'
 import AiGradingLoading from '@/components/trainee/test/AiGradingLoading.vue'
+
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 // ===== [2] 라우터 및 기본 변수 선언 =====
 const router = useRouter()
@@ -216,7 +219,7 @@ const stopTimer = () => {
 const handleTimeExpired = () => {
   if (showGradingOverlay.value || showCompletionButtons.value) return
 
-  alert('시험 시간이 만료되었습니다. 답변이 자동으로 제출됩니다.')
+  alert(t('timeExpired'))
   submitFinalTest()
 }
 
@@ -283,7 +286,7 @@ const fetchTestQuestions = async () => {
       if (allQuestions.value.length > 0) {
         currentQuestionId.value = allQuestions.value[0].id
       } else {
-        alert('시험 문제가 없습니다.')
+        alert(t('noQuestions'))
         router.back()
       }
     } else {
@@ -292,7 +295,7 @@ const fetchTestQuestions = async () => {
       router.back()
     }
   } catch (error) {
-    alert('시험 문제를 불러오는 중 오류가 발생했습니다.')
+    alert(t('loadingQuestions'))
     router.back()
   }
 }
@@ -346,9 +349,9 @@ const handleSubmitAnswer = () => {
   })
   let confirmMessage = ''
   if (unansweredQuestions.length > 0) {
-    confirmMessage = `풀지 않은 문제가 ${unansweredQuestions.length}개 존재합니다. 정말 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.`
+    confirmMessage = t('confirmSubmitWithUnanswered', { count: unansweredQuestions.length })
   } else {
-    confirmMessage = `정말 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.`
+    confirmMessage = t('confirmSubmit')
   }
   if (confirm(confirmMessage)) {
     submitFinalTest()
@@ -385,7 +388,7 @@ const submitFinalTest = async () => {
     showCompletionButtons.value = true
   } catch (error) {
     showGradingOverlay.value = false
-    alert('시험 제출 중 오류가 발생했습니다.')
+    alert(t('submitError'))
     showCompletionButtons.value = false
   }
 }

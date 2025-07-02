@@ -3,14 +3,14 @@
     <hr v-if="!isCollapsed" class="divider" />
 
     <div v-if="!isCollapsed" class="filter-section">
-      <div class="filter-title">응시 여부</div>
+      <div class="filter-title">{{ $t('filter_status') }}</div>
       <label>
         <input
           type="checkbox"
           :checked="statusFilters.done"
           @change="updateStatusFilter('done', $event)"
         />
-        응시 완료
+        {{ $t('filter_done') }}
       </label>
       <label>
         <input
@@ -18,19 +18,19 @@
           :checked="statusFilters.retry"
           @change="updateStatusFilter('retry', $event)"
         />
-        재응시 가능
+        {{ $t('filter_retry') }}
       </label>
     </div>
 
     <div v-if="!isCollapsed" class="filter-section">
-      <div class="filter-title">결과</div>
+      <div class="filter-title">{{ $t('filter_result') }}</div>
       <label>
         <input
           type="checkbox"
           :checked="resultFilters.pass"
           @change="updateResultFilter('pass', $event)"
         />
-        PASS
+        {{ $t('filter_pass') }}
       </label>
       <label>
         <input
@@ -38,7 +38,7 @@
           :checked="resultFilters.fail"
           @change="updateResultFilter('fail', $event)"
         />
-        FAIL
+        {{ $t('filter_fail') }}
       </label>
     </div>
   </div>

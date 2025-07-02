@@ -36,6 +36,7 @@
 
 <script setup>
 import { ref, onMounted, computed, useSlots, defineProps } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Header from './Header.vue'
 import Footer from './Footer.vue'
 
@@ -59,6 +60,8 @@ const userName = ref('Guest')
 const userRole = ref('Trainee')
 const isSidebarCollapsed = ref(false)
 
+const { t } = useI18n()
+
 // sidebarTitle prop이 전달되면 그것을 사용하고, 아니면 기존 로직을 따릅니다.
 const resolvedSidebarTitle = computed(() => {
   if (props.sidebarTitle) {
@@ -66,11 +69,11 @@ const resolvedSidebarTitle = computed(() => {
   }
   switch (props.sidebarType) {
     case 'test':
-      return '문제 현황'
+      return t('test')
     case 'testResult':
-      return '시험 결과'
+      return t('testResult')
     case 'project':
-      return '프로젝트 현황'
+      return t('project')
     default:
       return '' // 기본 제목 (비워둠)
   }

@@ -4,22 +4,22 @@
       {{ test.isPassed ? 'PASS' : 'FAIL' }}
     </div>
     <h3 class="test-title">{{ test.name }}</h3>
-    <p class="test-description">난이도: {{ test.difficultyLevel }}</p>
-    <p class="test-score">점수: {{ test.score }}점</p>
+    <p class="test-description">{{ $t('difficulty') }}: {{ test.difficultyLevel }}</p>
+    <p class="test-score">{{ $t('score') }}: {{ test.score }}점</p>
     <div class="test-footer">
-      <span class="test-time">제한 시간: {{ formatTime(test.limitedTime) }}</span>
+      <span class="test-time">{{ $t('limitedTime') }}: {{ formatTime(test.limitedTime) }}</span>
       <div class="test-actions">
         <button class="action-button" @click="$emit('retake-action', test.testId)">
-          채점 결과
+          {{ $t('result') }}
         </button>
-        <button class="action-button" @click="$emit('feedback', test.testId)">피드백</button>
+        <button class="action-button" @click="$emit('feedback', test.testId)">{{ $t('feedback') }}</button>
         <button
           v-if="test.isRetake"
           :class="['action-button', 'retake-button', { 'disabled-retake': test.retake === 1 }]"
           :disabled="test.retake === 1"
           @click="$emit('attend', test.testId)"
         >
-          재응시
+          {{ $t('retake') }}
         </button>
       </div>
     </div>
