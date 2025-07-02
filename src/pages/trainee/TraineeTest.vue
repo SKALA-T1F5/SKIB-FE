@@ -724,12 +724,12 @@ onMounted(() => {
   overflow: hidden;
   max-width: none;
   min-width: 120px;
+  direction: rlt;
 }
 .time-progress-bar {
-  direction: rtl;
-  justify-content: flex-end;
   height: 100%;
   border-radius: 6px;
   transition: width 0.5s, background-color 0.3s;
+  float:right;
 }
 </style>
