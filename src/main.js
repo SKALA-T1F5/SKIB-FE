@@ -11,10 +11,13 @@ import * as directives from 'vuetify/directives'
 // Material Design Icons (MDI) CSS 임포트 추가
 import '@mdi/font/css/materialdesignicons.css' // 이 라인을 추가했습니다.
 
+import i18n from './i18n' // i18n 추가
+
 const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
+app.use(i18n) // i18n 등록
 
 const vuetify = createVuetify({
   components,

@@ -164,13 +164,15 @@ const logout = () => {
   height: 16px;
   width: 16px;
   color: #000;
-  margin-left: 2px;
+  margin-left: auto;
   transition: color 0.25s ease;
 }
 
 .user-menu.locked-icon {
   color: #868686;
   cursor: not-allowed;
+  margin-left:auto;
+  justify-content: flex-end;
 }
 
 .dropdown {
