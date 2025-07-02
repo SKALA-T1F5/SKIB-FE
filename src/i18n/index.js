@@ -35,6 +35,7 @@ const messages = {
     submit: '제출',
     prev: '이전 문제',
     next: '다음 문제',
+    myAnswer: '나의 답변',
     gradingComplete: '채점이 완료되었습니다!',
     mainPage: '메인 화면',
     noQuestions: '시험 문제가 없습니다.',
@@ -77,6 +78,8 @@ const messages = {
     infoNotAvailable: '정보 없음',
     zeroMinutes: '0분',
     invalidDate: '유효하지 않은 날짜',
+    //TraineeTestResult.vue
+    exit: '나가기',
   },
   en: {
     //MainLayout.vue
@@ -110,6 +113,7 @@ const messages = {
     submit: 'Submit',
     prev: 'Previous',
     next: 'Next',
+    myAnswer: 'My Answer',
     gradingComplete: 'Grading is complete!',
     mainPage: 'Main Page',
     noQuestions: 'No test questions.',
@@ -152,6 +156,8 @@ const messages = {
     infoNotAvailable: 'Not available',
     zeroMinutes: '0 min',
     invalidDate: 'Invalid date',
+    //TraineeTestResult.vue
+    exit: 'Exit',
   },
 }
 

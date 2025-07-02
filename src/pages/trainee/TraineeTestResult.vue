@@ -41,14 +41,14 @@
             <div class="left-buttons">
               <button class="nav-button" @click="goToPreviousQuestion"
                 :disabled="!hasPreviousQuestion || showGradingOverlay">
-                <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> 이전 문제
+                <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> {{ $t('prev') }}
               </button>
             </div>
             <div class="right-buttons">
               <button class="nav-button" @click="goToNextQuestion" :disabled="!hasNextQuestion || showGradingOverlay">
-                다음 문제 <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
+                {{ $t('next') }} <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
               </button>
-                <button class="exit-button" @click="exitTestResult">나가기</button>
+                <button class="exit-button" @click="exitTestResult">{{ $t('exit') }}</button>
             </div>
           </div>
 
@@ -72,6 +72,9 @@ import TraineeSolutionArea from '@/components/trainee/result/TraineeSolutionArea
 import TraineeChatbot from '@/components/trainee/result/TraineeChatbot.vue'
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js'
+
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 const router = useRouter()
 

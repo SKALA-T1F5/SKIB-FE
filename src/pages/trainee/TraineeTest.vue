@@ -52,7 +52,7 @@
               </div>
               <div class="subjective-answer-section" v-else-if="currentQuestion.type === 'SUBJECTIVE'">
                 <div class="answer-group">
-                  <p class="answer-label">나의 답변</p>
+                  <p class="answer-label">{{ $t('myAnswer') }}</p>
                   <textarea class="answer-box user-answer-box" v-model="userAnswers.get(currentQuestion.id).value"
                     placeholder="답변을 입력하세요." :disabled="showGradingOverlay"></textarea>
                 </div>
@@ -366,8 +366,8 @@ const submitFinalTest = async () => {
     return {
       // id: q.rawId, // ObjectId 그대로 전달
       // response: typeof answer === 'object' ? answer.value : answer,
-      question_id: q.rawId, // ObjectId 그대로 전달
-      user_answer: typeof answer === 'object' ? answer.value : answer,
+      id: q.rawId, // ObjectId 그대로 전달
+      response: typeof answer === 'object' ? answer.value : answer,
       questionType: q.type,
     }
   })
