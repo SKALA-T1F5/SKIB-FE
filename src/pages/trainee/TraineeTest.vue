@@ -17,6 +17,15 @@
 
     <template #content>
       <div class="test-taking-container-inner">
+        <div class="time-progress">
+          <span class="time-progress-clock">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#191d5a" stroke-width="2"/><path d="M12 7v5l3 3" stroke="#191d5a" stroke-width="2" stroke-linecap="round"/></svg>
+            <span class="time-progress-text">{{ formattedTime }}</span>
+          </span>
+          <div class="time-progress-bar-bg">
+            <div class="time-progress-bar" :style="{ width: `${progressPercentage}%`, backgroundColor: progressColor }"></div>
+          </div>
+        </div>
         <div class="top-nav">
           <h3 class="question-number-top" v-if="currentQuestion">{{ currentQuestion.id }}.</h3>
           <div class="nav-buttons-wrapper">
@@ -118,8 +127,8 @@ import AiGradingLoading from '@/components/trainee/test/AiGradingLoading.vue'
 const router = useRouter()
 const route = useRoute()
 
-const testId = route.params.testId // URL 파라미터에서 testId 가져옴
-const userId = ref('') // Local Storage에서 userId 가져올 예정
+const testId = route.params.testId
+const userId = ref('')
 
 const allQuestions = ref([])
 const currentQuestionId = ref(null)
@@ -129,9 +138,7 @@ const showGradingOverlay = ref(false)
 const showCompletionButtons = ref(false)
 
 const currentQuestion = computed(() => {
-  if (!currentQuestionId.value || allQuestions.value.length === 0) {
-    return null
-  }
+  if (!currentQuestionId.value || allQuestions.value.length === 0) return null
   return allQuestions.value.find((q) => q.id === currentQuestionId.value)
 })
 
@@ -142,38 +149,48 @@ const currentQuestionIndex = computed(() => {
 
 const hasPreviousQuestion = computed(() => currentQuestionIndex.value > 0)
 const hasNextQuestion = computed(() => currentQuestionIndex.value < allQuestions.value.length - 1)
-// const isLastQuestion = computed(() => currentQuestionIndex.value === allQuestions.value.length - 1) // 현재 사용되지 않음
+
+const answerStatusList = computed(() =>
+  allQuestions.value.map((q) => {
+    const answer = userAnswers.value.get(q.id)
+    if (q.type === 'SUBJECTIVE') {
+      return !!(answer && answer.value && answer.value.trim() !== '')
+    } else {
+      return !!(answer && answer !== '')
+    }
+  })
+)
+
+const totalTime = 60 // 예시: 60초
+const remainingTime = ref(34) // 예시: 34초 남음
+const progressPercentage = computed(() => (remainingTime.value / totalTime) * 100)
+const progressColor = computed(() => remainingTime.value <= 10 ? '#e74c3c' : '#191d5a')
+const formattedTime = computed(() => {
+  const m = String(Math.floor(remainingTime.value / 60)).padStart(2, '0')
+  const s = String(remainingTime.value % 60).padStart(2, '0')
+  return `${m}:${s}`
+})
 
 const fetchTestQuestions = async () => {
-  // 1. userId를 Local Storage에서 가져오기
   const storedUserId = localStorage.getItem('userId')
   if (!storedUserId) {
     alert('사용자 ID를 찾을 수 없습니다. 로그인 후 다시 시도해주세요.')
-    router.push({ name: 'Login' }) // 예: 로그인 페이지로 리다이렉트
+    router.push({ name: 'Login' })
     return
   }
   userId.value = storedUserId
-
-  // 2. testId 유효성 검사
   if (!testId || !userId.value) {
     alert('시험 ID 또는 사용자 ID가 유효하지 않습니다.')
-    router.back() // 이전 페이지로 돌아가기
+    router.back()
     return
   }
-
   try {
-    // 3. API 호출 (userId, testId를 request param으로 전달)
     const response = await axios.get('/test/getUserTest', {
-      params: {
-        userId: userId.value,
-        testId: testId,
-      },
+      params: { userId: userId.value, testId: testId },
     })
     const { statusCode, resultMsg, resultData } = response.data
-
     if (statusCode === 'OK' && resultData && Array.isArray(resultData.questions)) {
       allQuestions.value = resultData.questions.map((rawQ, index) => {
-        // questionId 생성: 객관식/주관식 모두 고유 인덱스 기반
         const questionId = `Q${(index + 1).toString().padStart(2, '0')}`
         let initialAnswerValue
         if (rawQ.type === 'SUBJECTIVE') {
@@ -182,7 +199,6 @@ const fetchTestQuestions = async () => {
           initialAnswerValue = ''
         }
         userAnswers.value.set(questionId, initialAnswerValue)
-
         return {
           id: questionId,
           type: rawQ.type,
@@ -200,7 +216,6 @@ const fetchTestQuestions = async () => {
           isAnswered: false,
         }
       })
-
       if (allQuestions.value.length > 0) {
         currentQuestionId.value = allQuestions.value[0].id
       } else {
@@ -208,23 +223,12 @@ const fetchTestQuestions = async () => {
         router.back()
       }
     } else {
-      console.warn(
-        '문제 데이터를 불러오는 데 실패했습니다: 서버 응답 형식이 예상과 다르거나 questions 필드가 없습니다.',
-        response.data,
-      )
       allQuestions.value = []
       alert(`시험 문제를 불러오는 데 실패했습니다: ${resultMsg || '알 수 없는 오류'}`)
       router.back()
     }
   } catch (error) {
-    console.error('문제 데이터를 로드하는 데 실패했습니다:', error)
-    if (axios.isAxiosError(error) && error.response) {
-      alert(
-        `시험 문제를 불러오는 중 오류가 발생했습니다: ${error.response.data.message || '알 수 없는 오류'}`,
-      )
-    } else {
-      alert('시험 문제를 불러오는 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
-    }
+    alert('시험 문제를 불러오는 중 오류가 발생했습니다.')
     router.back()
   }
 }
@@ -251,43 +255,30 @@ const goToNextQuestion = () => {
   }
 }
 
-const getOptionLabel = (index) => {
-  return String.fromCharCode(65 + index) + ')'
-}
-
+const getOptionLabel = (index) => String.fromCharCode(65 + index) + ')'
 const selectOption = (option) => {
   if (showGradingOverlay.value || showCompletionButtons.value) return
   if (currentQuestion.value) {
     userAnswers.value.set(currentQuestion.value.id, option)
-    const questionToUpdate = allQuestions.value.find((q) => q.id === currentQuestion.value?.id)
-    if (questionToUpdate) {
-      questionToUpdate.isAnswered = true
-    }
   }
 }
 
 const handleSubmitAnswer = () => {
   if (!currentQuestion.value || showGradingOverlay.value || showCompletionButtons.value) return
-
   const unansweredQuestions = allQuestions.value.filter((q) => {
     const answer = userAnswers.value.get(q.id)
     if (q.type === 'SUBJECTIVE') {
-      // 주관식은 ref.value의 trim()이 비어있는지 확인
       return !answer || (typeof answer === 'object' && answer.value.trim() === '')
     } else {
-      // 객관식은 Map에 값이 없거나 빈 문자열인지 확인
       return !answer || answer === ''
     }
   })
-
   let confirmMessage = ''
-
   if (unansweredQuestions.length > 0) {
     confirmMessage = `풀지 않은 문제가 ${unansweredQuestions.length}개 존재합니다. 정말 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.`
   } else {
     confirmMessage = `정말 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.`
   }
-
   if (confirm(confirmMessage)) {
     submitFinalTest()
   }
@@ -295,8 +286,6 @@ const handleSubmitAnswer = () => {
 
 const submitFinalTest = async () => {
   showGradingOverlay.value = true
-
-  // answers 배열 생성
   const answersToSend = Array.from(userAnswers.value.entries()).map(([questionId, answer]) => {
     const question = allQuestions.value.find((q) => q.id === questionId)
     return {
@@ -305,9 +294,7 @@ const submitFinalTest = async () => {
       questionType: question ? question.type : 'UNKNOWN',
     }
   })
-
   try {
-    // 실제 API 호출: /api/answer (userId, testId는 request param, answers는 body)
     await axios.post('/api/answer',
       { answers: answersToSend },
       {
@@ -317,18 +304,11 @@ const submitFinalTest = async () => {
         },
       }
     )
-
     showGradingOverlay.value = false
     showCompletionButtons.value = true
   } catch (error) {
-    console.error('시험 제출 실패:', error)
     showGradingOverlay.value = false
-
-    if (axios.isAxiosError(error) && error.response) {
-      alert(`시험 제출 중 오류가 발생했습니다: ${error.response.data.message || '알 수 없는 오류'}`)
-    } else {
-      alert('시험 제출 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
-    }
+    alert('시험 제출 중 오류가 발생했습니다.')
     showCompletionButtons.value = false
   }
 }
@@ -337,7 +317,6 @@ const goToTestResult = () => {
   router.push({
     name: 'TraineeTestResult',
     params: { testId: testId },
-    state: { testName: '모의 시험', actualScore: 85, isPassed: true }, // 실제 채점 결과로 대체 필요
   })
 }
 
@@ -349,7 +328,7 @@ watch(
   () => {
     if (currentQuestion.value?.type === 'SUBJECTIVE') {
       const answerRef = userAnswers.value.get(currentQuestion.value.id)
-      return answerRef ? answerRef.value : undefined // answerRef가 없을 경우를 대비
+      return answerRef ? answerRef.value : undefined
     }
     return undefined
   },
@@ -713,5 +692,44 @@ onMounted(() => {
   background-color: #5a6268;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+.time-progress {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: 25px;
+  margin-right: 25px;
+  margin-bottom: 25px;
+  width: 94%;
+  max-width: 100%;
+}
+.time-progress-clock {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 60px;
+}
+.time-progress-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: #191d5a;
+}
+.time-progress-bar-bg {
+  flex: 1;
+  background: #e0e0e0;
+  border-radius: 6px;
+  height: 8px;
+  position: relative;
+  overflow: hidden;
+  max-width: none;
+  min-width: 120px;
+}
+.time-progress-bar {
+  direction: rtl;
+  justify-content: flex-end;
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s, background-color 0.3s;
 }
 </style>
