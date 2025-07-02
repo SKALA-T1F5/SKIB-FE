@@ -152,17 +152,19 @@ const fetchTestQuestions = async () => {
   }
 
   try {
-    // 3. API 호출
-    const response = await axios.get(`/test/getUserTest?userId=${userId.value}&testId=${testId}`)
+    // 3. API 호출 (userId, testId를 request param으로 전달)
+    const response = await axios.get('/test/getUserTest', {
+      params: {
+        userId: userId.value,
+        testId: testId,
+      },
+    })
     const { statusCode, resultMsg, resultData } = response.data
 
     if (statusCode === 'OK' && resultData && Array.isArray(resultData.questions)) {
       allQuestions.value = resultData.questions.map((rawQ, index) => {
-        // 백엔드에서 받은 question 객체에 'id' 또는 'questionId' 필드가 있다고 가정
-        // 예시 응답에는 'questions' 배열 안에 질문 객체들이 직접 포함되어 있으므로,
-        // 각 질문 객체에 고유한 식별자 (예: questionId)가 있다고 가정합니다.
-        const questionId = rawQ.questionId || `Q${(index + 1).toString().padStart(2, '0')}` // 백엔드에서 questionId를 제공한다고 가정합니다.
-
+        // questionId 생성: 객관식/주관식 모두 고유 인덱스 기반
+        const questionId = `Q${(index + 1).toString().padStart(2, '0')}`
         let initialAnswerValue
         if (rawQ.type === 'SUBJECTIVE') {
           initialAnswerValue = ref('')
@@ -172,15 +174,19 @@ const fetchTestQuestions = async () => {
         userAnswers.value.set(questionId, initialAnswerValue)
 
         return {
-          id: questionId, // 백엔드에서 제공하는 questionId 사용 또는 생성된 ID 사용
+          id: questionId,
           type: rawQ.type,
           difficulty_level: rawQ.difficulty_level,
-          questionText: rawQ.question, // API 응답의 'question' 필드를 'questionText'로 매핑
+          questionText: rawQ.question,
           options: rawQ.options,
-          explanation: rawQ.explanation || '', // API 응답에 explanation이 있다면 사용
-          gradingCriteria: rawQ.grading_criteria || null, // API 응답에 grading_criteria이 있다면 사용
-          document_id: rawQ.document_id,
+          answer: rawQ.answer,
+          explanation: rawQ.explanation || '',
+          gradingCriteria: rawQ.grading_criteria || null,
+          documentId: rawQ.documentId,
+          documentName: rawQ.documentName,
+          keywords: rawQ.keywords,
           tags: rawQ.tags,
+          generationType: rawQ.generationType,
           isAnswered: false,
         }
       })
@@ -189,7 +195,7 @@ const fetchTestQuestions = async () => {
         currentQuestionId.value = allQuestions.value[0].id
       } else {
         alert('시험 문제가 없습니다.')
-        router.back() // 문제가 없는 경우 이전 페이지로 돌아가기
+        router.back()
       }
     } else {
       console.warn(
@@ -198,7 +204,7 @@ const fetchTestQuestions = async () => {
       )
       allQuestions.value = []
       alert(`시험 문제를 불러오는 데 실패했습니다: ${resultMsg || '알 수 없는 오류'}`)
-      router.back() // 문제 로드 실패 시 이전 페이지로 돌아가기
+      router.back()
     }
   } catch (error) {
     console.error('문제 데이터를 로드하는 데 실패했습니다:', error)
@@ -209,7 +215,7 @@ const fetchTestQuestions = async () => {
     } else {
       alert('시험 문제를 불러오는 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
     }
-    router.back() // 문제 로드 실패 시 이전 페이지로 돌아가기
+    router.back()
   }
 }
 
