@@ -114,42 +114,44 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+// ===== [1] 라이브러리 및 컴포넌트 import =====
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js'
-
 import MainLayout from '@/components/layouts/MainLayout.vue'
 import TraineeTestSideBar from '@/components/trainee/test/TraineeTestSideBar.vue'
 import axios from '@/config/axios'
 import AiGradingLoading from '@/components/trainee/test/AiGradingLoading.vue'
 
+// ===== [2] 라우터 및 기본 변수 선언 =====
 const router = useRouter()
 const route = useRoute()
-
 const testId = route.params.testId
 const userId = ref('')
 
+// ===== [3] 시험 문제 및 답변 관련 상태 =====
 const allQuestions = ref([])
 const currentQuestionId = ref(null)
 const userAnswers = ref(new Map())
 
+// ===== [4] UI 상태 관련 변수 =====
 const showGradingOverlay = ref(false)
 const showCompletionButtons = ref(false)
 
+// ===== [5] 현재 문제 및 인덱스 계산 =====
 const currentQuestion = computed(() => {
   if (!currentQuestionId.value || allQuestions.value.length === 0) return null
   return allQuestions.value.find((q) => q.id === currentQuestionId.value)
 })
-
 const currentQuestionIndex = computed(() => {
   if (!currentQuestion.value) return -1
   return allQuestions.value.findIndex((q) => q.id === currentQuestion.value?.id)
 })
-
 const hasPreviousQuestion = computed(() => currentQuestionIndex.value > 0)
 const hasNextQuestion = computed(() => currentQuestionIndex.value < allQuestions.value.length - 1)
 
+// ===== [6] 답변 완료 여부 리스트 =====
 const answerStatusList = computed(() =>
   allQuestions.value.map((q) => {
     const answer = userAnswers.value.get(q.id)
@@ -161,9 +163,15 @@ const answerStatusList = computed(() =>
   })
 )
 
-const totalTime = 60 // 예시: 60초
-const remainingTime = ref(34) // 예시: 34초 남음
-const progressPercentage = computed(() => (remainingTime.value / totalTime) * 100)
+// ===== [7] 타이머 및 진행률 관련 변수 =====
+const totalTime = ref(0) // 서버에서 받아올 제한시간 (초)
+const remainingTime = ref(0) // 남은 시간 (초)
+const timerInterval = ref(null) // 타이머 인터벌 ID
+
+const progressPercentage = computed(() => {
+  if (totalTime.value === 0) return 0
+  return (remainingTime.value / totalTime.value) * 100
+})
 const progressColor = computed(() => remainingTime.value <= 10 ? '#e74c3c' : '#191d5a')
 const formattedTime = computed(() => {
   const m = String(Math.floor(remainingTime.value / 60)).padStart(2, '0')
@@ -171,6 +179,45 @@ const formattedTime = computed(() => {
   return `${m}:${s}`
 })
 
+// ===== [7-1] 타이머 시작 함수 =====
+const startTimer = () => {
+  if (timerInterval.value) {
+    clearInterval(timerInterval.value)
+  }
+  
+  timerInterval.value = setInterval(() => {
+    if (remainingTime.value > 0) {
+      remainingTime.value--
+    } else {
+      // 시간 만료 시 자동 제출
+      clearInterval(timerInterval.value)
+      handleTimeExpired()
+    }
+  }, 1000)
+}
+
+// ===== [7-2] 타이머 정지 함수 =====
+const stopTimer = () => {
+  if (timerInterval.value) {
+    clearInterval(timerInterval.value)
+    timerInterval.value = null
+  }
+}
+
+// ===== [7-3] 시간 만료 시 자동 제출 함수 =====
+const handleTimeExpired = () => {
+  if (showGradingOverlay.value || showCompletionButtons.value) return
+  
+  alert('시험 시간이 만료되었습니다. 답변이 자동으로 제출됩니다.')
+  submitFinalTest()
+}
+
+// ===== [7-4] 컴포넌트 언마운트 시 타이머 정리 =====
+onUnmounted(() => {
+  stopTimer()
+})
+
+// ===== [8] 시험 문제 불러오기 함수 =====
 const fetchTestQuestions = async () => {
   const storedUserId = localStorage.getItem('userId')
   if (!storedUserId) {
@@ -190,6 +237,13 @@ const fetchTestQuestions = async () => {
     })
     const { statusCode, resultMsg, resultData } = response.data
     if (statusCode === 'OK' && resultData && Array.isArray(resultData.questions)) {
+      // 제한시간 설정
+      if (resultData.limitedTime) {
+        totalTime.value = resultData.limitedTime * 60 // 분을 초로 변환
+        remainingTime.value = totalTime.value
+        startTimer() // 타이머 시작
+      }
+      
       allQuestions.value = resultData.questions.map((rawQ, index) => {
         const questionId = `Q${(index + 1).toString().padStart(2, '0')}`
         let initialAnswerValue
@@ -233,12 +287,12 @@ const fetchTestQuestions = async () => {
   }
 }
 
+// ===== [9] 문제 이동 및 선택 관련 함수 =====
 const handleQuestionSelectFromSidebar = (questionId) => {
   if (!showGradingOverlay.value && !showCompletionButtons.value) {
     currentQuestionId.value = questionId
   }
 }
-
 const goToPreviousQuestion = () => {
   if (showGradingOverlay.value || showCompletionButtons.value) return
   const currentIndex = allQuestions.value.findIndex((q) => q.id === currentQuestionId.value)
@@ -246,7 +300,6 @@ const goToPreviousQuestion = () => {
     currentQuestionId.value = allQuestions.value[currentIndex - 1].id
   }
 }
-
 const goToNextQuestion = () => {
   if (showGradingOverlay.value || showCompletionButtons.value) return
   const currentIndex = allQuestions.value.findIndex((q) => q.id === currentQuestionId.value)
@@ -255,14 +308,22 @@ const goToNextQuestion = () => {
   }
 }
 
+// ===== [10] 객관식/주관식 답변 선택 함수 =====
 const getOptionLabel = (index) => String.fromCharCode(65 + index) + ')'
 const selectOption = (option) => {
   if (showGradingOverlay.value || showCompletionButtons.value) return
   if (currentQuestion.value) {
     userAnswers.value.set(currentQuestion.value.id, option)
+    
+    // 객관식 답변 완료 상태 업데이트
+    const questionToUpdate = allQuestions.value.find((q) => q.id === currentQuestion.value.id)
+    if (questionToUpdate) {
+      questionToUpdate.isAnswered = true
+    }
   }
 }
 
+// ===== [11] 답변 제출 및 서버 전송 함수 =====
 const handleSubmitAnswer = () => {
   if (!currentQuestion.value || showGradingOverlay.value || showCompletionButtons.value) return
   const unansweredQuestions = allQuestions.value.filter((q) => {
@@ -283,9 +344,10 @@ const handleSubmitAnswer = () => {
     submitFinalTest()
   }
 }
-
 const submitFinalTest = async () => {
   showGradingOverlay.value = true
+  stopTimer() // 타이머 정지
+  
   const answersToSend = Array.from(userAnswers.value.entries()).map(([questionId, answer]) => {
     const question = allQuestions.value.find((q) => q.id === questionId)
     return {
@@ -313,17 +375,18 @@ const submitFinalTest = async () => {
   }
 }
 
+// ===== [12] 결과 페이지 이동 함수 =====
 const goToTestResult = () => {
   router.push({
     name: 'TraineeTestResult',
     params: { testId: testId },
   })
 }
-
 const goToTraineeMain = () => {
   router.push({ name: 'TraineeMain' })
 }
 
+// ===== [13] 주관식 답변 변경 감지 =====
 watch(
   () => {
     if (currentQuestion.value?.type === 'SUBJECTIVE') {
@@ -342,6 +405,7 @@ watch(
   },
 )
 
+// ===== [14] 컴포넌트 마운트 시 시험 문제 불러오기 =====
 onMounted(() => {
   fetchTestQuestions()
 })
