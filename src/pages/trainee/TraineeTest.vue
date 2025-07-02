@@ -67,7 +67,8 @@
 
       <div class="submit-and-exit-buttons">
         <div class="left-buttons">
-          <button class="nav-button" @click="goToPreviousQuestion" :disabled="!hasPreviousQuestion || showGradingOverlay">
+          <button class="nav-button" @click="goToPreviousQuestion"
+            :disabled="!hasPreviousQuestion || showGradingOverlay">
             <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> 이전 문제
           </button>
         </div>
@@ -75,12 +76,9 @@
           <button class="nav-button" @click="goToNextQuestion" :disabled="!hasNextQuestion || showGradingOverlay">
             다음 문제 <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
           </button>
-          <button
-            class="submit-button"
-            @click="handleSubmitAnswer"
+          <button class="submit-button" @click="handleSubmitAnswer"
             :class="{ 'not-all-answered': !answerStatusList.every(Boolean) }"
-            :disabled="!currentQuestion || showGradingOverlay"
-          >
+            :disabled="!currentQuestion || showGradingOverlay">
             제출
           </button>
         </div>
@@ -264,7 +262,8 @@ const fetchTestQuestions = async () => {
         }
         userAnswers.value.set(questionId, initialAnswerValue)
         return {
-          id: questionId,
+          id: questionId, // 프론트 표시용
+          rawId: rawQ.id, // 백엔드용(MongoDB ObjectId)
           type: rawQ.type,
           difficulty_level: rawQ.difficulty_level,
           questionText: rawQ.question,
@@ -280,6 +279,7 @@ const fetchTestQuestions = async () => {
           isAnswered: false,
         }
       })
+      console.log('🟩 백엔드에서 받은 질문 목록:', resultData.questions)
       if (allQuestions.value.length > 0) {
         currentQuestionId.value = allQuestions.value[0].id
       } else {
@@ -358,12 +358,14 @@ const submitFinalTest = async () => {
   showGradingOverlay.value = true
   stopTimer() // 타이머 정지
 
-  const answersToSend = Array.from(userAnswers.value.entries()).map(([questionId, answer]) => {
-    const question = allQuestions.value.find((q) => q.id === questionId)
+  const answersToSend = allQuestions.value.map((q) => {
+    const answer = userAnswers.value.get(q.id)
     return {
-      id: parseInt(questionId.replace(/[^\d]/g, '')),  // "Q01" → 1
-      response: typeof answer === 'object' ? answer.value : answer,
-      questionType: question ? question.type : 'UNKNOWN',
+      // id: q.rawId, // ObjectId 그대로 전달
+      // response: typeof answer === 'object' ? answer.value : answer,
+      question_id: q.rawId, // ObjectId 그대로 전달
+      user_answer: typeof answer === 'object' ? answer.value : answer,
+      questionType: q.type,
     }
   })
   console.log('🔍 요청 URL:', api.defaults.baseURL + '/answer')
