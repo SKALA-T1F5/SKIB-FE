@@ -107,6 +107,13 @@
     "feedback_top_prefix": "placing in the top",
     "feedback_top_suffix": "",
     "feedback_noDocumentAccuracyData": "No document accuracy data available.",
+    "feedback_tags": {
+      "analysis": "Analysis",
+      "problemSolving": "Problem Solving",
+      "reasoning": "Reasoning",
+      "comprehension": "Comprehension",
+      "logic": "Logic"
+    },
     "userRoles": {
       "trainer": "Trainer",
       "trainee": "Trainee"

@@ -53,7 +53,7 @@
 
               <section class="dashboard-card tag-capacity-card">
                 <h2 class="card-title">{{ $t('feedback_tag_evaluation') }}</h2>
-                <RadarChart :tag-accuracy="feedbackData.tagAccuracy" />
+                <RadarChart :tag-accuracy="processedTagAccuracy" />
               </section>
             </div>
 
@@ -85,6 +85,7 @@
 // =========================
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 // 레이아웃 및 차트 컴포넌트
 import MainLayout from '@/components/layouts/MainLayout.vue'
 import RadarChart from '@/components/trainee/feedback/RadarChart.vue'
@@ -96,6 +97,7 @@ import axios from '@/config/axios' // axios 인스턴스
 // 2. 라우트 및 사용자 정보
 // =========================
 const route = useRoute() // 현재 라우트 정보
+const { t } = useI18n()
 const testId = route.params.testId // URL에서 시험 ID 추출
 const myUserId = ref(localStorage.getItem('userId')) // LocalStorage에서 사용자 ID 추출
 
@@ -145,6 +147,29 @@ const topPercentage = computed(() => {
   const percentage = ((myRank.value - 1) / (totalParticipants.value - 1)) * 100
   return parseFloat(percentage.toFixed(1))
 })
+
+const processedTagAccuracy = computed(() => {
+  const original = feedbackData.value.tagAccuracy
+  const translated = {}
+  const tagKeyMap = {
+    '분석력': 'feedback_tags.analysis',
+    '문제해결력': 'feedback_tags.problemSolving',
+    '추론력': 'feedback_tags.reasoning',
+    '이해력': 'feedback_tags.comprehension',
+    '논리력': 'feedback_tags.logic'
+  }
+
+  for (const key in original) {
+    if (Object.prototype.hasOwnProperty.call(tagKeyMap, key)) {
+      const translatedKey = t(tagKeyMap[key])
+      translated[translatedKey] = original[key]
+    } else {
+      translated[key] = original[key]
+    }
+  }
+  return translated
+})
+
 
 // =========================
 // 5. 피드백 데이터 백엔드에서 불러오기
