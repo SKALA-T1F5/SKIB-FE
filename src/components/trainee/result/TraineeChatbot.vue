@@ -90,13 +90,8 @@ async function initializeTest(testQuestions) {
 
 async function askWithLanggraph(question, questionId) {
   try {
-    // userId가 숫자면 'test_user_01' 형식으로 변환
-    let userIdStr = props.userId
-    if (typeof userIdStr === 'number' || (typeof userIdStr === 'string' && /^\d+$/.test(userIdStr))) {
-      userIdStr = `test_user_${String(userIdStr).padStart(2, '0')}`
-    }
     const reqBody = {
-      userId: userIdStr,
+      userId: props.userId,
       question,
       id: questionId,
     }

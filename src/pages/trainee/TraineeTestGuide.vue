@@ -1,7 +1,14 @@
 <template>
   <MainLayout :show-sidebar="false">
     <template #content>
-      <div class="test-guide-content">
+      <AddTestModalLang
+        v-if="showLangModal"
+        :is-visible="showLangModal"
+        :hide-invite-link="true"
+        @close="showLangModal = false"
+        @lang-selected="handleLangSelected"
+      />
+      <div v-else class="test-guide-content">
         <div class="guide-header">
           <h2 class="guide-title">{{ $t('testGuideTitle') }}</h2>
           <p class="guide-subtitle">{{ $t('testGuideSubtitle') }}</p>
@@ -69,6 +76,7 @@ import MainLayout from '@/components/layouts/MainLayout.vue'
 import axios from '@/config/axios'
 import { isAxiosError } from 'axios'
 import { useI18n } from 'vue-i18n'
+import AddTestModalLang from '@/components/trainee/main/AddTestModalLang.vue'
 
 const { t } = useI18n()
 
@@ -86,6 +94,7 @@ const difficultyLevel = ref('NORMAL') // API 응답에 difficultyLevel이 없으
 const isRetake = ref(0) // API 응답에 isRetake가 없으므로 기본값 유지
 
 const isLoading = ref(true)
+const showLangModal = ref(false)
 
 const fetchTestGuideData = async () => {
   // 1. userId를 Local Storage에서 가져오기
@@ -143,8 +152,19 @@ const fetchTestGuideData = async () => {
 }
 
 onMounted(() => {
-  fetchTestGuideData()
+  // 진입 시 lang(localStorage.lang)이 없으면 모달 오픈
+  if (!localStorage.getItem('lang')) {
+    showLangModal.value = true
+  } else {
+    fetchTestGuideData()
+  }
 })
+
+function handleLangSelected(lang) {
+  localStorage.setItem('lang', lang)
+  showLangModal.value = false
+  fetchTestGuideData()
+}
 
 const formatTime = (totalMinutes) => {
   if (totalMinutes === undefined || totalMinutes === null) return t('infoNotAvailable')

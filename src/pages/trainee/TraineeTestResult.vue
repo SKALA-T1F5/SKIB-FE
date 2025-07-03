@@ -141,6 +141,7 @@ onUnmounted(() => {
   document.removeEventListener('selectstart', blockEvent)
   document.removeEventListener('dragstart', blockEvent)
   document.removeEventListener('keydown', blockEvent)
+  localStorage.removeItem('lang')
   // console.log('🔓 blockEvent 해제')
 })
 
