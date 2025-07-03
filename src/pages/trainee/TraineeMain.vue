@@ -209,9 +209,9 @@ const fetchTests = async () => {
           score: test.score,
           limitedTime: test.limitedTime,
           createdAt: test.createdAt,
-          isPassed: test.isPassed,
-          retake: test.retake,
-          isRetake: test.isRetake,
+          isPassed: typeof test.isPassed === 'string' ? Number(test.isPassed) : (typeof test.isPassed === 'boolean' ? (test.isPassed ? 1 : 0) : test.isPassed),
+          retake: typeof test.retake === 'string' ? Number(test.retake) : (typeof test.retake === 'boolean' ? (test.retake ? 1 : 0) : test.retake),
+          isRetake: typeof test.isRetake === 'string' ? Number(test.isRetake) : (typeof test.isRetake === 'boolean' ? (test.isRetake ? 1 : 0) : test.isRetake),
           passScore: test.passScore,
         }
       })

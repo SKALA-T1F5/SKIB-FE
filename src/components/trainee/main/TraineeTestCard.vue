@@ -14,9 +14,9 @@
         </button>
         <button class="action-button" @click="$emit('feedback', test.testId)">{{ $t('feedback') }}</button>
         <button
-          v-if="test.isRetake"
-          :class="['action-button', 'retake-button', { 'disabled-retake': test.retake === 1 }]"
-          :disabled="test.retake === 1"
+          v-if="test.isRetake === 1"
+          :class="['action-button', 'retake-button', { 'disabled-retake': isRetakeDisabled }]"
+          :disabled="isRetakeDisabled"
           @click="$emit('attend', test.testId)"
         >
           {{ $t('retake') }}
@@ -27,14 +27,19 @@
 </template>
 
 <script setup>
-// No changes to script setup needed beyond the click handler.
+import { computed } from 'vue'
 
 const props = defineProps({
   test: Object,
 })
 
-// 'retake' 이벤트를 'retake-action'으로 변경하여 이름 충돌 방지 및 명확성 부여
 const emit = defineEmits(['retake-action', 'feedback', 'attend'])
+
+const isRetakeDisabled = computed(() => {
+  console.log('[TraineeTestCard] isPassed:', props.test.isPassed, 'retake:', props.test.retake, 'isRetake:', props.test.isRetake)
+  // 하나라도 해당되면 비활성화
+  return props.test.isPassed === 1 || props.test.retake === 1 || props.test.isRetake === 0
+})
 
 const formatTime = (minutes) => {
   const hours = Math.floor(minutes / 60)
