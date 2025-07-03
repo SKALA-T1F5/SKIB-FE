@@ -7,7 +7,7 @@
         :class="['question-item-sidebar', { active: question.id === currentQuestionId }]"
         @click="selectQuestion(question.id)"
       >
-        <span class="question-id">{{ question.id }}</span>
+        <span class="question-id">{{ question.questionNo || question.id }}</span>
         <span
           :class="[
             'status-indicator',
@@ -77,7 +77,7 @@ const getIndicatorTitle = (question) => {
 watch(
   () => props.questions,
   (newVal) => {
-    console.log('TraineeTestResultSideBar: questions updated', newVal)
+    // console.log('TraineeTestResultSideBar: questions updated', newVal)
   },
   { deep: true },
 )
@@ -85,7 +85,7 @@ watch(
 watch(
   () => props.currentQuestionId,
   (newVal) => {
-    console.log('TraineeTestResultSideBar: currentQuestionId updated', newVal)
+    // console.log('TraineeTestResultSideBar: currentQuestionId updated', newVal)
   },
 )
 </script>
