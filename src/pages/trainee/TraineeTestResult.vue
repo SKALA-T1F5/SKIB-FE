@@ -129,7 +129,7 @@ onMounted(() => {
       return false
     }
   })
-  console.log('🛡️ blockEvent 활성화')
+  // console.log('🛡️ blockEvent 활성화')
 })
 
 onUnmounted(() => {
@@ -141,7 +141,7 @@ onUnmounted(() => {
   document.removeEventListener('selectstart', blockEvent)
   document.removeEventListener('dragstart', blockEvent)
   document.removeEventListener('keydown', blockEvent)
-  console.log('🔓 blockEvent 해제')
+  // console.log('🔓 blockEvent 해제')
 })
 
 // 언어 변경 시 API 재호출

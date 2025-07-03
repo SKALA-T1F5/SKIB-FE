@@ -469,7 +469,7 @@ onMounted(() => {
       return false
     }
   })
-  console.log('🛡️ blockEvent 활성화')
+  // console.log('🛡️ blockEvent 활성화')
 })
 
 // ===== [14-1] 컴포넌트 언마운트 시 이벤트 해제 =====
@@ -484,7 +484,7 @@ onUnmounted(() => {
   document.removeEventListener('selectstart', blockEvent)
   document.removeEventListener('dragstart', blockEvent)
   document.removeEventListener('keydown', blockEvent)
-  console.log('🔓 blockEvent 해제')
+  // console.log('🔓 blockEvent 해제')
 })
 
 // ===== [14-2] 새로고침/닫기 방지 핸들러 =====
