@@ -106,23 +106,4 @@ const emitReturnToList = () => {
   line-height: 1;
   padding-bottom: 2px;
 }
-
-/* 하단 고정 버튼을 위한 스타일 (TestPrompt와 동일하게) */
-.bottom-fixed-actions {
-  position: sticky;
-  bottom: 0;
-  width: 100%;
-  background-color: white;
-  padding: 16px 0;
-  border-top: 1px solid #eee;
-  z-index: 100;
-  max-width: 100%;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-}
-.bottom-fixed-actions .v-col {
-  padding-top: 0;
-  padding-bottom: 0;
-}
 </style>

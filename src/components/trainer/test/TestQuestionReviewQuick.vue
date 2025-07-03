@@ -163,17 +163,6 @@
                 {{ getDifficultyText(currentQuestion.difficulty) }}
               </span>
               <v-spacer></v-spacer>
-
-              <v-btn
-                variant="flat"
-                class="ml-2 refresh-button"
-                @click="replaceQuestion"
-                :loading="isRefreshing"
-                :disabled="questions.length === 0"
-              >
-                <v-icon start>mdi-refresh</v-icon>
-                문제 교체
-              </v-btn>
             </div>
 
             <div class="question-section flex-grow-1">
@@ -268,7 +257,15 @@
           variant="flat"
           color="#191d5a"
           @click="nextStep"
-          :disabled="questions.length === 0 || isFetchingQuestions"
+          :disabled="
+            questions.length === 0 ||
+            isFetchingQuestions ||
+            !internalTestName ||
+            !internalTestDuration ||
+            internalTestDuration <= 0 ||
+            !internalPassingScore ||
+            internalPassingScore <= 0
+          "
         >
           검토 완료
         </v-btn>
@@ -280,10 +277,9 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
 
 const router = useRouter()
-const emit = defineEmits(['next-step', 'prev-step', 'update:isLoading'])
+const emit = defineEmits(['next-step', 'prev-step'])
 
 console.log('🔍 TestQuestionReviewQuick 컴포넌트 로드됨')
 
@@ -304,15 +300,12 @@ const props = defineProps({
   },
   testName: {
     type: String,
-    default: '',
   },
   testDuration: {
     type: Number,
-    default: 60,
   },
   passingScore: {
     type: Number,
-    default: 60,
   },
 })
 
@@ -345,7 +338,13 @@ function nextStep() {
   // 실제 사용 시에는 이 데이터들을 API에 전송해야 합니다.
   const selectedQuestionIds = questions.value.map((q) => q.id) // 모든 문제를 선택된 것으로 가정
   const toDeleteQuestionIds = [] // 삭제할 문제가 없다고 가정
-  emit('next-step', { selectedQuestionIds, toDeleteQuestionIds })
+  emit('next-step', {
+    selectedQuestionIds,
+    toDeleteQuestionIds,
+    testName: internalTestName.value, // 추가: 테스트명
+    testDuration: internalTestDuration.value, // 추가: 응시 제한 시간
+    passingScore: internalPassingScore.value, // 추가: 합격 기준 점수
+  })
 }
 
 function prevStep() {
@@ -357,7 +356,6 @@ const questions = ref([])
 const extraQuestions = ref([]) // TestQuestionReviewAI에서 추가됨
 const selectedQuestionIndex = ref(0)
 const isFetchingQuestions = ref(false)
-const isRefreshing = ref(false) // TestQuestionReviewAI에서 추가됨
 const expandedPanels = ref([]) // TestQuestionReviewAI에서 추가됨
 
 const currentQuestion = computed(() => {
@@ -476,56 +474,6 @@ const processQuestionsData = (data) => {
   } else {
     expandedPanels.value = []
   }
-}
-
-const saveQuestionChanges = async () => {
-  if (!currentQuestion.value) return
-
-  try {
-    // 실제 API 연동 시에는 currentQuestion.value의 변경된 내용을 서버로 전송
-    // 예: await axios.put(`/api/questions/${currentQuestion.value.id}`, currentQuestion.value);
-    console.log('문제 변경 사항 저장:', currentQuestion.value)
-    alert('문제 변경 사항이 저장되었습니다.')
-  } catch (error) {
-    console.error('문제 변경 사항 저장 실패:', error)
-    alert('문제 변경 사항 저장에 실패했습니다.')
-  }
-}
-
-const replaceQuestion = async () => {
-  if (!currentQuestion.value) return
-
-  isRefreshing.value = true
-  alert('문제 교체 기능은 아직 구현되지 않았습니다. AI 재요청 로직이 필요합니다.')
-  console.log('문제 교체 요청 (AI 재요청):', currentQuestion.value)
-
-  // TestQuestionReviewAI의 교체 로직 (EXTRA 문제 활용)을 여기에 적용하려면 extraQuestions.value에 데이터가 있어야 합니다.
-  // 현재 quick 모드에서는 extraQuestions를 생성하지 않으므로, 이 로직은 작동하지 않습니다.
-  // 실제 AI 재요청 API를 호출하는 로직이 필요합니다.
-
-  // 임시 로딩 상태 해제
-  setTimeout(() => {
-    isRefreshing.value = false
-  }, 500)
-}
-
-// TestQuestionReviewAI에서 가져온 함수
-const updateDocumentsList = () => {
-  const docsMap = new Map()
-
-  questions.value.forEach((q) => {
-    const docId = q.documentId
-    if (!docsMap.has(docId)) {
-      docsMap.set(docId, {
-        id: docId,
-        name: q.documentName,
-        questions: [],
-      })
-    }
-    docsMap.get(docId).questions.push(q)
-  })
-
-  documents.value = Array.from(docsMap.values())
 }
 
 watch(

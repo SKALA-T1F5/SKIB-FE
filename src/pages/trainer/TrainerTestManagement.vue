@@ -98,7 +98,7 @@
       :exam-goal="examPrompt"
       :questions-data="questionsData"
       @update:isLoading="(val) => (isLoading = val)"
-      @prev-step="goToConfigOrQuickConfig"
+      @prev-step="goToConfig"
       @next-step="handleQuestionNext"
     />
 
@@ -112,8 +112,8 @@
       :test-duration="quickTestDuration"
       :passing-score="quickPassingScore"
       @update:isLoading="(val) => (isLoading = val)"
-      @prev-step="goToConfigOrQuickConfig"
-      @next-step="handleQuestionNext"
+      @prev-step="goToQuickConfig"
+      @next-step="handleQuickReviewComplete"
     />
 
     <TestGenerate
@@ -156,8 +156,8 @@ const testCreationType = ref(null) // 'ai' 또는 'quick'
 
 // TestQuickConfig에서 받아온 값들을 저장할 ref 추가 (이제 TestQuickConfig에서 입력받지 않음)
 const quickTestName = ref('')
-const quickTestDuration = ref(60)
-const quickPassingScore = ref(60)
+const quickTestDuration = ref()
+const quickPassingScore = ref()
 
 const selectedDocument = ref({
   title: '',
@@ -260,19 +260,6 @@ const goToGenerate = (linkToken = null) => {
     },
   })
   testLink.value = `${window.location.origin}${resolvedRoute.href}`
-}
-
-const goToConfigOrQuickConfig = async () => {
-  if (testCreationType.value === 'ai') {
-    // AI 기반 테스트의 이전 단계는 TestConfig
-    await goToConfig()
-  } else if (testCreationType.value === 'quick') {
-    // 빠른 테스트의 이전 단계는 TestQuickConfig
-    await goToQuickConfig()
-  } else {
-    // 예외 처리 또는 기본 동작 (예: 목록으로 돌아가기)
-    goToList()
-  }
 }
 
 // --- Event Handlers from Child Components ---
@@ -509,10 +496,6 @@ const handleQuickConfigNext = async (updatedRevenues, totalTestQuestions) => {
   })
 
   try {
-    quickTestName.value = '새로운 빠른 테스트'
-    quickTestDuration.value = 60
-    quickPassingScore.value = 60
-
     // 랜덤 테스트 생성 API 호출
     const response = await axios.get('/test/random', {
       params: {
@@ -555,6 +538,44 @@ const handleQuickConfigNext = async (updatedRevenues, totalTestQuestions) => {
   } finally {
     isLoading.value = false
     loadingMessage.value = '데이터 로딩 중입니다.'
+  }
+}
+
+const handleQuickReviewComplete = async (data) => {
+  loadingMessage.value = '테스트 저장 중...'
+  isLoading.value = true
+
+  try {
+    const requestBody = {
+      name: data.testName,
+      limitedTime: data.testDuration,
+      passScore: data.passingScore,
+      projectId: currentProjectId.value,
+      difficulty_level: 'RANDOM', // TestQuestionReviewQuick에서 난이도 정보를 받지 않으므로 기본값 사용
+      questionIds: data.selectedQuestionIds,
+    }
+
+    console.log('API Request Body (POST /test/random/save):', requestBody)
+
+    const response = await axios.post('/test/random/save', requestBody)
+
+    console.log('API 응답 (/test/random/save):', response.data)
+
+    if (response.data.statusCode === 'OK' && response.data.resultData) {
+      // API 응답의 resultData에 testId와 linkToken이 있다고 가정
+      testId.value = response.data.resultData.testId || null
+      goToGenerate(response.data.resultData.linkToken || null) // linkToken을 goToGenerate로 전달
+    } else {
+      alert('테스트 저장 중 오류가 발생했습니다: ' + response.data.resultMsg)
+    }
+  } catch (error) {
+    console.error('API 통신 오류 (/test/random/save):', error)
+    alert(
+      '테스트 저장 중 오류가 발생했습니다. 네트워크 연결을 확인하거나 나중에 다시 시도해주세요.',
+    )
+  } finally {
+    isLoading.value = false
+    loadingMessage.value = '데이터 로딩 중입니다...'
   }
 }
 
