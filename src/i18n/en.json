@@ -130,5 +130,8 @@
     "userMenu": {
       "myPage": "My Page",
       "logout": "Logout"
-    }
+    },
+    "translating": "Changing language ...",
+    "confirmExitResult": "Do you want to exit the test result page?",
+    "loadingTestResult": "Loading test results..."
   }

@@ -130,6 +130,9 @@
     "userMenu": {
       "myPage": "Trang cá nhân",
       "logout": "Đăng xuất"
-    }
+    },
+    "translating": "Đang thay đổi ngôn ngữ ...",
+    "confirmExitResult": "Bạn có muốn thoát khỏi trang kết quả bài kiểm tra không?",
+    "loadingTestResult": "Đang tải kết quả bài kiểm tra..."
   }
   

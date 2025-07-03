@@ -27,7 +27,7 @@
                 :grading-criteria="currentQuestion.gradingCriteria" />
             </div>
             <div v-else class="loading-message">
-              <p>시험 결과를 로딩 중입니다...</p>
+              <p>{{ $t('loadingTestResult') }}</p>
             </div>
 
             <!-- <div class="exit-button-container">
@@ -52,7 +52,7 @@
           </div>
 
           <div v-if="isTranslating" class="translating-message-overlay">
-            언어 변경 중 ...
+            {{ $t('translating') }}
           </div>
 
         </div>
@@ -219,7 +219,7 @@ const goToNextQuestion = () => {
 }
 
 const exitTestResult = () => {
-  if (confirm('테스트 결과 화면을 종료하시겠습니까?')) {
+  if (confirm(t('confirmExitResult'))) {
     console.log('테스트 결과 화면 종료 (실제 앱에서는 메인 페이지로 이동)')
     router.push({ name: 'TraineeMain' })
   }
