@@ -103,21 +103,21 @@ const currentQuestionIndex = computed(() => {
 const hasPreviousQuestion = computed(() => currentQuestionIndex.value > 0)
 const hasNextQuestion = computed(() => currentQuestionIndex.value < allQuestions.value.length - 1)
 
+// ===== [보안] blockEvent 함수는 전역에서 한 번만 정의 =====
+function blockEvent(e) {
+  e.preventDefault()
+  return false
+}
+
 onMounted(() => {
   fetchTestQuestions()
-
   // ===== [보안] 복사/붙여넣기/우클릭/드래그/개발자도구 차단 =====
-  const blockEvent = (e) => {
-    e.preventDefault()
-    return false
-  }
   document.addEventListener('copy', blockEvent)
   document.addEventListener('cut', blockEvent)
   document.addEventListener('paste', blockEvent)
   document.addEventListener('contextmenu', blockEvent)
   document.addEventListener('selectstart', blockEvent)
   document.addEventListener('dragstart', blockEvent)
-  // F12, Ctrl+Shift+I, Ctrl+U, PrintScreen 등 차단
   document.addEventListener('keydown', (e) => {
     if (
       e.key === 'F12' ||
@@ -129,14 +129,11 @@ onMounted(() => {
       return false
     }
   })
+  console.log('🛡️ blockEvent 활성화')
 })
 
 onUnmounted(() => {
   // 보안 이벤트 해제
-  const blockEvent = (e) => {
-    e.preventDefault()
-    return false
-  }
   document.removeEventListener('copy', blockEvent)
   document.removeEventListener('cut', blockEvent)
   document.removeEventListener('paste', blockEvent)
@@ -144,6 +141,7 @@ onUnmounted(() => {
   document.removeEventListener('selectstart', blockEvent)
   document.removeEventListener('dragstart', blockEvent)
   document.removeEventListener('keydown', blockEvent)
+  console.log('🔓 blockEvent 해제')
 })
 
 // 언어 변경 시 API 재호출
@@ -168,7 +166,7 @@ const fetchTestQuestions = async () => {
     const prevQuestionId = currentQuestionId.value
     // 기존 allQuestions용 API
     const res = await api.get('/answer/getResult', { params })
-    console.log('[fetchTestQuestions] resultData:', res.data.resultData)
+    // console.log('[fetchTestQuestions] resultData:', res.data.resultData)
     if (res.data.statusCode === 'OK' && Array.isArray(res.data.resultData)) {
       allQuestions.value = res.data.resultData.map((q, index) => ({
         id: q.questionId,

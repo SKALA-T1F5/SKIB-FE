@@ -245,9 +245,9 @@ const fetchTestQuestions = async () => {
   try {
     const lang = localStorage.getItem('lang') || 'ko'
     const params = { userId: userId.value, testId: testId, lang }
-    console.log('[fetchTestQuestions] params:', params)
+    // console.log('[fetchTestQuestions] params:', params)
     const response = await api.get('/test/getUserTest', { params })
-    console.log('[fetchTestQuestions] response:', response.data)
+    // console.log('[fetchTestQuestions] response:', response.data)
     const { statusCode, resultMsg, resultData } = response.data
     if (statusCode === 'OK' && resultData && Array.isArray(resultData.questions)) {
       // 제한시간 설정
@@ -427,6 +427,12 @@ watch(
 // ===== [14] 컴포넌트 마운트 시 시험 문제 불러오기 =====
 let removeRouterGuard = null
 
+// ===== [보안] blockEvent 함수는 전역에서 한 번만 정의 =====
+function blockEvent(e) {
+  e.preventDefault()
+  return false
+}
+
 onMounted(() => {
   fetchTestQuestions()
 
@@ -446,17 +452,12 @@ onMounted(() => {
   })
 
   // ===== [보안] 복사/붙여넣기/우클릭/드래그/개발자도구 차단 =====
-  const blockEvent = (e) => {
-    e.preventDefault()
-    return false
-  }
   document.addEventListener('copy', blockEvent)
   document.addEventListener('cut', blockEvent)
   document.addEventListener('paste', blockEvent)
   document.addEventListener('contextmenu', blockEvent)
   document.addEventListener('selectstart', blockEvent)
   document.addEventListener('dragstart', blockEvent)
-  // F12, Ctrl+Shift+I, Ctrl+U, PrintScreen 등 차단
   document.addEventListener('keydown', (e) => {
     if (
       e.key === 'F12' ||
@@ -468,6 +469,7 @@ onMounted(() => {
       return false
     }
   })
+  console.log('🛡️ blockEvent 활성화')
 })
 
 // ===== [14-1] 컴포넌트 언마운트 시 이벤트 해제 =====
@@ -475,10 +477,6 @@ onUnmounted(() => {
   stopTimer()
   window.removeEventListener('beforeunload', beforeUnloadHandler)
   // 보안 이벤트 해제
-  const blockEvent = (e) => {
-    e.preventDefault()
-    return false
-  }
   document.removeEventListener('copy', blockEvent)
   document.removeEventListener('cut', blockEvent)
   document.removeEventListener('paste', blockEvent)
@@ -486,6 +484,7 @@ onUnmounted(() => {
   document.removeEventListener('selectstart', blockEvent)
   document.removeEventListener('dragstart', blockEvent)
   document.removeEventListener('keydown', blockEvent)
+  console.log('🔓 blockEvent 해제')
 })
 
 // ===== [14-2] 새로고침/닫기 방지 핸들러 =====
