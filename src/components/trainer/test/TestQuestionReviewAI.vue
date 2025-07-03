@@ -72,14 +72,16 @@
                       @click="selectQuestion(questions.indexOf(item))"
                       class="question-list-item"
                     >
-                      <h6 class="text-body-2 text-medium-emphasis">
-                        Q{{ String(questions.indexOf(item) + 1).padStart(2, '0') }} ({{
-                          item.type === 'MCQ' ? '객관식' : '주관식'
-                        }})
-                      </h6>
-                      <p class="text-caption text-medium-emphasis">
-                        {{ item.question.substring(0, 30) }}...
-                      </p>
+                      <v-list-item-content>
+                        <h6 class="text-body-2 text-medium-emphasis">
+                          Q{{ String(questions.indexOf(item) + 1).padStart(2, '0') }} ({{
+                            item.type === 'MCQ' ? '객관식' : '주관식'
+                          }})
+                        </h6>
+                        <p class="text-caption text-medium-emphasis">
+                          {{ item.question }}
+                        </p>
+                      </v-list-item-content>
                     </v-list-item>
                   </v-list>
                 </div>
@@ -655,33 +657,49 @@ onMounted(() => {
   overflow-y: hidden;
 }
 
+/* (1) 문제 목록 높이 제한 */
 .question-list-scrollable {
   height: 100%;
+  max-height: 600px; /* 문제 정보 Section과 맞추어 필요시 조절 */
   overflow-y: auto;
   flex-grow: 1;
   min-height: 0;
 }
 
+/* (2) 문제 목록 아이템 구분선 */
 .question-list-panels .v-list-item {
   border-radius: 4px;
-  margin-bottom: 4px;
+  margin-bottom: 0; /* margin 제거 */
+  border-bottom: 1px solid #ddd;
   transition: background-color 0.2s ease;
   padding-left: 12px;
 }
 
-.question-list-panels .v-list-item:hover {
-  background-color: #f9f9f9;
+/* 마지막 아이템 구분선 제거 */
+.question-list-panels .v-list-item:last-child {
+  border-bottom: none;
 }
 
-.question-list-panels .v-list-item.v-list-item--active {
-  background-color: #f5f5f5;
-  border-left: 4px solid #1976d2;
-  color: #191d5a;
+/* (3) 문제 항목 텍스트 한 줄 처리 */
+.question-list-panels .v-list-item h6,
+.question-list-panels .v-list-item p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1 1 auto; /* 중요: Flexbox에서 폭이 줄어들지 않게 */
+  min-width: 0;
 }
 
-.question-list-panels .v-list-item.v-list-item--active h6,
-.question-list-panels .v-list-item.v-list-item--active p {
-  color: #191d5a !important;
+.question-list-item .v-list-item-content {
+  min-width: 0; /* flex item 줄어들 수 있게 */
+  flex: 1 1 auto; /* 공간을 꽉 채움 */
+}
+
+.question-list-item .v-list-item-content h6,
+.question-list-item .v-list-item-content p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .question-section {
