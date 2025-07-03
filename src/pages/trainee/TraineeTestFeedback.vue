@@ -152,10 +152,11 @@ const hasData = computed(() => {
 
 // 내 순위가 상위 몇 %인지 계산
 const topPercentage = computed(() => {
-  if (totalParticipants.value <= 1) {
-    return 0.0
-  }
-  const percentage = ((myRank.value - 1) / (totalParticipants.value - 1)) * 100
+  if (totalParticipants.value <= 1) return 0.0
+  // 내 점수보다 낮은 사람 수
+  const lowerCount = allParticipantScores.value.filter(p => p.score < feedbackData.value.totalCorrectRate).length
+  // 상위 % = (내 점수보다 낮은 사람 수 / 전체 인원) * 100
+  const percentage = (lowerCount / totalParticipants.value) * 100
   return parseFloat(percentage.toFixed(1))
 })
 
@@ -314,23 +315,9 @@ const calculateRank = (myScore) => {
     myRank.value = 0
     return
   }
-  // 점수 내림차순 정렬 후 내 점수의 순위 계산
-  const sortedScores = allParticipantScores.value.map((p) => p.score).sort((a, b) => b - a)
-  let currentRank = 1
-  let foundMyRank = false
-  for (let i = 0; i < sortedScores.length; i++) {
-    if (i > 0 && sortedScores[i] < sortedScores[i - 1]) {
-      currentRank = i + 1
-    }
-    if (sortedScores[i] === myScore && !foundMyRank) {
-      myRank.value = currentRank
-      foundMyRank = true
-    }
-  }
-  // 내 점수가 분포에 없으면 꼴찌 처리
-  if (!foundMyRank) {
-    myRank.value = totalParticipants.value
-  }
+  // 내 점수보다 높은 사람 수 + 1 = 내 순위
+  const higherCount = allParticipantScores.value.filter(p => p.score > myScore).length
+  myRank.value = higherCount + 1
 }
 
 // =========================
