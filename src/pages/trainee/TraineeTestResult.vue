@@ -57,7 +57,7 @@
 
         </div>
 
-        <TraineeChatbot :current-question-id="currentQuestionId" />
+         <TraineeChatbot :current-question-id="currentQuestion ? currentQuestion.id : null" :test-questions="chatbotQuestions" :user-id="userId" />
       </div>
     </template>
 
@@ -83,8 +83,10 @@ const router = useRouter()
 const route = useRoute()
 
 const allQuestions = ref([])
+const chatbotQuestions = ref([])
 const currentQuestionId = ref(null)
 const isTranslating = ref(false)
+const userId = localStorage.getItem('userId') || ''
 
 const currentQuestion = computed(() => {
   if (!currentQuestionId.value || allQuestions.value.length === 0) {
@@ -146,7 +148,7 @@ onUnmounted(() => {
 
 // 언어 변경 시 API 재호출
 watch(locale, (newLang, oldLang) => {
-  console.log('[watch] locale changed:', oldLang, '→', newLang)
+  // console.log('[watch] locale changed:', oldLang, '→', newLang)
   if (newLang !== oldLang) {
     fetchTestQuestions()
   }
@@ -156,17 +158,17 @@ const fetchTestQuestions = async () => {
   try {
     isTranslating.value = true
     // userId, testId, lang 파라미터 준비
-    const userId = localStorage.getItem('userId')
     let testId = route.params.testId
     if (!testId) testId = localStorage.getItem('testId')
     const lang = locale.value || 'ko'
-    console.log('[fetchTestQuestions] lang:', lang)
-    console.log('[getResult] params:', { userId, testId, lang })
+    // console.log('[fetchTestQuestions] lang:', lang)
+    // console.log('[getResult] params:', { userId, testId, lang })
     const params = { userId, testId, lang }
     // 언어 변경 전 현재 문제 id 저장
     const prevQuestionId = currentQuestionId.value
+    // 기존 allQuestions용 API
     const res = await api.get('/answer/getResult', { params })
-    console.log('[fetchTestQuestions] resultData:', res.data.resultData)
+    // console.log('[fetchTestQuestions] resultData:', res.data.resultData)
     if (res.data.statusCode === 'OK' && Array.isArray(res.data.resultData)) {
       allQuestions.value = res.data.resultData.map((q, index) => ({
         id: q.questionId,
@@ -192,10 +194,18 @@ const fetchTestQuestions = async () => {
     } else {
       allQuestions.value = []
     }
+    // 챗봇용 API 호출
+    const chatbotRes = await api.get('/test/getUserTest', { params })
+    if (chatbotRes.data.statusCode === 'OK' && chatbotRes.data.resultData && Array.isArray(chatbotRes.data.resultData.questions)) {
+      chatbotQuestions.value = chatbotRes.data.resultData.questions
+    } else {
+      chatbotQuestions.value = []
+    }
     isTranslating.value = false
   } catch (error) {
-    console.error('/answer/getResult API 호출 실패:', error)
+    console.error('/answer/getResult 또는 /test/getUserTest API 호출 실패:', error)
     allQuestions.value = []
+    chatbotQuestions.value = []
     isTranslating.value = false
   }
 }
@@ -220,7 +230,7 @@ const goToNextQuestion = () => {
 
 const exitTestResult = () => {
   if (confirm(t('confirmExitResult'))) {
-    console.log('테스트 결과 화면 종료 (실제 앱에서는 메인 페이지로 이동)')
+    // console.log('테스트 결과 화면 종료 (실제 앱에서는 메인 페이지로 이동)')
     router.push({ name: 'TraineeMain' })
   }
 }
@@ -263,7 +273,7 @@ const exitTestResult = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  /* margin-bottom: 25px; */
   /* question-solution-area와의 간격 */
   flex-shrink: 0;
   height: 48px;
