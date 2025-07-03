@@ -19,64 +19,70 @@
         </p>
 
         <div class="top-section-grid">
-          <AISummaryCard :ai-output-data="aiOutputData" @download="downloadAISummary" />
+          <AISummaryCard
+            v-if="hasAISummaryData"
+            :ai-output-data="aiOutputData"
+            @download="downloadAISummary"
+          />
+          <div v-else class="no-data-message">표시할 데이터가 없습니다</div>
 
           <div class="right-column">
             <AverageScoreCard
+              v-if="hasAverageScoreData"
               :average-score="averageScore"
               :passers-count="passersCount"
               :total-participants="totalParticipants"
               @download="downloadAverageScore"
             />
+            <div v-else class="no-data-message small-no-data-message">표시할 데이터가 없습니다</div>
 
             <TagAnalysisCard
+              v-if="hasTagAnalysisData"
               :tag-radar-data="tagRadarData"
               :tag-accuracy-list="tagAccuracyList"
               @download="downloadTagAnalysis"
             />
+            <div v-else class="no-data-message small-no-data-message">표시할 데이터가 없습니다</div>
           </div>
         </div>
 
         <ProblemAnalysisCard
+          v-if="hasProblemAnalysisData"
           :problem-accuracies="trainerStatusData.problemAccuracies"
           :problem-details="trainerStatusData.problemDetails"
           @download="downloadProblemAnalysis"
         />
-
-        <div class="bottom-section-grid">
-          <ScoreDistributionCard
-            :score-distribution="scoreDistribution"
-            :score-distribution-chart-options="scoreDistributionChartOptions"
-            :participants-list="participantsList"
-            @download="downloadScoreDistribution"
-          />
-        </div>
+        <div v-else class="no-data-message">표시할 데이터가 없습니다</div>
 
         <CorrectnessTableCard
+          v-if="hasCorrectnessTableData"
+          :question-labels="questionLabels"
           :learner-correctness-data="learnerCorrectnessData"
           @download="downloadCorrectnessTable"
         />
+        <div v-else class="no-data-message">표시할 데이터가 없습니다</div>
       </div>
     </template>
   </MainLayout>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router' // useRoute 추가
+import { ref, onMounted, computed, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import MainLayout from '@/components/layouts/MainLayout.vue'
 import AISummaryCard from '@/components/trainer/feedback/AISummaryCard.vue'
 import AverageScoreCard from '@/components/trainer/feedback/AverageScoreCard.vue'
 import TagAnalysisCard from '@/components/trainer/feedback/TagAnalysisCard.vue'
 import ProblemAnalysisCard from '@/components/trainer/feedback/ProblemAnalysisCard.vue'
-import ScoreDistributionCard from '@/components/trainer/feedback/ScoreDistributionCard.vue'
+// import ScoreDistributionCard from '@/components/trainer/feedback/ScoreDistributionCard.vue' // 주석처리
 import CorrectnessTableCard from '@/components/trainer/feedback/TraineeProblemCorrectnessTableCard.vue'
-import axios from '@/config/axios' // axios import
+import axios from '@/config/axios'
 
 const router = useRouter()
-const route = useRoute() // useRoute 인스턴스 생성
+const route = useRoute()
 
-const testId = ref(null) // testId를 저장할 ref
+const testId = ref(null)
+const problemSortOrder = ref('desc') // 문제 분석 카드 정렬 상태
 
 const goBack = () => {
   router.back()
@@ -103,9 +109,10 @@ const downloadProblemAnalysis = () => {
   console.log('문항별 분석 PDF 다운로드')
 }
 
-const downloadScoreDistribution = () => {
-  console.log('점수 분포 PDF 다운로드')
-}
+// ScoreDistribution 관련 함수 주석처리
+// const downloadScoreDistribution = () => {
+//   console.log('점수 분포 PDF 다운로드')
+// }
 
 const downloadCorrectnessTable = () => {
   console.log('정오표 PDF 다운로드')
@@ -128,111 +135,122 @@ const trainerStatusData = ref({
   averageScore: 0,
   problemAccuracies: [],
   tagAccuracies: {},
-  learnerScores: [],
-  problemDetails: [],
-  learnerCorrectnessData: [],
+  learnerScores: [], // 더미 데이터 생성 로직 제거, 빈 배열 유지
+  problemDetails: [], // 문제 상세 정보 리스트
 })
+
+const questionLabels = ref([]) // 문제 라벨 (문제1, 문제2 등)
+const learnerCorrectnessData = ref([]) // 학습자별 정오표 데이터
 
 // API 연동 함수들
 const fetchTrainerFeedback = async (id) => {
   try {
     const response = await axios.get(`/feedback/trainer-feedback`, { params: { testId: id } })
-    aiOutputData.value = response.data // AI 요약 데이터 업데이트
+    aiOutputData.value = response.data
   } catch (error) {
     console.error('트레이너 피드백을 불러오는 데 실패했습니다:', error)
+    aiOutputData.value = {
+      // 에러 발생 시 빈 데이터로 설정
+      examGoal: '',
+      performanceByDocument: [],
+      insights: [],
+      improvementPoints: '',
+      suggestedTopics: [],
+      overallEvaluation: '',
+      projectReadiness: '',
+    }
   }
 }
 
 const fetchTestBasicStatistics = async (id) => {
   try {
     const response = await axios.get(`/feedback/test-basic-statistics`, { params: { testId: id } })
-    const data = response.data
-    trainerStatusData.value.totalParticipants = data.totalParticipants
-    trainerStatusData.value.passers = data.passers
-    trainerStatusData.value.averageScore = data.averageScore
-    trainerStatusData.value.learnerScores = data.learnerScores // 점수 분포 데이터를 위해 추가
+    const resultData = response.data.resultData
+    trainerStatusData.value.averageScore = resultData.averageScore
+    trainerStatusData.value.passers = resultData.passCount
+    trainerStatusData.value.totalParticipants = resultData.totalTakers
   } catch (error) {
     console.error('테스트 기본 통계를 불러오는 데 실패했습니다:', error)
+    trainerStatusData.value.averageScore = 0
+    trainerStatusData.value.passers = 0
+    trainerStatusData.value.totalParticipants = 0
   }
 }
 
 const fetchTagByTest = async (id) => {
   try {
     const response = await axios.get(`/feedback/tag-by-test`, { params: { testId: id } })
-    trainerStatusData.value.tagAccuracies = response.data // 태그별 정답률 데이터 업데이트
+    const apiTags = response.data.resultData // API 응답의 resultData 배열
+
+    const allTags = ['이해력', '분석력', '문제해결력', '추론력', '논리력']
+    const newTagAccuracies = {}
+
+    allTags.forEach((tagName) => {
+      const foundTag = apiTags.find((tag) => tag.tagName === tagName)
+      newTagAccuracies[tagName] = foundTag ? foundTag.accuracyRate : 0 //
+    })
+    trainerStatusData.value.tagAccuracies = newTagAccuracies
   } catch (error) {
     console.error('태그별 정답률을 불러오는 데 실패했습니다:', error)
+    trainerStatusData.value.tagAccuracies = {} // 에러 발생 시 빈 객체로 설정
   }
 }
 
 const fetchAnswerMatrix = async (id) => {
   try {
     const response = await axios.get(`/feedback/answer-matrix`, { params: { testId: id } })
-    trainerStatusData.value.learnerCorrectnessData = response.data // 정오표 데이터 업데이트
+    const resultData = response.data.resultData // resultData 접근
+    questionLabels.value = resultData.questionLabels // questionLabels 저장
+
+    // API 응답 구조에 맞춰 learnerCorrectnessData 변환
+    learnerCorrectnessData.value = resultData.userAnswers.map((userAnswer) => {
+      const data = { learner: userAnswer.userName || '이름 없음' } // userName 사용, null일 경우 '이름 없음'
+      userAnswer.correctnessList.forEach((isCorrect, index) => {
+        data[questionLabels.value[index]] = isCorrect ? 'O' : 'X' // 'O' 또는 'X'로 변환
+      })
+      return data
+    })
   } catch (error) {
     console.error('정오표 데이터를 불러오는 데 실패했습니다:', error)
+    questionLabels.value = []
+    learnerCorrectnessData.value = [] // 에러 발생 시 빈 배열로 설정
   }
 }
 
-// 문항별 정답률 상위/하위 조회 (ProblemAnalysisCard에 필요)
-const fetchProblemAccuraciesTop = async (id) => {
+// 문항별 정답률 조회 (ProblemAnalysisCard에 필요)
+const fetchProblemData = async (id, sortOrder) => {
   try {
-    const response = await axios.get(`/feedback/trainer-feedback/top`, { params: { testId: id } })
-    // 문제 상세 정보에 정확도 데이터를 매핑합니다.
-    trainerStatusData.value.problemAccuracies = response.data.map((item) => ({
-      problemId: item.problemId,
-      accuracy: item.accuracy,
-    }))
-    trainerStatusData.value.problemDetails = response.data.map((item) => ({
-      id: item.problemId,
-      type: item.type,
-      accuracy: item.accuracy,
-      average: item.average,
-      myScore: item.myScore,
-      difficulty: item.difficulty,
-      questionText: item.questionText,
-      correctAnswer: item.correctAnswer,
-      explanation: item.explanation,
-      tags: item.tags,
-    }))
-  } catch (error) {
-    console.error('문항 정답률 상위 데이터를 불러오는 데 실패했습니다:', error)
-  }
-}
+    let url = ''
+    if (sortOrder === 'desc') {
+      url = `/feedback/trainer-feedback/top`
+    } else {
+      url = `/feedback/trainer-feedback/bottom`
+    }
 
-const fetchProblemAccuraciesBottom = async (id) => {
-  try {
-    const response = await axios.get(`/feedback/trainer-feedback/bottom`, {
-      params: { testId: id },
-    })
-    // 문제 상세 정보에 정확도 데이터를 매핑합니다.
-    // 기존 problemAccuracies에 하위 데이터를 추가하거나, 필요한 경우 별도 처리
-    const bottomProblems = response.data.map((item) => ({
-      problemId: item.problemId,
-      accuracy: item.accuracy,
+    const response = await axios.get(url, { params: { testId: id } })
+    trainerStatusData.value.problemAccuracies = response.data.resultData.map((item) => ({
+      problemId: `문제 ${item.questionNumber}`, // 문제 번호를 사용하여 레이블 생성
+      accuracy: item.correctRate,
     }))
-    trainerStatusData.value.problemAccuracies = [
-      ...trainerStatusData.value.problemAccuracies,
-      ...bottomProblems,
-    ]
-    const bottomProblemDetails = response.data.map((item) => ({
-      id: item.problemId,
-      type: item.type,
-      accuracy: item.accuracy,
-      average: item.average,
-      myScore: item.myScore,
-      difficulty: item.difficulty,
+
+    trainerStatusData.value.problemDetails = response.data.resultData.map((item) => ({
+      id: item.questionNumber, // 문제 번호를 ID로 사용
       questionText: item.questionText,
-      correctAnswer: item.correctAnswer,
-      explanation: item.explanation,
+      type: item.type,
+      difficulty: item.difficulty,
+      documentName: item.documentName, // 출처 문서 추가
+      accuracy: item.correctRate,
+      // myScore와 average는 이 API에서 제공되지 않으므로, 필요시 다른 API에서 가져와야 함
+      average: null, // 더미 값
+      myScore: null, // 더미 값
+      correctAnswer: item.answer, // API의 'answer' 필드 사용
+      explanation: '해설 준비 중', // API에 해설 필드가 없으므로 더미 값
       tags: item.tags,
     }))
-    trainerStatusData.value.problemDetails = [
-      ...trainerStatusData.value.problemDetails,
-      ...bottomProblemDetails,
-    ]
   } catch (error) {
-    console.error('문항 정답률 하위 데이터를 불러오는 데 실패했습니다:', error)
+    console.error('문항 정답률 데이터를 불러오는 데 실패했습니다:', error)
+    trainerStatusData.value.problemAccuracies = []
+    trainerStatusData.value.problemDetails = [] // 에러 발생 시 빈 배열로 설정
   }
 }
 
@@ -243,10 +261,10 @@ const totalParticipants = computed(() => trainerStatusData.value.totalParticipan
 // Tag별 정답률 리스트 생성
 const tagAccuracyList = computed(() => {
   const tagStats = []
+  // trainerStatusData.value.tagAccuracies는 이제 직접 태그 이름: 정확도 비율 형태이므로 수정
   for (const tag in trainerStatusData.value.tagAccuracies) {
-    const { correct, total } = trainerStatusData.value.tagAccuracies[tag]
-    const rate = total > 0 ? (correct / total) * 100 : 0
-    tagStats.push({ name: tag, rate: parseFloat(rate.toFixed(2)) })
+    const rate = trainerStatusData.value.tagAccuracies[tag]
+    tagStats.push({ name: tag, rate: parseFloat(rate.toFixed(1)) }) // 소수점 첫째 자리까지
   }
   return tagStats
 })
@@ -254,9 +272,9 @@ const tagAccuracyList = computed(() => {
 // 레이더 차트 데이터
 const tagRadarData = computed(() => {
   const tagStats = []
+  // trainerStatusData.value.tagAccuracies는 이제 직접 태그 이름: 정확도 비율 형태이므로 수정
   for (const tag in trainerStatusData.value.tagAccuracies) {
-    const { correct, total } = trainerStatusData.value.tagAccuracies[tag]
-    const averageCorrectRate = total > 0 ? (correct / total) * 100 : 0
+    const averageCorrectRate = trainerStatusData.value.tagAccuracies[tag]
     tagStats.push({ label: tag, value: parseFloat(averageCorrectRate.toFixed(2)) })
   }
 
@@ -278,114 +296,154 @@ const tagRadarData = computed(() => {
   }
 })
 
-// 응시자 목록 (더미 데이터 생성 로직 유지, 실제 학습자명은 API에서 받아오면 변경)
-const participantsList = computed(() => {
-  const participants = []
-  const names = [
-    '김철수',
-    '이영희',
-    '박민수',
-    '정수연',
-    '최대현',
-    '한지민',
-    '강태욱',
-    '윤서아',
-    '임현우',
-    '조미영',
-  ]
+// ScoreDistribution 관련 computed 주석처리
+// // 응시자 목록 (더미 데이터 생성 로직 유지, 실제 학습자명은 API에서 받아오면 변경)
+// const participantsList = computed(() => {
+//   const participants = []
+//   const names = [
+//     '김철수',
+//     '이영희',
+//     '박민수',
+//     '정수연',
+//     '최대현',
+//     '한지민',
+//     '강태욱',
+//     '윤서아',
+//     '임현우',
+//     '조미영',
+//   ]
 
-  trainerStatusData.value.learnerScores.forEach((score, index) => {
-    participants.push({
-      name:
-        names[index % names.length] +
-        (Math.floor(index / names.length) > 0 ? Math.floor(index / names.length) + 1 : ''),
-      score: score,
-      pass: score >= 70,
-    })
-  })
+//   // learnerScores가 없으므로 임시로 더미 점수 생성 (실제 API 응답에 맞춰 수정 필요)
+//   // 여기서는 단순히 10명의 가상 응시자 데이터를 생성합니다.
+//   if (
+//     trainerStatusData.value.learnerScores.length === 0 &&
+//     trainerStatusData.value.totalParticipants > 0
+//   ) {
+//     for (let i = 0; i < trainerStatusData.value.totalParticipants; i++) {
+//       // 예시 점수: 40점부터 100점 사이 랜덤
+//       trainerStatusData.value.learnerScores.push(Math.floor(Math.random() * 61) + 40)
+//     }
+//   }
 
-  return participants.sort((a, b) => b.score - a.score)
-})
+//   trainerStatusData.value.learnerScores.forEach((score, index) => {
+//     participants.push({
+//       name:
+//         names[index % names.length] +
+//         (Math.floor(index / names.length) > 0 ? Math.floor(index / names.length) + 1 : ''),
+//       score: score,
+//       pass: score >= 70,
+//     })
+//   })
 
-const learnerCorrectnessData = computed(() => trainerStatusData.value.learnerCorrectnessData)
+//   return participants.sort((a, b) => b.score - a.score)
+// })
 
-// 점수 분포 데이터
-const scoreDistribution = computed(() => {
-  const scores = trainerStatusData.value.learnerScores
-  const bins = { '0-49': 0, '50-59': 0, '60-69': 0, '70-79': 0, '80-89': 0, '90-100': 0 }
+// // 점수 분포 데이터
+// const scoreDistribution = computed(() => {
+//   const scores = trainerStatusData.value.learnerScores
+//   const bins = { '0-49': 0, '50-59': 0, '60-69': 0, '70-79': 0, '80-89': 0, '90-100': 0 }
 
-  scores.forEach((score) => {
-    if (score >= 0 && score <= 49) bins['0-49']++
-    else if (score >= 50 && score <= 59) bins['50-59']++
-    else if (score >= 60 && score <= 69) bins['60-69']++
-    else if (score >= 70 && score <= 79) bins['70-79']++
-    else if (score >= 80 && score <= 89) bins['80-89']++
-    else if (score >= 90 && score <= 100) bins['90-100']++
-  })
+//   scores.forEach((score) => {
+//     if (score >= 0 && score <= 49) bins['0-49']++
+//     else if (score >= 50 && score <= 59) bins['50-59']++
+//     else if (score >= 60 && score <= 69) bins['60-69']++
+//     else if (score >= 70 && score <= 79) bins['70-79']++
+//     else if (score >= 80 && score <= 89) bins['80-89']++
+//     else if (score >= 90 && score <= 100) bins['90-100']++
+//   })
 
-  return {
-    labels: Object.keys(bins),
-    datasets: [
-      {
-        label: '응시자 수',
-        data: Object.values(bins),
-        backgroundColor: 'rgba(30, 34, 81, 0.2)',
-        borderColor: '#1e2251',
-        fill: 'origin',
-        tension: 0.4,
-        pointBackgroundColor: '#1e2251',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#a2a6d4',
-        pointHoverBorderColor: '#1e2251',
-      },
-    ],
+//   return {
+//     labels: Object.keys(bins),
+//     datasets: [
+//       {
+//         label: '응시자 수',
+//         data: Object.values(bins),
+//         backgroundColor: 'rgba(30, 34, 81, 0.2)',
+//         borderColor: '#1e2251',
+//         fill: 'origin',
+//         tension: 0.4,
+//         pointBackgroundColor: '#1e2251',
+//         pointBorderColor: '#fff',
+//         pointHoverBackgroundColor: '#a2a6d4',
+//         pointHoverBorderColor: '#1e2251',
+//       },
+//     ],
+//   }
+// })
+
+// const scoreDistributionChartOptions = computed(() => ({
+//   responsive: true,
+//   maintainAspectRatio: false,
+//   plugins: {
+//     legend: { display: false },
+//     tooltip: {
+//       callbacks: {
+//         label: function (context) {
+//           const label = context.dataset.label || ''
+//           const rawValue = context.parsed.y
+//           const total = trainerStatusData.value.learnerScores.length
+//           const percentage = total ? ((rawValue / total) * 100).toFixed(1) : '0.0'
+//           return `${label}: ${rawValue}명 (${percentage}%)`
+//         },
+//       },
+//     },
+//   },
+//   scales: {
+//     x: {
+//       title: { display: true, text: '점수 구간', color: '#343a40' },
+//       grid: { display: false },
+//       ticks: { color: '#495057' },
+//     },
+//     y: {
+//       title: { display: true, text: '학습자 수', color: '#343a40' },
+//       beginAtZero: true,
+//       ticks: { color: '#495057', stepSize: 5 },
+//       grid: { color: 'rgba(0, 0, 0, 0.05)' },
+//     },
+//   },
+// }))
+
+// 데이터 존재 여부 확인을 위한 computed 속성 추가
+const hasAISummaryData = computed(
+  () =>
+    aiOutputData.value &&
+    (aiOutputData.value.examGoal ||
+      aiOutputData.value.performanceByDocument.length > 0 ||
+      aiOutputData.value.insights.length > 0 ||
+      aiOutputData.value.improvementPoints ||
+      aiOutputData.value.suggestedTopics.length > 0 ||
+      aiOutputData.value.overallEvaluation ||
+      aiOutputData.value.projectReadiness),
+)
+
+const hasAverageScoreData = computed(() => trainerStatusData.value.totalParticipants > 0)
+
+const hasTagAnalysisData = computed(
+  () => Object.keys(trainerStatusData.value.tagAccuracies).length > 0,
+)
+
+const hasProblemAnalysisData = computed(() => trainerStatusData.value.problemAccuracies.length > 0)
+
+const hasCorrectnessTableData = computed(() => learnerCorrectnessData.value.length > 0)
+
+// ProblemAnalysisCard에서 정렬 순서 변경 시 호출될 함수
+const handleProblemSortOrderChange = async (order) => {
+  problemSortOrder.value = order
+  if (testId.value) {
+    await fetchProblemData(testId.value, problemSortOrder.value)
   }
-})
-
-const scoreDistributionChartOptions = computed(() => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: { display: false },
-    tooltip: {
-      callbacks: {
-        label: function (context) {
-          const label = context.dataset.label || ''
-          const rawValue = context.parsed.y
-          const total = trainerStatusData.value.learnerScores.length
-          const percentage = total ? ((rawValue / total) * 100).toFixed(1) : '0.0'
-          return `${label}: ${rawValue}명 (${percentage}%)`
-        },
-      },
-    },
-  },
-  scales: {
-    x: {
-      title: { display: true, text: '점수 구간', color: '#343a40' },
-      grid: { display: false },
-      ticks: { color: '#495057' },
-    },
-    y: {
-      title: { display: true, text: '학습자 수', color: '#343a40' },
-      beginAtZero: true,
-      ticks: { color: '#495057', stepSize: 5 },
-      grid: { color: 'rgba(0, 0, 0, 0.05)' },
-    },
-  },
-}))
+}
 
 onMounted(async () => {
   console.log('TrainerTestStatus component mounted.')
-  // URL에서 testId 추출
-  testId.value = route.params.testId || 1 // 라우터 파라미터에서 testId를 가져옴, 없으면 기본값 1
+  testId.value = route.params.testId || 1
 
   if (testId.value) {
     await fetchTrainerFeedback(testId.value)
     await fetchTestBasicStatistics(testId.value)
     await fetchTagByTest(testId.value)
-    await fetchAnswerMatrix(testId.value)
-    await fetchProblemAccuraciesTop(testId.value)
-    await fetchProblemAccuraciesBottom(testId.value)
+    await fetchAnswerMatrix(testId.value) // 정오표 데이터 호출
+    await fetchProblemData(testId.value, problemSortOrder.value) // 초기 문항 데이터 로드 (기본은 desc)
   }
 })
 </script>
@@ -480,11 +538,48 @@ onMounted(async () => {
   min-width: 0;
 }
 
+/* 추가된 스타일 */
+.right-column > :first-child {
+  /* AverageScoreCard */
+  flex: 1; /* 평균 점수 카드의 세로 크기를 줄임 */
+  min-height: unset; /* 최소 높이 제한 해제 */
+}
+
+.right-column > :last-child {
+  /* TagAnalysisCard */
+  flex: 1.1; /* Tag 분석 카드의 세로 크기를 늘림 */
+}
+
+/* ScoreDistribution 관련 스타일 주석처리 */
+/*
 .bottom-section-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 25px;
   margin-bottom: 25px;
+}
+*/
+
+.no-data-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  padding: 25px;
+  min-height: 200px; /* 기본 메시지 높이 */
+  color: #6c757d;
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+  border: 1px dashed #e0e0e0;
+  flex-grow: 1; /* 컨테이너 내에서 확장 */
+}
+
+.small-no-data-message {
+  min-height: 150px; /* smaller height for cards in right column */
+  font-size: 16px;
 }
 
 @media (max-width: 1024px) {
@@ -504,9 +599,11 @@ onMounted(async () => {
   .right-column {
     flex-direction: column;
   }
+  /*
   .bottom-section-grid {
     grid-template-columns: 1fr;
   }
+  */
 }
 
 @media (max-width: 768px) {

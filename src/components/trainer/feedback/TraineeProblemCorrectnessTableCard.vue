@@ -10,21 +10,25 @@
       <table class="learner-correctness-table">
         <thead>
           <tr>
-            <th>학습자</th>
-            <th v-for="col in problemColumns" :key="col">{{ col }}</th>
+            <th></th>
+            <th v-for="label in questionLabels" :key="label">{{ label }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(learnerData, index) in learnerCorrectnessData" :key="index">
             <td>{{ learnerData.learner }}</td>
             <td
-              v-for="col in problemColumns"
-              :key="col"
+              v-for="label in questionLabels"
+              :key="label"
               :class="{
-                'cell-correct': learnerData[col] === 'O',
-                'cell-incorrect': learnerData[col] === 'X',
+                'cell-correct': learnerData[label] === 'O',
+                'cell-incorrect': learnerData[label] === 'X',
               }"
-            ></td>
+            >
+              <template v-if="learnerData[label] === 'O'">✔</template>
+              <template v-else-if="learnerData[label] === 'X'">✘</template>
+              <template v-else></template>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -36,6 +40,10 @@
 import { computed } from 'vue'
 
 const props = defineProps({
+  questionLabels: {
+    type: Array,
+    required: true,
+  },
   learnerCorrectnessData: {
     type: Array,
     required: true,
@@ -43,14 +51,6 @@ const props = defineProps({
 })
 
 defineEmits(['download'])
-
-// 문제 컬럼 동적 생성
-const problemColumns = computed(() => {
-  if (props.learnerCorrectnessData.length > 0) {
-    return Object.keys(props.learnerCorrectnessData[0]).filter((key) => key !== 'learner')
-  }
-  return []
-})
 </script>
 
 <style scoped>
@@ -131,14 +131,20 @@ const problemColumns = computed(() => {
 .learner-correctness-table th,
 .learner-correctness-table td {
   padding: 10px 8px;
-  text-align: center;
-  border: 1px solid #e0e0e0;
-  width: 60px;
-  min-width: 60px;
+  text-align: center; /* 모든 칸 텍스트 가운데 정렬 유지 */
+  border: 1px solid #ffffff; /* 테두리 하얀색으로 수정 */
+  width: 60px; /* 모든 칸 동일한 너비 유지 */
+  min-width: 60px; /* 모든 칸 동일한 최소 너비 유지 */
+}
+
+/* 학습자 첫 번째 열에 대한 특정 스타일 재정의 제거 유지 */
+.learner-correctness-table th:first-child,
+.learner-correctness-table td:first-child {
+  /* 이제 일반 th, td 규칙을 따름 (가운데 정렬, 60px 너비) */
 }
 
 .learner-correctness-table th {
-  background-color: #f8f9fa;
+  background-color: #ffffff; /* 제목 열 배경색 하얀색으로 수정 */
   font-weight: 600;
   color: #495057;
   position: sticky;
@@ -146,16 +152,8 @@ const problemColumns = computed(() => {
   z-index: 1;
 }
 
-.learner-correctness-table th:first-child,
-.learner-correctness-table td:first-child {
-  width: 100px;
-  min-width: 100px;
-  text-align: left;
-  padding-left: 15px;
-}
-
 .learner-correctness-table td {
-  background-color: #ffffff;
+  background-color: #ffffff; /* 이외 모든 칸 배경 하얀색 유지 */
 }
 
 .learner-correctness-table tbody tr:hover td:first-child {
@@ -163,12 +161,12 @@ const problemColumns = computed(() => {
 }
 
 .learner-correctness-table td.cell-correct {
-  background-color: #28a745 !important;
-  color: #28a745;
+  background-color: #bbf7d0 !important; /* 정답 배경색 유지 */
+  color: #000000 !important; /* 텍스트 검은색 유지 */
 }
 
 .learner-correctness-table td.cell-incorrect {
-  background-color: #dc3545 !important;
-  color: #dc3545;
+  background-color: #fecaca !important; /* 오답 배경색 유지 */
+  color: #000000 !important; /* 텍스트 검은색 유지 */
 }
 </style>

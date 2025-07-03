@@ -31,9 +31,9 @@ const chartData = computed(() => {
       {
         label: '정답률 (%)',
         data: props.data.map((item) => item.accuracy),
-        backgroundColor: '#1e2251', // 요청된 색상으로 변경
-        borderColor: '#1e2251',
-        borderWidth: 1,
+        backgroundColor: '#7787DD', // 요청된 색상으로 변경
+        // borderColor: '#1e2251',
+        // borderWidth: 1,
       },
     ],
   }

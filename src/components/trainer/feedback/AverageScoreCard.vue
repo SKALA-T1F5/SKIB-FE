@@ -59,9 +59,9 @@ const passRateChartData = computed(() => {
       {
         label: '비율 (%)',
         data: [passRate, failRate],
-        backgroundColor: ['#28a745', '#dc3545'],
-        borderColor: ['#28a745', '#dc3545'],
-        borderWidth: 1,
+        backgroundColor: ['#bbf7d0', '#fecaca'],
+        // borderColor: ['#28a745', '#dc3545'],
+        // borderWidth: 1,
       },
     ],
   }
