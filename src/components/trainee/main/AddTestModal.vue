@@ -3,13 +3,13 @@
     <div v-if="isVisible" class="modal-overlay" @click.self="emit('close')">
       <div class="modal-content">
         <div class="modal-header">
-          <h3>테스트 추가</h3>
+          <h3>{{ $t('addTest') }}</h3>
           <button class="close-button" @click="emit('close')">×</button>
         </div>
         <div class="modal-body">
-          <p class="body-description">테스트 초대 링크를 입력하고 언어를 선택하세요.</p>
+          <p class="body-description">{{ $t('addTestDesc') }}</p>
           <div class="input-group">
-            <label for="invite-link" class="input-label">초대 링크</label>
+            <label for="invite-link" class="input-label">{{ $t('inviteLink') }}</label>
             <input
               id="invite-link"
               type="text"
@@ -24,12 +24,12 @@
           </div>
 
           <div class="input-group">
-            <label for="language-select" class="input-label">언어 선택</label>
+            <label for="language-select" class="input-label">{{ $t('selectLanguage') }}</label>
             <div class="select-wrapper">
               <select id="language-select" v-model="selectedLang" class="language-select">
                 <option value="ko">한국어</option>
-                <option value="en">영어</option>
-                <option value="vi">베트남어</option>
+                <option value="en">English</option>
+                <option value="vi">Tiếng Việt</option>
               </select>
               <span class="select-arrow"></span>
             </div>

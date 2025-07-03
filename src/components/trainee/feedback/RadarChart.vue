@@ -36,7 +36,7 @@ const props = defineProps({
 
 const chartData = computed(() => {
   const labels = Object.keys(props.tagAccuracy);
-  const data = Object.values(props.tagAccuracy);
+  const data = Object.values(props.tagAccuracy).map(v => v.accuracyRate);
 
   return {
     labels: labels,
@@ -57,11 +57,14 @@ const chartData = computed(() => {
   };
 });
 
-const chartOptions = ref({
+const chartOptions = {
   responsive: true,
   maintainAspectRatio: false, // 부모 컨테이너에 맞춰 크기 조절
   scales: {
     r: {
+      min: 0, // 최소값 0으로 고정
+      max: 100, // 최대값 100으로 고정
+      suggestedMax: 100, // 최대값 100 권장
       angleLines: {
         color: '#e0e0e0' // 각도 선 색상
       },
@@ -76,9 +79,10 @@ const chartOptions = ref({
         }
       },
       ticks: {
-        stepSize: 10, // 틱 간격
+        // stepSize: 10, // 틱 간격
         beginAtZero: true,
         max: 100, // 최대 값은 100%
+        suggestedMax: 100,
         color: '#6c757d', // 틱 라벨 색상
         backdropColor: 'rgba(255, 255, 255, 0.7)', // 틱 라벨 배경색
         backdropPadding: 2,
@@ -108,7 +112,7 @@ const chartOptions = ref({
       }
     }
   }
-});
+};
 
 // 데이터 변경 시 차트 옵션 업데이트 (필요시)
 watch(() => props.tagAccuracy, () => {

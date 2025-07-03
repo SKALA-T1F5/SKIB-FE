@@ -1,59 +1,39 @@
 <template>
   <MainLayout>
     <template #sidebar-header-content="{ isCollapsed }">
-      <SearchInput
-        v-if="!isCollapsed"
-        :search-query="searchQuery"
-        @update:search-query="searchQuery = $event"
-        @reset-filters="handleResetFilters"
-        placeholderText="테스트 이름을 검색하세요..."
-      />
+      <SearchInput v-if="!isCollapsed" :search-query="searchQuery" @update:search-query="searchQuery = $event"
+        @reset-filters="handleResetFilters" :placeholderText="$t('main_searchPlaceHolder')" />
     </template>
 
     <template #sidebar="{ isCollapsed }">
-      <TraineeMainSideBar
-        :searchQuery="searchQuery"
-        :statusFilters="statusFilters"
-        :resultFilters="resultFilters"
-        @update:searchQuery="searchQuery = $event"
-        @update:statusFilters="statusFilters = $event"
-        @update:resultFilters="resultFilters = $event"
-        @reset-filters="handleResetFilters"
-        :is-collapsed="isCollapsed"
-      />
+      <TraineeMainSideBar :searchQuery="searchQuery" :statusFilters="statusFilters" :resultFilters="resultFilters"
+        @update:searchQuery="searchQuery = $event" @update:statusFilters="statusFilters = $event"
+        @update:resultFilters="resultFilters = $event" @reset-filters="handleResetFilters"
+        :is-collapsed="isCollapsed" />
     </template>
 
     <template #content>
       <div class="main-header">
-        <h2 class="welcome-message">{{ userName }} 매니저님, 반갑습니다!</h2>
-        <button class="add-test-button" @click="showAddTestModal">+ 테스트 추가</button>
+        <h2 class="welcome-message">{{ $t('main_welcome', { userName }) }}</h2>
+        <button class="add-test-button" @click="showAddTestModal">{{ $t('main_addTest') }}</button>
       </div>
 
       <hr class="content-divider" />
 
       <div class="test-cards-container">
-        <TraineeTestCard
-          v-for="test in filteredTests"
-          :key="test.testId"
-          :test="test"
-          @retake-action="handleTestCardAction(test, 'result')"
-          @feedback="handleTestCardAction(test, 'feedback')"
-          @attend="handleTestCardAction(test, 'attend')"
-        />
+        <TraineeTestCard v-for="test in filteredTests" :key="test.testId" :test="test"
+          @retake-action="handleTestCardAction(test, 'result')" @feedback="handleTestCardAction(test, 'feedback')"
+          @attend="handleTestCardAction(test, 'attend')" />
 
         <div v-if="filteredTests.length === 0" class="no-tests-message">
-          <p>해당 조건에 일치하는 테스트가 없습니다.</p>
+          <p>{{ $t('main_alert') }}</p>
         </div>
       </div>
     </template>
   </MainLayout>
 
-  <AddTestModal
-    :isVisible="addTestModalVisible"
-    :invitationLinkError="invitationLinkError"
-    @close="hideAddTestModal"
-    @addTest="addTestByLink"
-  />
+  <AddTestModal :isVisible="addTestModalVisible" :invitationLinkError="invitationLinkError" @close="hideAddTestModal"
+    @addTest="addTestByLink" />
 </template>
 
 <script setup>

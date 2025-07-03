@@ -1,93 +1,97 @@
 <template>
-  <MainLayout
-    :show-sidebar="true"
-    sidebar-type="test"
-    :test-questions="allQuestions"
-    :current-test-question-id="currentQuestionId"
-    @select-question-from-sidebar="handleQuestionSelectFromSidebar"
-  >
+  <MainLayout :show-sidebar="true" sidebar-type="test" :test-questions="allQuestions"
+    :current-test-question-id="currentQuestionId" @select-question-from-sidebar="handleQuestionSelectFromSidebar">
+    <template #sidebar="{ isCollapsed }">
+      <TraineeTestSideBar :is-collapsed="isCollapsed" :questions="allQuestions" :current-question-id="currentQuestionId"
+        @select-question="handleQuestionSelectFromSidebar" />
+    </template>
+
     <template #content>
       <div class="test-taking-container-inner">
-        <div class="top-nav">
+        <div class="time-progress">
+          <span class="time-progress-clock">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="#191d5a" stroke-width="2" />
+              <path d="M12 7v5l3 3" stroke="#191d5a" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            <span class="time-progress-text">{{ formattedTime }}</span>
+          </span>
+          <div class="time-progress-bar-bg">
+            <div class="time-progress-bar" :style="{ width: `${progressPercentage}%`, backgroundColor: progressColor }">
+            </div>
+          </div>
+        </div>
+        <!-- <div class="top-nav">
           <h3 class="question-number-top" v-if="currentQuestion">{{ currentQuestion.id }}.</h3>
           <div class="nav-buttons-wrapper">
-            <button
-              class="nav-button"
-              @click="goToPreviousQuestion"
-              :disabled="!hasPreviousQuestion || showGradingOverlay"
-            >
+            <button class="nav-button" @click="goToPreviousQuestion"
+              :disabled="!hasPreviousQuestion || showGradingOverlay">
               <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> 이전 문제
             </button>
-            <button
-              class="nav-button"
-              @click="goToNextQuestion"
-              :disabled="!hasNextQuestion || showGradingOverlay"
-            >
+            <button class="nav-button" @click="goToNextQuestion" :disabled="!hasNextQuestion || showGradingOverlay">
               다음 문제 <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
             </button>
           </div>
-        </div>
+        </div> -->
 
         <div class="question-taking-area" v-if="currentQuestion">
           <div class="question-section">
             <div class="question-text-fixed">
+              <p class="question-text"><strong>{{ currentQuestion.id }}. </strong></p>
               <p class="question-text">{{ currentQuestion.questionText }}</p>
             </div>
             <div class="question-content-scrollable">
               <div class="options-container" v-if="currentQuestion.type === 'OBJECTIVE'">
-                <div
-                  v-for="(option, index) in currentQuestion.options"
-                  :key="index"
-                  :class="[
-                    'option-item',
-                    { 'is-selected': userAnswers.get(currentQuestion.id) === option },
-                  ]"
-                  @click="selectOption(option)"
-                >
+                <div v-for="(option, index) in currentQuestion.options" :key="index" :class="[
+                  'option-item',
+                  { 'is-selected': userAnswers.get(currentQuestion.id) === option },
+                ]" @click="selectOption(option)">
                   <span class="option-label">{{ getOptionLabel(index) }}</span>
                   <span class="option-content">{{ option }}</span>
                 </div>
               </div>
-              <div
-                class="subjective-answer-section"
-                v-else-if="currentQuestion.type === 'SUBJECTIVE'"
-              >
+              <div class="subjective-answer-section" v-else-if="currentQuestion.type === 'SUBJECTIVE'">
                 <div class="answer-group">
-                  <p class="answer-label">나의 답변</p>
-                  <textarea
-                    class="answer-box user-answer-box"
-                    v-model="userAnswers.get(currentQuestion.id).value"
-                    placeholder="답변을 입력하세요."
-                    :disabled="showGradingOverlay"
-                  ></textarea>
+                  <p class="answer-label">{{ $t('myAnswer') }}</p>
+                  <textarea class="answer-box user-answer-box" v-model="userAnswers.get(currentQuestion.id).value"
+                    placeholder="답변을 입력하세요." :disabled="showGradingOverlay"></textarea>
                 </div>
               </div>
             </div>
           </div>
         </div>
         <div v-else class="loading-message">
-          <p>시험 문제를 로딩 중입니다...</p>
+          <p>{{ $t('loadingQuestions') }}</p>
         </div>
       </div>
 
       <div class="submit-and-exit-buttons">
-        <button
-          class="submit-button"
-          @click="handleSubmitAnswer"
-          :disabled="!currentQuestion || showGradingOverlay"
-        >
-          제출
-        </button>
+        <div class="left-buttons">
+          <button class="nav-button" @click="goToPreviousQuestion"
+            :disabled="!hasPreviousQuestion || showGradingOverlay">
+            <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> {{ $t('prev') }}
+          </button>
+        </div>
+        <div class="right-buttons">
+          <button class="nav-button" @click="goToNextQuestion" :disabled="!hasNextQuestion || showGradingOverlay">
+            {{ $t('next') }} <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
+          </button>
+          <button class="submit-button" @click="handleSubmitAnswer"
+            :class="{ 'not-all-answered': !answerStatusList.every(Boolean) }"
+            :disabled="!currentQuestion || showGradingOverlay">
+            {{ $t('submit') }}
+          </button>
+        </div>
       </div>
 
       <AiGradingLoading :show="showGradingOverlay" />
 
       <div class="completion-overlay" v-if="showCompletionButtons">
         <div class="completion-card">
-          <p class="completion-message">채점이 완료되었습니다!</p>
+          <p class="completion-message">{{ t('gradingComplete') }}</p>
           <div class="completion-buttons">
-            <button class="action-button primary" @click="goToTestResult">채점 결과 확인</button>
-            <button class="action-button secondary" @click="goToTraineeMain">메인 화면</button>
+            <button class="action-button primary" @click="goToTestResult">{{ $t('result') }}</button>
+            <button class="action-button secondary" @click="goToTraineeMain">{{ $t('mainPage') }}</button>
           </div>
         </div>
       </div>
@@ -96,73 +100,163 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+// ===== [1] 라이브러리 및 컴포넌트 import =====
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js'
-
 import MainLayout from '@/components/layouts/MainLayout.vue'
-import axios from '@/config/axios'
+import TraineeTestSideBar from '@/components/trainee/test/TraineeTestSideBar.vue'
+import api from '@/config/axios'
 import AiGradingLoading from '@/components/trainee/test/AiGradingLoading.vue'
 
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
+
+// ===== [2] 라우터 및 기본 변수 선언 =====
 const router = useRouter()
 const route = useRoute()
+const testId = route.params.testId
+const userId = ref('')
 
-const testId = route.params.testId // URL 파라미터에서 testId 가져옴
-const userId = ref('') // Local Storage에서 userId 가져올 예정
-
+// ===== [3] 시험 문제 및 답변 관련 상태 =====
 const allQuestions = ref([])
 const currentQuestionId = ref(null)
 const userAnswers = ref(new Map())
 
+// ===== [4] UI 상태 관련 변수 =====
 const showGradingOverlay = ref(false)
 const showCompletionButtons = ref(false)
 
+// ===== [5] 현재 문제 및 인덱스 계산 =====
 const currentQuestion = computed(() => {
-  if (!currentQuestionId.value || allQuestions.value.length === 0) {
-    return null
-  }
+  if (!currentQuestionId.value || allQuestions.value.length === 0) return null
   return allQuestions.value.find((q) => q.id === currentQuestionId.value)
 })
-
 const currentQuestionIndex = computed(() => {
   if (!currentQuestion.value) return -1
   return allQuestions.value.findIndex((q) => q.id === currentQuestion.value?.id)
 })
-
 const hasPreviousQuestion = computed(() => currentQuestionIndex.value > 0)
 const hasNextQuestion = computed(() => currentQuestionIndex.value < allQuestions.value.length - 1)
-// const isLastQuestion = computed(() => currentQuestionIndex.value === allQuestions.value.length - 1) // 현재 사용되지 않음
 
+// ===== [6] 답변 완료 여부 리스트 =====
+const answerStatusList = computed(() =>
+  allQuestions.value.map((q) => {
+    const answer = userAnswers.value.get(q.id)
+    if (q.type === 'SUBJECTIVE') {
+      return !!(answer && answer.value && answer.value.trim() !== '')
+    } else {
+      return !!(answer && answer !== '')
+    }
+  })
+)
+
+// ===== [7] 타이머 및 진행률 관련 변수 =====
+const totalTime = ref(0) // 서버에서 받아올 제한시간 (초)
+const remainingTime = ref(0) // 남은 시간 (초)
+const timerInterval = ref(null) // 타이머 인터벌 ID
+const animationFrameId = ref(null) // progress bar 애니메이션 ID
+const startTimestamp = ref(0) // 타이머 시작 시각(ms)
+const endTimestamp = ref(0) // 타이머 종료 시각(ms)
+
+const progressPercentage = ref(100)
+const progressColor = computed(() => remainingTime.value <= 10 ? '#e74c3c' : '#191d5a')
+const formattedTime = computed(() => {
+  const m = String(Math.floor(remainingTime.value / 60)).padStart(2, '0')
+  const s = String(remainingTime.value % 60).padStart(2, '0')
+  return `${m}:${s}`
+})
+
+// ===== [7-1] progress bar 실시간 애니메이션 함수 =====
+const updateProgressBar = () => {
+  const now = Date.now()
+  const total = endTimestamp.value - startTimestamp.value
+  const left = Math.max(endTimestamp.value - now, 0)
+  progressPercentage.value = total > 0 ? (left / total) * 100 : 0
+
+  if (left > 0 && !showGradingOverlay.value && !showCompletionButtons.value) {
+    animationFrameId.value = requestAnimationFrame(updateProgressBar)
+  }
+}
+
+// ===== [7-2] 타이머 시작 함수 =====
+const startTimer = () => {
+  if (timerInterval.value) clearInterval(timerInterval.value)
+  if (animationFrameId.value) cancelAnimationFrame(animationFrameId.value)
+
+  startTimestamp.value = Date.now()
+  endTimestamp.value = startTimestamp.value + remainingTime.value * 1000
+
+  // 1초마다 남은 시간 감소
+  timerInterval.value = setInterval(() => {
+    const now = Date.now()
+    const leftSec = Math.max(Math.ceil((endTimestamp.value - now) / 1000), 0)
+    remainingTime.value = leftSec
+    if (leftSec <= 0) {
+      clearInterval(timerInterval.value)
+      handleTimeExpired()
+    }
+  }, 1000)
+
+  // progress bar 자연스럽게
+  updateProgressBar()
+}
+
+// ===== [7-3] 타이머 정지 함수 =====
+const stopTimer = () => {
+  if (timerInterval.value) {
+    clearInterval(timerInterval.value)
+    timerInterval.value = null
+  }
+  if (animationFrameId.value) {
+    cancelAnimationFrame(animationFrameId.value)
+    animationFrameId.value = null
+  }
+}
+
+// ===== [7-4] 시간 만료 시 자동 제출 함수 =====
+const handleTimeExpired = () => {
+  if (showGradingOverlay.value || showCompletionButtons.value) return
+
+  alert(t('timeExpired'))
+  submitFinalTest()
+}
+
+// ===== [7-5] 컴포넌트 언마운트 시 타이머 정리 =====
+onUnmounted(() => {
+  stopTimer()
+})
+
+// ===== [8] 시험 문제 불러오기 함수 =====
 const fetchTestQuestions = async () => {
-  // 1. userId를 Local Storage에서 가져오기
   const storedUserId = localStorage.getItem('userId')
   if (!storedUserId) {
     alert('사용자 ID를 찾을 수 없습니다. 로그인 후 다시 시도해주세요.')
-    router.push({ name: 'Login' }) // 예: 로그인 페이지로 리다이렉트
+    router.push({ name: 'Login' })
     return
   }
   userId.value = storedUserId
-
-  // 2. testId 유효성 검사
   if (!testId || !userId.value) {
     alert('시험 ID 또는 사용자 ID가 유효하지 않습니다.')
-    router.back() // 이전 페이지로 돌아가기
+    router.back()
     return
   }
-
   try {
-    // 3. API 호출
-    const response = await axios.get(`/test/getUserTest?userId=${userId.value}&testId=${testId}`)
+    const response = await api.get('/test/getUserTest', {
+      params: { userId: userId.value, testId: testId },
+    })
     const { statusCode, resultMsg, resultData } = response.data
-
     if (statusCode === 'OK' && resultData && Array.isArray(resultData.questions)) {
-      allQuestions.value = resultData.questions.map((rawQ, index) => {
-        // 백엔드에서 받은 question 객체에 'id' 또는 'questionId' 필드가 있다고 가정
-        // 예시 응답에는 'questions' 배열 안에 질문 객체들이 직접 포함되어 있으므로,
-        // 각 질문 객체에 고유한 식별자 (예: questionId)가 있다고 가정합니다.
-        const questionId = rawQ.questionId || `Q${(index + 1).toString().padStart(2, '0')}` // 백엔드에서 questionId를 제공한다고 가정합니다.
+      // 제한시간 설정
+      if (resultData.limitedTime) {
+        totalTime.value = resultData.limitedTime * 60 // 분을 초로 변환
+        remainingTime.value = totalTime.value
+        startTimer() // 타이머 시작
+      }
 
+      allQuestions.value = resultData.questions.map((rawQ, index) => {
+        const questionId = `Q${(index + 1).toString().padStart(2, '0')}`
         let initialAnswerValue
         if (rawQ.type === 'SUBJECTIVE') {
           initialAnswerValue = ref('')
@@ -170,55 +264,48 @@ const fetchTestQuestions = async () => {
           initialAnswerValue = ''
         }
         userAnswers.value.set(questionId, initialAnswerValue)
-
         return {
-          id: questionId, // 백엔드에서 제공하는 questionId 사용 또는 생성된 ID 사용
+          id: questionId, // 프론트 표시용
+          rawId: rawQ.id, // 백엔드용(MongoDB ObjectId)
           type: rawQ.type,
           difficulty_level: rawQ.difficulty_level,
-          questionText: rawQ.question, // API 응답의 'question' 필드를 'questionText'로 매핑
+          questionText: rawQ.question,
           options: rawQ.options,
-          explanation: rawQ.explanation || '', // API 응답에 explanation이 있다면 사용
-          gradingCriteria: rawQ.grading_criteria || null, // API 응답에 grading_criteria이 있다면 사용
-          document_id: rawQ.document_id,
+          answer: rawQ.answer,
+          explanation: rawQ.explanation || '',
+          gradingCriteria: rawQ.grading_criteria || null,
+          documentId: rawQ.documentId,
+          documentName: rawQ.documentName,
+          keywords: rawQ.keywords,
           tags: rawQ.tags,
+          generationType: rawQ.generationType,
           isAnswered: false,
         }
       })
-
+      // console.log('🟩 백엔드에서 받은 질문 목록:', resultData.questions)
       if (allQuestions.value.length > 0) {
         currentQuestionId.value = allQuestions.value[0].id
       } else {
-        alert('시험 문제가 없습니다.')
-        router.back() // 문제가 없는 경우 이전 페이지로 돌아가기
+        alert(t('noQuestions'))
+        router.back()
       }
     } else {
-      console.warn(
-        '문제 데이터를 불러오는 데 실패했습니다: 서버 응답 형식이 예상과 다르거나 questions 필드가 없습니다.',
-        response.data,
-      )
       allQuestions.value = []
       alert(`시험 문제를 불러오는 데 실패했습니다: ${resultMsg || '알 수 없는 오류'}`)
-      router.back() // 문제 로드 실패 시 이전 페이지로 돌아가기
+      router.back()
     }
   } catch (error) {
-    console.error('문제 데이터를 로드하는 데 실패했습니다:', error)
-    if (axios.isAxiosError(error) && error.response) {
-      alert(
-        `시험 문제를 불러오는 중 오류가 발생했습니다: ${error.response.data.message || '알 수 없는 오류'}`,
-      )
-    } else {
-      alert('시험 문제를 불러오는 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
-    }
-    router.back() // 문제 로드 실패 시 이전 페이지로 돌아가기
+    alert(t('loadingQuestions'))
+    router.back()
   }
 }
 
+// ===== [9] 문제 이동 및 선택 관련 함수 =====
 const handleQuestionSelectFromSidebar = (questionId) => {
   if (!showGradingOverlay.value && !showCompletionButtons.value) {
     currentQuestionId.value = questionId
   }
 }
-
 const goToPreviousQuestion = () => {
   if (showGradingOverlay.value || showCompletionButtons.value) return
   const currentIndex = allQuestions.value.findIndex((q) => q.id === currentQuestionId.value)
@@ -226,7 +313,6 @@ const goToPreviousQuestion = () => {
     currentQuestionId.value = allQuestions.value[currentIndex - 1].id
   }
 }
-
 const goToNextQuestion = () => {
   if (showGradingOverlay.value || showCompletionButtons.value) return
   const currentIndex = allQuestions.value.findIndex((q) => q.id === currentQuestionId.value)
@@ -235,111 +321,95 @@ const goToNextQuestion = () => {
   }
 }
 
-const getOptionLabel = (index) => {
-  return String.fromCharCode(65 + index) + ')'
-}
-
+// ===== [10] 객관식/주관식 답변 선택 함수 =====
+const getOptionLabel = (index) => String.fromCharCode(65 + index) + ')'
 const selectOption = (option) => {
   if (showGradingOverlay.value || showCompletionButtons.value) return
   if (currentQuestion.value) {
     userAnswers.value.set(currentQuestion.value.id, option)
-    const questionToUpdate = allQuestions.value.find((q) => q.id === currentQuestion.value?.id)
+
+    // 객관식 답변 완료 상태 업데이트
+    const questionToUpdate = allQuestions.value.find((q) => q.id === currentQuestion.value.id)
     if (questionToUpdate) {
       questionToUpdate.isAnswered = true
     }
   }
 }
 
+// ===== [11] 답변 제출 및 서버 전송 함수 =====
 const handleSubmitAnswer = () => {
   if (!currentQuestion.value || showGradingOverlay.value || showCompletionButtons.value) return
-
   const unansweredQuestions = allQuestions.value.filter((q) => {
     const answer = userAnswers.value.get(q.id)
     if (q.type === 'SUBJECTIVE') {
-      // 주관식은 ref.value의 trim()이 비어있는지 확인
       return !answer || (typeof answer === 'object' && answer.value.trim() === '')
     } else {
-      // 객관식은 Map에 값이 없거나 빈 문자열인지 확인
       return !answer || answer === ''
     }
   })
-
   let confirmMessage = ''
-
   if (unansweredQuestions.length > 0) {
-    confirmMessage = `풀지 않은 문제가 ${unansweredQuestions.length}개 존재합니다. 정말 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.`
+    confirmMessage = t('confirmSubmitWithUnanswered', { count: unansweredQuestions.length })
   } else {
-    confirmMessage = `정말 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.`
+    confirmMessage = t('confirmSubmit')
   }
-
   if (confirm(confirmMessage)) {
     submitFinalTest()
   }
 }
-
 const submitFinalTest = async () => {
   showGradingOverlay.value = true
+  stopTimer() // 타이머 정지
 
-  const answersToSend = Array.from(userAnswers.value.entries()).map(([questionId, answer]) => {
-    const question = allQuestions.value.find((q) => q.id === questionId)
+  const answersToSend = allQuestions.value.map((q) => {
+    const answer = userAnswers.value.get(q.id)
     return {
-      questionId: questionId, // 백엔드에서 받는 questionId 필드를 사용
+      // id: q.rawId, // ObjectId 그대로 전달
+      // response: typeof answer === 'object' ? answer.value : answer,
+      id: q.rawId, // ObjectId 그대로 전달
       response: typeof answer === 'object' ? answer.value : answer,
-      questionType: question ? question.type : 'UNKNOWN',
+      questionType: q.type,
     }
   })
-
-  const requestBody = {
-    userId: userId.value,
-    testId: parseInt(testId), // testId를 숫자로 변환
-    answers: answersToSend,
-  }
-
-  console.log('최종 제출될 요청 바디:', requestBody)
-
+  // console.log('🔍 요청 URL:', api.defaults.baseURL + '/answer')
+  // console.log('🔍 파라미터:', userId.value, testId)
+  // console.log('🔍 바디:', answersToSend)
   try {
-    // 실제 API 호출 (예시: 채점 결과를 제출하는 API)
-    // Spring Boot에 채점 결과를 제출하는 API가 따로 있다면 해당 API를 호출해야 합니다.
-    // 예: await axios.post(`/api/test/submitTestResult`, requestBody);
-    // 현재 예시에서는 getUserTest API를 통해 문제를 가져왔으므로, 답안 제출 API는 별도로 가정합니다.
-    // 여기서는 시뮬레이션으로 대체합니다.
-
-    await new Promise((resolve) => setTimeout(resolve, 3000)) // 3초 대기 시뮬레이션
-
-    console.log('시험 제출 및 채점 완료 (시뮬레이션)')
-
+    await api.post('/answer',
+      { answers: answersToSend },
+      {
+        params: {
+          userId: userId.value,
+          testId: testId,
+        },
+      }
+    )
     showGradingOverlay.value = false
     showCompletionButtons.value = true
   } catch (error) {
-    console.error('시험 제출 실패:', error)
     showGradingOverlay.value = false
-
-    if (axios.isAxiosError(error) && error.response) {
-      alert(`시험 제출 중 오류가 발생했습니다: ${error.response.data.message || '알 수 없는 오류'}`)
-    } else {
-      alert('시험 제출 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
-    }
+    alert(t('submitError'))
     showCompletionButtons.value = false
   }
 }
 
+// ===== [12] 결과 페이지 이동 함수 =====
 const goToTestResult = () => {
   router.push({
     name: 'TraineeTestResult',
     params: { testId: testId },
-    state: { testName: '모의 시험', actualScore: 85, isPassed: true }, // 실제 채점 결과로 대체 필요
   })
 }
-
 const goToTraineeMain = () => {
   router.push({ name: 'TraineeMain' })
 }
 
+// ===== [13] 주관식 답변 변경 감지 =====
 watch(
   () => {
     if (currentQuestion.value?.type === 'SUBJECTIVE') {
       const answerRef = userAnswers.value.get(currentQuestion.value.id)
-      return answerRef ? answerRef.value : undefined // answerRef가 없을 경우를 대비
+      return answerRef ? answerRef.value : undefined
     }
     return undefined
   },
@@ -353,6 +423,7 @@ watch(
   },
 )
 
+// ===== [14] 컴포넌트 마운트 시 시험 문제 불러오기 =====
 onMounted(() => {
   fetchTestQuestions()
 })
@@ -364,9 +435,14 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  min-height: 0;
+  min-height: 550px;
   overflow: hidden;
-  padding-bottom: 120px; /* 제출 버튼 공간 확보 */
+  /* max-width:980px; */
+  /* margin-left: 250px;
+  margin-right: 250px; */
+  
+
+  /* 제출 버튼 공간 확보 */
 }
 
 .question-taking-area {
@@ -447,6 +523,7 @@ onMounted(() => {
   margin: 0 5px;
   color: #6c757d;
 }
+
 .nav-button:hover:not(:disabled) .nav-icon {
   color: #495057;
 }
@@ -472,13 +549,16 @@ onMounted(() => {
 .question-content-scrollable::-webkit-scrollbar {
   width: 6px;
 }
+
 .question-content-scrollable::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .question-content-scrollable::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 10px;
 }
+
 .question-content-scrollable::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.4);
 }
@@ -523,6 +603,7 @@ onMounted(() => {
   color: #6c757d;
   flex-shrink: 0;
 }
+
 .option-item.is-selected .option-label {
   color: #2b6cb0;
 }
@@ -573,14 +654,25 @@ onMounted(() => {
 }
 
 .submit-and-exit-buttons {
-  position: absolute;
-  bottom: 85px;
-  right: 25px;
   display: flex;
-  justify-content: flex-end;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
   gap: 15px;
   flex-shrink: 0;
   z-index: 10;
+  margin-top: auto;
+  padding: 0 25px 30px 25px;
+}
+
+.left-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.right-buttons {
+  display: flex;
+  gap: 15px;
 }
 
 .submit-button {
@@ -596,6 +688,11 @@ onMounted(() => {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   background-color: #28a745;
   color: white;
+}
+
+.submit-button.not-all-answered {
+  background-color: #92b192;
+  color: #f3f3f3;
 }
 
 .submit-button:hover:not(:disabled) {
@@ -625,7 +722,8 @@ onMounted(() => {
 
 /* 채점 완료 후 선택 버튼 오버레이 스타일 */
 .completion-overlay {
-  position: fixed; /* MainLayout의 content 슬롯 안에 있으므로 absolute 대신 fixed를 사용하여 전체 화면을 덮습니다. */
+  position: fixed;
+  /* MainLayout의 content 슬롯 안에 있으므로 absolute 대신 fixed를 사용하여 전체 화면을 덮습니다. */
   top: 0;
   left: 0;
   width: 100%;
@@ -634,7 +732,8 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9998; /* AiGradingLoading 보다 낮은 z-index */
+  z-index: 9998;
+  /* AiGradingLoading 보다 낮은 z-index */
 }
 
 .completion-card {
@@ -703,5 +802,48 @@ onMounted(() => {
   background-color: #5a6268;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+.time-progress {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: 25px;
+  margin-right: 25px;
+  /* margin-bottom: 25px; */
+  width: 94%;
+  max-width: 100%;
+}
+
+.time-progress-clock {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 60px;
+}
+
+.time-progress-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: #191d5a;
+}
+
+.time-progress-bar-bg {
+  flex: 1;
+  background: #e0e0e0;
+  border-radius: 6px;
+  height: 8px;
+  position: relative;
+  overflow: hidden;
+  max-width: none;
+  min-width: 120px;
+  direction: rlt;
+}
+
+.time-progress-bar {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s, background-color 0.3s;
+  float: right;
 }
 </style>

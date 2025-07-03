@@ -2,8 +2,8 @@
   <div class="ai-grading-overlay" v-if="show">
     <div class="ai-grading-card">
       <div class="loading-spinner"></div>
-      <p class="loading-text">AI 채점 진행 중...</p>
-      <p class="sub-text">잠시만 기다려주세요.</p>
+      <p class="loading-text">{{ $t('loadingText') }}</p>
+      <p class="sub-text">{{ $t('subText') }}</p>
     </div>
   </div>
 </template>

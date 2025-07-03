@@ -266,18 +266,6 @@ export default {
 </script>
 
 <style scoped>
-.main-content {
-    width: 100%;
-    max-width: 1200px;
-    min-height: 700px;
-    height: 800px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    background: #f60101;
-    box-sizing: border-box;
-    position: relative;
-}
 
 .title {
     display: flex;

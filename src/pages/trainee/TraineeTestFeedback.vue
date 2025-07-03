@@ -3,67 +3,73 @@
     <template #content>
       <div class="feedback-main-content">
         <div class="feedback-dashboard-layout">
-          <h1 class="dashboard-title">시험 피드백 결과</h1>
+          <h1 class="dashboard-title">{{ $t('feedback_title') }}</h1>
 
-          <div v-if="isLoading" class="loading-indicator">데이터를 불러오는 중입니다...</div>
+          <div v-if="isLoading" class="loading-indicator">{{ $t('feedback_loading') }}</div>
           <div v-else-if="fetchError" class="error-message">
-            <p>피드백 데이터를 불러오는 데 실패했습니다. 잠시 후 다시 시도해주세요.</p>
-            <p>오류: {{ fetchError.message }}</p>
+            <p>{{ $t('feedback_load_fail') }}</p>
+            <p>{{ $t('feedback_error') }}: {{ fetchError.message }}</p>
           </div>
           <div v-else-if="!hasData" class="no-data-message">
-            <p>표시할 피드백 데이터가 없습니다.</p>
+            <p>{{ $t('feedback_no_data') }}</p>
           </div>
           <div v-else>
             <div class="top-row-grid">
               <section class="dashboard-card summary-card">
-                <h2 class="card-title">종합 평가</h2>
+                <h2 class="card-title">{{ $t('feedback_summary_title') }}</h2>
                 <div class="summary-content">
                   <div class="pass-fail-indicator">
                     <p :class="['pass-fail-text', feedbackData.isPassed ? 'pass' : 'fail']">
-                      {{ feedbackData.isPassed ? 'PASS' : 'FAIL' }}
+                      {{ feedbackData.isPassed ? $t('feedback_pass') : $t('feedback_fail') }}
                     </p>
-                    <p class="congratulations" v-if="feedbackData.isPassed">축하합니다!</p>
-                    <p class="encouragement" v-else>아쉽네요.</p>
+                    <p class="congratulations" v-if="feedbackData.isPassed">{{ $t('feedback_congrats') }}</p>
+                    <p class="encouragement" v-else>{{ $t('feedback_try_again') }}</p>
                   </div>
                   <div class="summary-details">
                     <p>
-                      총 정답률:
+                      {{ $t('feedback_total_correct_rate') }}:
                       <span class="detail-value">{{ feedbackData.totalCorrectRate }}%</span>
                     </p>
                     <p>
-                      총 응시문제 수: <span class="detail-value">{{ totalQuestions }}</span>
+                      {{ $t('feedback_total_questions') }}:
+                      <span class="detail-value">{{ totalQuestions }}</span>
                     </p>
                     <p>
-                      맞은 문제 수: <span class="detail-value">{{ correctQuestions }}</span>
+                      {{ $t('feedback_correct_answers') }}:
+                      <span class="detail-value">{{ correctQuestions }}</span>
                     </p>
                     <p>
-                      틀린 문제 수: <span class="detail-value">{{ wrongQuestions }}</span>
+                      {{ $t('feedback_wrong_answers') }}:
+                      <span class="detail-value">{{ wrongQuestions }}</span>
                     </p>
                   </div>
                 </div>
               </section>
 
               <section class="dashboard-card document-accuracy-card">
-                <h2 class="card-title">문서별 정답률</h2>
+                <h2 class="card-title">{{ $t('feedback_document_accuracy') }}</h2>
                 <DocumentAccuracyChart :document-accuracy="feedbackData.documentAccuracy" />
               </section>
 
               <section class="dashboard-card tag-capacity-card">
-                <h2 class="card-title">항목별 평가</h2>
+                <h2 class="card-title">{{ $t('feedback_tag_evaluation') }}</h2>
                 <RadarChart :tag-accuracy="feedbackData.tagAccuracy" />
               </section>
             </div>
 
             <section class="dashboard-card my-level-card">
-              <h2 class="card-title">현재 나의 레벨</h2>
+              <h2 class="card-title">{{ $t('feedback_my_level') }}</h2>
               <LineAreaChart
                 :my-score="feedbackData.totalCorrectRate"
                 :all-participant-scores="allParticipantScores"
                 :my-user-id="myUserId"
               />
               <p class="rank-summary">
-                당신은 전체 응시자 중 <span class="highlight-rank">{{ myRank }}등</span>이며, 상위
-                <span class="highlight-percent">{{ topPercentage }}%</span>에 해당합니다.
+                {{ $t('feedback_rank_prefix') }}
+                <span class="highlight-rank">{{ myRank }}{{ $t('feedback_rank_suffix') }}</span>,
+                {{ $t('feedback_top_prefix') }}
+                <span class="highlight-percent">{{ topPercentage }}%</span>
+                {{ $t('feedback_top_suffix') }}
               </p>
             </section>
           </div>
@@ -74,41 +80,55 @@
 </template>
 
 <script setup>
+// =========================
+// 1. 라이브러리 및 컴포넌트 임포트
+// =========================
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-// 컴포넌트 임포트 경로 확인 (프로젝트 구조에 맞게 필요시 수정)
+// 레이아웃 및 차트 컴포넌트
 import MainLayout from '@/components/layouts/MainLayout.vue'
 import RadarChart from '@/components/trainee/feedback/RadarChart.vue'
 import LineAreaChart from '@/components/trainee/feedback/LineAreaChart.vue'
 import DocumentAccuracyChart from '@/components/trainee/feedback/DocumentAccuracyChart.vue'
-import axios from '@/config/axios' // axios 임포트 경로 확인 (프로젝트 구조에 맞게 필요시 수정)
+import axios from '@/config/axios' // axios 인스턴스
 
-const route = useRoute()
-const testId = route.params.testId
-const myUserId = ref(localStorage.getItem('userId'))
+// =========================
+// 2. 라우트 및 사용자 정보
+// =========================
+const route = useRoute() // 현재 라우트 정보
+const testId = route.params.testId // URL에서 시험 ID 추출
+const myUserId = ref(localStorage.getItem('userId')) // LocalStorage에서 사용자 ID 추출
 
-const isLoading = ref(true)
-const fetchError = ref(null)
+// =========================
+// 3. 상태 변수 정의
+// =========================
+const isLoading = ref(true) // 데이터 로딩 상태
+const fetchError = ref(null) // 에러 정보
 
+// 시험 피드백 데이터(정답률, 합격여부, 문서별/태그별 정확도 등)
 const feedbackData = ref({
-  totalCorrectRate: 0,
-  isPassed: false,
-  documentAccuracy: {},
-  tagAccuracy: {},
-  totalQuestions: 0,
-  correctQuestions: 0,
-  wrongQuestions: 0,
+  totalCorrectRate: 0, // 총 정답률(%)
+  isPassed: false, // 합격 여부
+  documentAccuracy: {}, // 문서별 정답률
+  tagAccuracy: {}, // 태그별 정답률
+  totalQuestions: 0, // 전체 문항 수
+  correctQuestions: 0, // 맞은 문항 수
+  wrongQuestions: 0, // 틀린 문항 수
 })
 
+// 전체 응시자 점수 분포(그래프용)
 const allParticipantScores = ref([])
+const myRank = ref(0) // 내 순위
+const totalParticipants = ref(0) // 전체 응시자 수
 
-const myRank = ref(0)
-const totalParticipants = ref(0)
-
+// =========================
+// 4. computed: 화면 표시용 파생 데이터
+// =========================
 const totalQuestions = computed(() => feedbackData.value.totalQuestions)
 const correctQuestions = computed(() => feedbackData.value.correctQuestions)
 const wrongQuestions = computed(() => feedbackData.value.wrongQuestions)
 
+// 피드백 데이터가 존재하는지 여부(로딩/에러/데이터 없음 분기용)
 const hasData = computed(() => {
   return (
     feedbackData.value.totalCorrectRate > 0 ||
@@ -117,6 +137,7 @@ const hasData = computed(() => {
   )
 })
 
+// 내 순위가 상위 몇 %인지 계산
 const topPercentage = computed(() => {
   if (totalParticipants.value <= 1) {
     return 0.0
@@ -125,10 +146,14 @@ const topPercentage = computed(() => {
   return parseFloat(percentage.toFixed(1))
 })
 
+// =========================
+// 5. 피드백 데이터 백엔드에서 불러오기
+// =========================
 const fetchFeedbackData = async () => {
   isLoading.value = true
   fetchError.value = null
 
+  // 사용자 정보 없을 때 예외 처리
   if (!myUserId.value) {
     console.error('User ID not found in Local Storage. Cannot fetch feedback data.')
     fetchError.value = new Error('사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.')
@@ -137,34 +162,56 @@ const fetchFeedbackData = async () => {
   }
 
   try {
+    // 여러 API를 병렬로 호출하여 피드백 데이터 수집
     const [totalAccuracyResponse, tagAccuracyResponse, docAccuracyResponse, distributionResponse] =
       await Promise.all([
-        axios.get(`/feedback/all`, { params: { userId: myUserId.value, testId: testId } }),
-        axios.get(`/feedback/tag`, { params: { userId: myUserId.value, testId: testId } }),
-        axios.get(`/feedback/docs`, { params: { userId: myUserId.value, testId: testId } }),
+        axios.get(`/feedback/all`, { params: { userId: myUserId.value, testId: testId } }), // 전체 정답률, 합격여부 등
+        axios.get(`/feedback/tag`, { params: { userId: myUserId.value, testId: testId } }), // 태그별 정확도
+        axios.get(`/feedback/docs`, { params: { userId: myUserId.value, testId: testId } }), // 문서별 정확도
         axios.get(`/feedback/distribution`, {
-          params: { userId: myUserId.value, testId: testId },
+          params: { userId: myUserId.value, testId: testId }, // 점수 분포(그래프용)
         }),
       ])
 
-    feedbackData.value.totalCorrectRate = totalAccuracyResponse.data.resultData?.accuracyRate || 0
-    feedbackData.value.isPassed = totalAccuracyResponse.data.resultData?.isPassed || false
-    feedbackData.value.totalQuestions = totalAccuracyResponse.data.resultData?.totalCount || 0
-    feedbackData.value.correctQuestions = totalAccuracyResponse.data.resultData?.correctCount || 0
-    feedbackData.value.wrongQuestions =
-      (totalAccuracyResponse.data.resultData?.totalCount || 0) -
-      (totalAccuracyResponse.data.resultData?.correctCount || 0)
+    // 1) 전체 정답률/합격여부/문항수 등 저장 (응답 구조에 맞게 수정)
+    const result = totalAccuracyResponse.data.resultData || {}
+    feedbackData.value.totalCorrectRate = result.totalScore ?? 0
+    feedbackData.value.isPassed = (result.totalScore ?? 0) >= (result.passScore ?? 0)
+    feedbackData.value.totalQuestions = (result.correctCount ?? 0) + (result.incorrectCount ?? 0)
+    feedbackData.value.correctQuestions = result.correctCount ?? 0
+    feedbackData.value.wrongQuestions = result.incorrectCount ?? 0
 
+    // 2) 태그별 정확도 가공 (응답 구조에 맞게 수정)
+    // resultData: [{ tagName, accuracyRate, correctCount, totalCount }, ...]
+    // console.log('tagAccuracyResponse.data.resultData:', tagAccuracyResponse.data.resultData)
     const tagAccuracyMap = {}
+    const requiredTags = ["분석력", "문제해결력", "추론력", "이해력", "논리력"]
     if (Array.isArray(tagAccuracyResponse.data.resultData)) {
       tagAccuracyResponse.data.resultData.forEach((item) => {
-        if (item.tagName && typeof item.accuracyRate === 'number') {
-          tagAccuracyMap[item.tagName] = item.accuracyRate
+        if (item.tagName) {
+          tagAccuracyMap[item.tagName] = {
+            accuracyRate: Math.max(0, Math.min(100, item.accuracyRate ?? 0)),
+            correctCount: item.correctCount ?? 0,
+            totalCount: item.totalCount ?? 0,
+          }
         }
       })
     }
+    // 누락된 태그는 0값으로 추가 (accuracyRate 0~100 보장)
+    requiredTags.forEach((tag) => {
+      if (!tagAccuracyMap[tag]) {
+        tagAccuracyMap[tag] = {
+          accuracyRate: 0,
+          correctCount: 0,
+          totalCount: 0,
+        }
+      } else {
+        tagAccuracyMap[tag].accuracyRate = Math.max(0, Math.min(100, tagAccuracyMap[tag].accuracyRate ?? 0))
+      }
+    })
     feedbackData.value.tagAccuracy = tagAccuracyMap
 
+    // 3) 문서별 정확도 가공 (ex: {"문서1": 90, "문서2": 70})
     const documentAccuracyMap = {}
     if (Array.isArray(docAccuracyResponse.data.resultData)) {
       docAccuracyResponse.data.resultData.forEach((item) => {
@@ -175,6 +222,8 @@ const fetchFeedbackData = async () => {
     }
     feedbackData.value.documentAccuracy = documentAccuracyMap
 
+    // 4) 전체 응시자 점수 분포(그래프용 배열 생성)
+    // scoreDistribution: [{ minScore, maxScore, userCount, percentage }, ...]
     const scoreDistribution = distributionResponse.data.resultData?.scoreDistribution || []
     const simulatedAllParticipantScores = []
     scoreDistribution.forEach((range) => {
@@ -188,13 +237,15 @@ const fetchFeedbackData = async () => {
     })
     allParticipantScores.value = simulatedAllParticipantScores
 
-    const myCurrentScore = distributionResponse.data.resultData?.myScore || 0
-    totalParticipants.value = distributionResponse.data.resultData?.totalUserCount || 0
-
+    // 5) 내 점수, 전체 응시자 수 저장 
+    const myCurrentScore = distributionResponse.data.resultData?.myScore ?? 0
+    totalParticipants.value = distributionResponse.data.resultData?.totalUserCount ?? 0
     feedbackData.value.totalCorrectRate = myCurrentScore
 
+    // 6) 내 순위 계산
     calculateRank(myCurrentScore)
   } catch (error) {
+    // 에러 발생 시 처리
     console.error('피드백 데이터를 불러오는 데 실패했습니다:', error)
     fetchError.value = error
   } finally {
@@ -202,17 +253,18 @@ const fetchFeedbackData = async () => {
   }
 }
 
+// =========================
+// 6. 내 순위 계산 함수
+// =========================
 const calculateRank = (myScore) => {
   if (totalParticipants.value === 0) {
     myRank.value = 0
     return
   }
-
+  // 점수 내림차순 정렬 후 내 점수의 순위 계산
   const sortedScores = allParticipantScores.value.map((p) => p.score).sort((a, b) => b - a)
-
   let currentRank = 1
   let foundMyRank = false
-
   for (let i = 0; i < sortedScores.length; i++) {
     if (i > 0 && sortedScores[i] < sortedScores[i - 1]) {
       currentRank = i + 1
@@ -222,15 +274,21 @@ const calculateRank = (myScore) => {
       foundMyRank = true
     }
   }
-
+  // 내 점수가 분포에 없으면 꼴찌 처리
   if (!foundMyRank) {
     myRank.value = totalParticipants.value
   }
 }
 
+// =========================
+// 7. 컴포넌트 마운트 시 데이터 불러오기
+// =========================
 onMounted(() => {
   fetchFeedbackData()
 })
+// =========================
+// (끝)
+// =========================
 </script>
 
 <style scoped>

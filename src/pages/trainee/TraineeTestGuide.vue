@@ -3,62 +3,58 @@
     <template #content>
       <div class="test-guide-content">
         <div class="guide-header">
-          <h2 class="guide-title">시험 응시 안내</h2>
-          <p class="guide-subtitle">시험을 시작하기 전에 다음 안내 사항을 반드시 확인해주세요.</p>
+          <h2 class="guide-title">{{ $t('testGuideTitle') }}</h2>
+          <p class="guide-subtitle">{{ $t('testGuideSubtitle') }}</p>
         </div>
 
         <hr class="content-divider" />
 
         <div class="test-info-section">
-          <h3>시험 정보</h3>
+          <h3>{{ $t('testInfo') }}</h3>
           <div class="info-grid">
             <div class="info-item">
-              <span class="info-label">시험명:</span>
+              <span class="info-label">{{ $t('testName') }}</span>
               <span class="info-value">{{ testName }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">제한 시간:</span>
+              <span class="info-label">{{ $t('limitedTime') }}</span>
               <span class="info-value">{{ formatTime(limitedTimeM) }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">합격 점수:</span>
-              <span class="info-value">{{ passScore }}점</span>
+              <span class="info-label">{{ $t('passScore') }}</span>
+              <span class="info-value">{{ passScore }}{{ $t('scoreUnit') }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">시험 생성일:</span>
+              <span class="info-label">{{ $t('createdAt') }}</span>
               <span class="info-value">{{ formatCreatedAt(createdAt) }}</span>
             </div>
           </div>
-          <p v-if="isRetake === 1" class="retake-info">* 이 시험은 재응시가 허용된 시험입니다.</p>
+          <p v-if="isRetake === 1" class="retake-info">{{ $t('retakeAllowed') }}</p>
         </div>
 
         <div class="rules-section">
-          <h3>응시 규칙 및 유의사항</h3>
+          <h3>{{ $t('testRules') }}</h3>
           <ul>
             <li>
-              <strong>시험 시작:</strong> '시험 시작' 버튼을 누르는 즉시 제한 시간이
-              카운트다운됩니다.
+              <strong>{{ $t('testStart') }}</strong> {{ $t('testStartDesc') }}
             </li>
             <li>
-              <strong>응시 중:</strong> 시험 중에는 브라우저 새로고침, 뒤로 가기, 다른 페이지 이동
-              등을 삼가주세요. 시험이 강제로 종료될 수 있습니다.
+              <strong>{{ $t('duringTest') }}</strong> {{ $t('duringTestDesc') }}
             </li>
             <li>
-              <strong>네트워크 환경:</strong> 안정적인 네트워크 환경에서 응시해주세요. 불안정한
-              네트워크는 문제 제출 오류의 원인이 될 수 있습니다.
+              <strong>{{ $t('network') }}</strong> {{ $t('networkDesc') }}
             </li>
-            <li><strong>제한 시간:</strong> 제한 시간을 초과하면 자동으로 답안이 제출됩니다.</li>
+            <li><strong>{{ $t('limitedTime') }}</strong> {{ $t('limitedTimeDesc') }}</li>
             <li>
-              <strong>부정 행위 금지:</strong> 어떠한 형태의 부정 행위도 엄격히 금지됩니다. 적발 시
-              불이익을 받을 수 있습니다.
+              <strong>{{ $t('noCheating') }}</strong> {{ $t('noCheatingDesc') }}
             </li>
-            <li><strong>재응시:</strong> (해당하는 경우) 본 시험은 재응시가 허용됩니다.</li>
+            <li><strong>{{ $t('retake') }}</strong> {{ $t('retakeDesc') }}</li>
           </ul>
         </div>
 
         <div class="button-area">
           <button class="start-test-button" @click="startTest" :disabled="!testId || isLoading">
-            {{ isLoading ? '시험 정보 로딩 중...' : '시험 시작' }}
+            {{ isLoading ? $t('loadingTestInfo') : $t('startTest') }}
           </button>
         </div>
       </div>
@@ -70,8 +66,11 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MainLayout from '@/components/layouts/MainLayout.vue'
-import axios from '@/config/axios' // axios import 추가
-import { isAxiosError } from 'axios' // isAxiosError 함수를 axios 패키지에서 직접 임포트
+import axios from '@/config/axios'
+import { isAxiosError } from 'axios'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -92,7 +91,7 @@ const fetchTestGuideData = async () => {
   // 1. userId를 Local Storage에서 가져오기
   const storedUserId = localStorage.getItem('userId')
   if (!storedUserId) {
-    alert('사용자 ID를 찾을 수 없습니다. 로그인 후 다시 시도해주세요.')
+    alert(t('userNotFound'))
     router.push({ name: 'Login' }) // 예: 로그인 페이지로 리다이렉트
     return
   }
@@ -100,7 +99,7 @@ const fetchTestGuideData = async () => {
 
   // 2. testId를 URL 파라미터에서 가져오기
   if (!route.params.testId) {
-    alert('시험 ID가 제공되지 않았습니다.')
+    alert(t('testIdNotProvided'))
     router.back()
     return
   }
@@ -123,7 +122,7 @@ const fetchTestGuideData = async () => {
       // difficultyLevel 및 isRetake는 현재 제공된 API 응답에 없으므로 기존 기본값 유지
       // 만약 API에서 해당 정보를 제공한다면, 여기에 추가하여 바인딩할 수 있습니다.
     } else {
-      alert(`시험 정보를 불러오는 데 실패했습니다: ${resultMsg}`)
+      alert(t('failedToLoadTestInfo') + ': ' + resultMsg)
       router.back()
     }
   } catch (error) {
@@ -131,12 +130,11 @@ const fetchTestGuideData = async () => {
     if (isAxiosError(error) && error.response) {
       // axios.isAxiosError 대신 isAxiosError 사용
       alert(
-        `시험 정보를 불러오는 중 오류가 발생했습니다: ${
-          error.response.data.message || '알 수 없는 오류'
-        }`,
+        t('errorOccurred') + ': ' +
+        (error.response.data.message || t('unknownError')),
       )
     } else {
-      alert('시험 정보를 불러오는 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+      alert(t('networkErrorOccurred') + '. 잠시 후 다시 시도해주세요.')
     }
     router.back()
   } finally {
@@ -149,7 +147,7 @@ onMounted(() => {
 })
 
 const formatTime = (totalMinutes) => {
-  if (totalMinutes === undefined || totalMinutes === null) return '정보 없음'
+  if (totalMinutes === undefined || totalMinutes === null) return t('infoNotAvailable')
 
   const hours = Math.floor(totalMinutes / 60)
   const minutes = totalMinutes % 60
@@ -157,29 +155,29 @@ const formatTime = (totalMinutes) => {
 
   let timeString = ''
   if (hours > 0) {
-    timeString += `${hours}시간 `
+    timeString += `${hours} hr `
   }
   if (minutes > 0) {
-    timeString += `${minutes}분 `
+    timeString += `${minutes} min `
   }
   if (seconds > 0) {
-    timeString += `${seconds}초 `
+    timeString += `${seconds} sec `
   }
 
   if (timeString === '') {
-    return '0분' // 제한 시간이 0분일 경우
+    return t('zeroMinutes') // 제한 시간이 0분일 경우
   }
 
   return timeString.trim() // 마지막 공백 제거
 }
 
 const formatCreatedAt = (dateTimeString) => {
-  if (!dateTimeString) return '정보 없음'
+  if (!dateTimeString) return t('infoNotAvailable')
   // '2025-06-10T10:00:00' 형태의 문자열을 Date 객체로 변환
   const date = new Date(dateTimeString)
   // 유효한 Date 객체인지 확인
   if (isNaN(date.getTime())) {
-    return '유효하지 않은 날짜'
+    return t('invalidDate')
   }
   return date.toLocaleDateString('ko-KR', {
     year: 'numeric',
@@ -199,7 +197,7 @@ const startTest = () => {
       },
     })
   } else if (!testId.value || !userId.value) {
-    alert('시험 정보를 불러오지 못했습니다. 다시 시도해주세요.')
+    alert(t('failedToLoadTestInfo'))
   }
 }
 </script>

@@ -1,12 +1,8 @@
 <template>
   <MainLayout :show-sidebar="allQuestions.length > 0" sidebar-type="testResult">
     <template #sidebar="{ isCollapsed }">
-      <TraineeTestResultSideBar
-        :is-collapsed="isCollapsed"
-        :questions="allQuestions"
-        :current-question-id="currentQuestionId"
-        @select-question="handleQuestionSelectFromSidebar"
-      />
+      <TraineeTestResultSideBar :is-collapsed="isCollapsed" :questions="allQuestions"
+        :current-question-id="currentQuestionId" @select-question="handleQuestionSelectFromSidebar" />
     </template>
 
     <template #content>
@@ -15,35 +11,49 @@
           <div class="test-result-container-inner">
             <div class="top-nav">
               <h3 class="question-number-top" v-if="currentQuestion">{{ currentQuestion.id }}.</h3>
-              <div class="nav-buttons-wrapper">
-                <button
-                  class="nav-button"
-                  @click="goToPreviousQuestion"
-                  :disabled="!hasPreviousQuestion"
-                >
+              <!-- <div class="nav-buttons-wrapper">
+                <button class="nav-button" @click="goToPreviousQuestion" :disabled="!hasPreviousQuestion">
                   <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> 이전 문제
                 </button>
                 <button class="nav-button" @click="goToNextQuestion" :disabled="!hasNextQuestion">
                   다음 문제 <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
                 </button>
-              </div>
+              </div> -->
             </div>
 
             <div class="question-solution-area" v-if="currentQuestion">
               <TraineeQuestionArea :question="currentQuestion" />
-              <TraineeSolutionArea
-                :explanation="currentQuestion.explanation"
-                :grading-criteria="currentQuestion.gradingCriteria"
-              />
+              <TraineeSolutionArea :explanation="currentQuestion.explanation"
+                :grading-criteria="currentQuestion.gradingCriteria" />
             </div>
             <div v-else class="loading-message">
               <p>시험 결과를 로딩 중입니다...</p>
             </div>
 
-            <div class="exit-button-container">
+            <!-- <div class="exit-button-container">
               <button class="exit-button" @click="exitTestResult">나가기</button>
+            </div> -->
+          </div>
+
+
+
+          <div class="submit-and-exit-buttons">
+            <div class="left-buttons">
+              <button class="nav-button" @click="goToPreviousQuestion"
+                :disabled="!hasPreviousQuestion || showGradingOverlay">
+                <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> {{ $t('prev') }}
+              </button>
+            </div>
+            <div class="right-buttons">
+              <button class="nav-button" @click="goToNextQuestion" :disabled="!hasNextQuestion || showGradingOverlay">
+                {{ $t('next') }} <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
+              </button>
+                <button class="exit-button" @click="exitTestResult">{{ $t('exit') }}</button>
             </div>
           </div>
+
+
+
         </div>
 
         <TraineeChatbot :current-question-id="currentQuestionId" />
@@ -62,6 +72,9 @@ import TraineeSolutionArea from '@/components/trainee/result/TraineeSolutionArea
 import TraineeChatbot from '@/components/trainee/result/TraineeChatbot.vue'
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js'
+
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 const router = useRouter()
 
@@ -285,14 +298,14 @@ const handleQuestionSelectFromSidebar = (questionId) => {
 }
 
 const goToPreviousQuestion = () => {
-  const currentIndex = allQuestions.value.findIndex((q) => q.id === currentQuestionId.value)
+  const currentIndex = allQuestions.value.findIndex((q) => String(q.id) === String(currentQuestionId.value))
   if (currentIndex > 0) {
     currentQuestionId.value = allQuestions.value[currentIndex - 1].id
   }
 }
 
 const goToNextQuestion = () => {
-  const currentIndex = allQuestions.value.findIndex((q) => q.id === currentQuestionId.value)
+  const currentIndex = allQuestions.value.findIndex((q) => String(q.id) === String(currentQuestionId.value))
   if (currentIndex < allQuestions.value.length - 1) {
     currentQuestionId.value = allQuestions.value[currentIndex + 1].id
   }
@@ -311,8 +324,10 @@ const exitTestResult = () => {
   display: flex;
   flex: 1;
   gap: 25px;
-  height: 100%; /* 부모의 전체 높이를 차지하도록 설정 */
-  overflow: hidden; /* 내부 요소가 넘치지 않도록 숨김 */
+  height: 100%;
+  /* 부모의 전체 높이를 차지하도록 설정 */
+  overflow: hidden;
+  /* 내부 요소가 넘치지 않도록 숨김 */
 }
 
 .test-result-main-content {
@@ -321,15 +336,18 @@ const exitTestResult = () => {
   flex-direction: column;
   padding: 0;
   overflow: hidden;
-  gap: 25px; /* `top-nav`, `question-solution-area`, `exit-button-container` 사이의 간격 */
+  gap: 25px;
+  /* `top-nav`, `question-solution-area`, `exit-button-container` 사이의 간격 */
   box-sizing: border-box;
-  height: 100%; /* 부모의 전체 높이를 차지하도록 설정 */
+  height: 100%;
+  /* 부모의 전체 높이를 차지하도록 설정 */
 }
 
 .test-result-container-inner {
   display: flex;
   flex-direction: column;
-  flex: 1; /* .test-result-main-content 내에서 남은 공간을 차지 */
+  flex: 1;
+  /* .test-result-main-content 내에서 남은 공간을 차지 */
   overflow: hidden;
 }
 
@@ -338,9 +356,11 @@ const exitTestResult = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px; /* question-solution-area와의 간격 */
+  margin-bottom: 25px;
+  /* question-solution-area와의 간격 */
   flex-shrink: 0;
-  height: 48px; /* 고정 높이 */
+  height: 48px;
+  /* 고정 높이 */
   /* 이 top-nav의 height와 margin-bottom이 .question-solution-area의 계산에 영향을 줍니다. */
 }
 
@@ -391,6 +411,7 @@ const exitTestResult = () => {
   margin: 0 5px;
   color: #6c757d;
 }
+
 .nav-button:hover:not(:disabled) .nav-icon {
   color: #495057;
 }
@@ -399,17 +420,23 @@ const exitTestResult = () => {
 .question-solution-area {
   display: flex;
   flex-direction: column;
-  flex: 1; /* .test-result-container-inner 내에서 남은 공간을 차지 */
-  gap: 25px; /* 문제 영역과 풀이 영역 사이의 간격 */
-  overflow-y: hidden; /* 자식 컴포넌트들이 스스로 스크롤을 가짐 */
-  min-height: 0; /* 중요: Flex 컨테이너의 자식인 .question-solution-area가 내용물에 의해 커지는 것을 방지 */
+  flex: 1;
+  /* .test-result-container-inner 내에서 남은 공간을 차지 */
+  gap: 25px;
+  /* 문제 영역과 풀이 영역 사이의 간격 */
+  overflow-y: hidden;
+  /* 자식 컴포넌트들이 스스로 스크롤을 가짐 */
+  min-height: 0;
+  /* 중요: Flex 컨테이너의 자식인 .question-solution-area가 내용물에 의해 커지는 것을 방지 */
 }
 
 .exit-button-container {
-  margin-top: 30px; /* question-solution-area와의 간격 */
+  margin-top: 30px;
+  /* question-solution-area와의 간격 */
   text-align: left;
   flex-shrink: 0;
-  height: 44px; /* 고정 높이 */
+  height: 44px;
+  /* 고정 높이 */
 }
 
 .exit-button {
@@ -444,5 +471,27 @@ const exitTestResult = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.submit-and-exit-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  flex-shrink: 0;
+  z-index: 10;
+  margin-top: auto;
+  padding: 0 25px 30px 25px;
+}
+
+.left-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.right-buttons {
+  display: flex;
+  gap: 15px;
 }
 </style>

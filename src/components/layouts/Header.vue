@@ -4,7 +4,7 @@
     <div class="header-right">
       <LangSwitcher />
       <div class="vertical-divider"></div>
-      <UserMenu />
+      <UserMenu style="width: 140px"/>
     </div>
   </header>
 </template>

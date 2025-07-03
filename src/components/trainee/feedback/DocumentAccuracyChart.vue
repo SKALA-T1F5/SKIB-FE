@@ -1,7 +1,7 @@
 <template>
   <div class="document-accuracy-chart-container">
     <div v-if="Object.keys(documentAccuracy).length === 0" class="no-data">
-      문서별 정답률 데이터가 없습니다.
+      {{ $t('feedback_noDocumentAccuracyData') }}
     </div>
     <ul v-else class="chart-list">
       <li v-for="(rate, docName) in documentAccuracy" :key="docName" class="chart-item">
@@ -20,6 +20,9 @@
 
 <script setup>
 import { defineProps } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   documentAccuracy: {

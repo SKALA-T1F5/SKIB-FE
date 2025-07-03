@@ -36,150 +36,157 @@ ChartJS.register(
 
 const props = defineProps({
   myScore: Number, // 현재 나의 점수 (레벨)
-  allParticipantScores: Array, // 전체 응시자 점수 목록
+  allParticipantScores: Array, // 전체 응시자 점수 목록 (이제 scoreDistribution으로 대체)
   myUserId: String, // 나의 userId (그래프에 나의 위치를 표시하기 위함)
 });
 
-// 가상의 과거 레벨 데이터를 생성합니다.
-// 실제로는 백엔드에서 나의 과거 시험 점수 이력을 받아와야 합니다.
-const generatePastLevels = () => {
-  const levels = [];
-  const today = new Date();
-  for (let i = 20; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(today.getDate() - (i * 7)); // 1주 간격으로 과거 데이터
-    const monthDay = `${date.getMonth() + 1}/${date.getDate()}`;
+// 점수 분포 데이터(구간별 userCount) 기반으로 차트 데이터 생성
+const scoreDistribution = computed(() => {
+  // allParticipantScores는 [{userId, score}] 배열이지만, 실제로는 scoreDistribution 구간별 userCount가 필요
+  // props.allParticipantScores를 [{userId, score}] 배열로 받는 대신, 점수별 빈도수로 변환
+  // 예: [ {score: 10}, {score: 20}, {score: 10} ] => {10: 2, 20: 1}
+  const freq = {};
+  props.allParticipantScores.forEach((p) => {
+    const score = p.score;
+    freq[score] = (freq[score] || 0) + 1;
+  });
+  // x축: 0~100까지 10점 단위 구간, y축: 각 구간별 응시자 수
+  const bins = Array.from({ length: 11 }, (_, i) => i * 10); // [0, 10, 20, ..., 100]
+  const binCounts = bins.map((bin) => {
+    // 해당 구간에 속하는 점수의 응시자 수 합산
+    let count = 0;
+    for (let s = bin; s < bin + 10 && s <= 100; s++) {
+      count += freq[s] || 0;
+    }
+    return count;
+  });
+  return { bins, binCounts };
+});
 
-    // 나의 현재 점수를 기반으로 과거 점수를 무작위로 생성 (실제 데이터로 대체 필요)
-    let score = props.myScore + (Math.random() * 20 - 10); // +/- 10점 범위
-    score = Math.max(0, Math.min(100, Math.round(score))); // 0-100 범위 유지
-    levels.push({ date: monthDay, score: score });
-  }
-  // 마지막 데이터는 나의 현재 점수로 정확히 설정
-  levels[levels.length - 1].score = props.myScore;
-  return levels;
-};
-
-const pastLevels = ref(generatePastLevels());
-
-// Chart.js 데이터 설정
 const chartData = computed(() => {
-  const labels = pastLevels.value.map(level => level.date);
-  const data = pastLevels.value.map(level => level.score);
-
-  // 현재 나의 위치를 위한 데이터셋 (점으로 표시)
-  // 가장 오른쪽 마지막 데이터 포인트에만 마커를 표시
-  const myPositionData = Array(data.length).fill(null);
-  myPositionData[data.length - 1] = props.myScore;
-
+  const { bins, binCounts } = scoreDistribution.value;
+  // 본인 점수 위치 마커 데이터
+  const myScoreMarker = bins.map((bin, idx) => {
+    if (
+      props.myScore >= bin &&
+      (idx === bins.length - 1 || props.myScore < bins[idx + 1])
+    ) {
+      return binCounts[idx] + 0.5; // 마커를 해당 구간 위에 살짝 띄워서 표시
+    }
+    return null;
+  });
   return {
-    labels: labels,
+    labels: bins.map((bin) => `${bin}점`),
     datasets: [
       {
-        label: '나의 레벨',
-        backgroundColor: 'rgba(106, 138, 255, 0.2)', // 영역 채우기 색상
-        borderColor: 'rgba(106, 138, 255, 1)', // 라인 색상
+        label: '응시자 수',
+        data: binCounts,
+        backgroundColor: 'rgba(106, 138, 255, 0.2)',
+        borderColor: 'rgba(106, 138, 255, 1)',
         borderWidth: 2,
-        pointRadius: 4, // 기본 포인트 크기
+        pointRadius: 4,
         pointBackgroundColor: 'rgba(106, 138, 255, 1)',
         pointBorderColor: '#fff',
         pointHoverRadius: 6,
-        data: data,
-        fill: true, // 영역 채우기 활성화
-        tension: 0.4, // 라인 곡선 설정 (꺾은선 효과)
+        fill: true,
+        tension: 0.4,
       },
       {
-        label: '현재 나의 위치', // 이 데이터셋은 마커만 표시
-        backgroundColor: 'rgba(255, 193, 7, 1)', // 마커 색상
+        label: '내 점수',
+        data: myScoreMarker,
+        backgroundColor: 'rgba(255, 193, 7, 1)',
         borderColor: 'rgba(255, 193, 7, 1)',
-        pointRadius: 8, // 현재 위치 마커 크기 강조
+        pointRadius: 8,
         pointBackgroundColor: 'rgba(255, 193, 7, 1)',
         pointBorderColor: '#fff',
         pointBorderWidth: 2,
         pointHoverRadius: 10,
-        data: myPositionData, // 마지막 데이터 포인트에만 값
-        showLine: false, // 선은 그리지 않음
-        tooltip: {
-            callbacks: {
-                label: function(context) { // context: any 제거
-                    return `현재 레벨: ${context.parsed.y}%`;
-                }
-            }
-        }
-      }
-    ]
+        showLine: false,
+        fill: false,
+      },
+    ],
   };
 });
 
-// Chart.js 옵션 설정
-const chartOptions = ref({
+const chartOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
     legend: {
-      display: false, // 범례 숨김
+      display: false,
     },
     tooltip: {
-        mode: 'index', // 'as const' 제거
-        intersect: false, // 툴팁이 겹쳐도 표시
-        callbacks: {
-            title: function(context) { // context: any 제거
-                return `날짜: ${context[0].label}`;
-            },
-            label: function(context) { // context: any 제거
-                let label = context.dataset.label || '';
-                if (label) {
-                    label += ': ';
-                }
-                if (context.parsed.y !== null) {
-                    label += context.parsed.y + '%';
-                }
-                return label;
-            }
-        }
-    }
+      mode: 'index',
+      intersect: false,
+      callbacks: {
+        title: function (context) {
+          return `점수 구간: ${context[0].label}`;
+        },
+        label: function (context) {
+          let label = context.dataset.label || '';
+          if (label) {
+            label += ': ';
+          }
+          if (context.parsed.y !== null) {
+            label += context.parsed.y + '명';
+          }
+          return label;
+        },
+      },
+    },
   },
   scales: {
     x: {
       grid: {
-        display: true, // 그리드 라인 표시 (세로선)
+        display: true,
         drawOnChartArea: true,
         drawTicks: false,
-        color: '#e0e0e0', // 그리드 라인 색상
+        color: '#e0e0e0',
       },
       ticks: {
-        display: true, // X축 틱 라벨 표시
+        display: true,
         color: '#6c757d',
-        autoSkip: true, // 라벨이 많을 경우 자동으로 건너뛰기
+        autoSkip: false,
         maxRotation: 0,
         minRotation: 0,
-      }
+      },
+      title: {
+        display: true,
+        text: '점수',
+        color: '#495057',
+        font: { size: 14, weight: 'bold' },
+      },
     },
     y: {
       beginAtZero: true,
-      max: 100, // Y축 최대값 100%
       grid: {
-        display: true, // 그리드 라인 표시 (가로선)
+        display: true,
         drawOnChartArea: true,
         drawTicks: false,
-        color: '#e0e0e0', // 그리드 라인 색상
+        color: '#e0e0e0',
       },
       ticks: {
-        stepSize: 10, // 틱 간격 10
+        stepSize: 1,
         color: '#6c757d',
-        callback: function(value) { // value: any 제거
-          return value + '%'; // Y축 라벨에 % 붙이기
-        }
-      }
-    }
-  }
-});
+        callback: function (value) {
+          return value + '명';
+        },
+      },
+      title: {
+        display: true,
+        text: '응시자 수',
+        color: '#495057',
+        font: { size: 14, weight: 'bold' },
+      },
+    },
+  },
+};
 
 // props 변경 감지 (나의 점수가 변경될 경우 등)
 watch([() => props.myScore, () => props.allParticipantScores], () => {
     // 실제 백엔드 연동 시, 이 부분에서 새로운 데이터를 기반으로 pastLevels를 다시 fetch하는 로직 필요
     // 지금은 myScore가 변경될 때마다 가상 과거 데이터를 다시 생성
-    pastLevels.value = generatePastLevels();
+    // pastLevels.value = generatePastLevels();
 }, { deep: true });
 
 </script>

@@ -2,28 +2,10 @@
   <div class="chatbot-section">
     <div class="chatbot-header">
       <svg-icon type="mdi" :path="mdiRobot" class="chatbot-header-icon" />
-      <span class="chatbot-header-text">챗봇</span>
+      <span class="chatbot-header-text">{{ $t('chatbotTitle') }}</span>
     </div>
 
     <div class="chatbot-messages" ref="messagesContainer">
-      <div class="message trainee-msg" v-if="currentQuestionId === 'Q03'">
-        <p>PC.10.02 프로세스에서 정발행/역발행 건의 결재 요청 및 승인 절차를 자세히 알려주세요.</p>
-      </div>
-      <div class="message bot-msg" v-if="currentQuestionId === 'Q03'">
-        <p>
-          PC.10.02 프로세스는 검수/출장비 기반으로 발생한 정발행/역발행 건을 결재 요청하고, 결재
-          승인하는 절차입니다.
-        </p>
-      </div>
-      <div class="message trainee-msg">
-        <p>세금계산서 발행 프로세스에 대해 더 알려주세요.</p>
-      </div>
-      <div class="message bot-msg">
-        <p>
-          세금계산서 발행 프로세스는 크게 정발행과 역발행으로 나뉩니다. 정발행은 공급자가 발행하고,
-          역발행은 공급받는 자가 발행 요청하는 방식입니다. 어떤 부분이 궁금하신가요?
-        </p>
-      </div>
       <div
         v-for="(message, index) in messages"
         :key="index"
@@ -36,7 +18,7 @@
     <div class="chatbot-input-area">
       <input
         type="text"
-        placeholder="메세지를 입력하세요"
+        :placeholder="$t('chatbotInputPlaceholder')"
         class="message-input"
         v-model="newMessage"
         @keyup.enter="sendMessage"
@@ -51,11 +33,22 @@
   </div>
 </template>
 
+
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiSend, mdiRobot } from '@mdi/js'
+import axios from 'axios'
+import { useI18n } from 'vue-i18n'
 
+// =========================
+// 1. i18n 인스턴스 사용
+// =========================
+const { t } = useI18n()
+
+// =========================
+// 2. props 정의
+// =========================
 const props = defineProps({
   currentQuestionId: {
     type: String,
@@ -63,10 +56,57 @@ const props = defineProps({
   },
 })
 
+// =========================
+// 3. 상태 변수 및 ref 선언
+// =========================
 const newMessage = ref('')
 const messages = ref([])
-const messagesContainer = ref(null) // 메시지 컨테이너 참조
+const messagesContainer = ref(null)
 
+// =========================
+// 4. 사용자 ID
+// =========================
+const userId = 'trainee-001'
+
+// =========================
+// 5. FastAPI 챗봇 API 함수
+// =========================
+async function initializeTest(testQuestions) {
+  try {
+    await axios.post('/api/chat/init', {
+      userId,
+      testQuestions,
+    })
+  } catch (e) {
+    alert(t('initFail'))
+  }
+}
+
+async function askWithLanggraph(question, questionId) {
+  try {
+    const res = await axios.post('/api/chat/ask-graph', {
+      userId,
+      question,
+      id: questionId,
+    })
+    return res.data.answer
+  } catch (e) {
+    alert(t('answerFail'))
+    return t('noAnswerFallback')
+  }
+}
+
+async function resetSession() {
+  try {
+    await axios.post('/api/chat/session/reset', null, { params: { user_id: userId } })
+  } catch (e) {
+    alert(t('resetFail'))
+  }
+}
+
+// =========================
+// 6. 메시지 전송 함수
+// =========================
 const sendMessage = async () => {
   if (newMessage.value.trim() === '') {
     return
@@ -77,6 +117,7 @@ const sendMessage = async () => {
     text: newMessage.value.trim(),
   })
 
+  const questionText = newMessage.value.trim()
   newMessage.value = ''
 
   await nextTick()
@@ -84,27 +125,35 @@ const sendMessage = async () => {
     messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
   }
 
-  // 챗봇 응답 시뮬레이션
-  setTimeout(async () => {
-    messages.value.push({
-      sender: 'bot',
-      text: `"${messages.value[messages.value.length - 1].text}" 에 대한 답변을 준비 중입니다.`,
-    })
-    await nextTick()
-    if (messagesContainer.value) {
-      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
-    }
-  }, 1000)
+  const answer = await askWithLanggraph(questionText, props.currentQuestionId || 'Q01')
+  messages.value.push({
+    sender: 'bot',
+    text: answer,
+  })
+  await nextTick()
+  if (messagesContainer.value) {
+    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+  }
 }
 
-// currentQuestionId가 변경될 때마다 챗봇 메시지 초기화 (선택 사항)
-watch(
-  () => props.currentQuestionId,
-  () => {
-    messages.value = [] // 문제 변경 시 챗봇 대화 초기화
-  },
-)
+// =========================
+// 8. 컴포넌트 마운트/언마운트
+// =========================
+onMounted(() => {
+  messages.value = [
+    {
+      sender: 'bot',
+      text: t('greeting'),
+    },
+  ]
+  initializeTest([])
+})
+
+onUnmounted(() => {
+  resetSession()
+})
 </script>
+
 
 <style scoped>
 .chatbot-section {
