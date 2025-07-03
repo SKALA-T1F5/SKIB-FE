@@ -186,7 +186,7 @@ const handleResetFilters = () => {
 
 // 프로젝트 카드 액션 처리 함수 (수정, 삭제, 관리)
 const handleProjectAction = (project, actionType) => {
-  console.log(`'${project.name}' ${actionType} 요청 (Project ID: ${project.id})`)
+  // console.log(`'${project.name}' ${actionType} 요청 (Project ID: ${project.id})`)
   if (actionType === 'manage') {
     localStorage.setItem('projectId', project.id)
     // TrainerDocumentManagement.vue 페이지로 이동하도록 경로를 수정합니다.
