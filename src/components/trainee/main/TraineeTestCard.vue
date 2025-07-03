@@ -36,7 +36,7 @@ const props = defineProps({
 const emit = defineEmits(['retake-action', 'feedback', 'attend'])
 
 const isRetakeDisabled = computed(() => {
-  console.log('[TraineeTestCard] isPassed:', props.test.isPassed, 'retake:', props.test.retake, 'isRetake:', props.test.isRetake)
+  // console.log('[TraineeTestCard] isPassed:', props.test.isPassed, 'retake:', props.test.retake, 'isRetake:', props.test.isRetake)
   // 하나라도 해당되면 비활성화
   return props.test.isPassed === 1 || props.test.retake === 1 || props.test.isRetake === 0
 })

@@ -195,6 +195,7 @@ const fetchTestQuestions = async () => {
     }
     // 챗봇용 API 호출
     const chatbotRes = await api.get('/test/getUserTest', { params })
+    // console.log(params)
     if (chatbotRes.data.statusCode === 'OK' && chatbotRes.data.resultData && Array.isArray(chatbotRes.data.resultData.questions)) {
       chatbotQuestions.value = chatbotRes.data.resultData.questions
     } else {
