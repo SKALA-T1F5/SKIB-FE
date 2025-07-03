@@ -156,7 +156,7 @@ const addTestByLink = async (link) => {
       },
     })
 
-    console.log('테스트 추가 성공:', response.data)
+    // console.log('테스트 추가 성공:', response.data)
     alert('테스트에 성공적으로 참여했습니다!')
 
     const joinedTestInfo = response.data?.resultData?.testDetails || response.data?.testDetails
@@ -243,7 +243,7 @@ const handleResetFilters = () => {
 }
 
 const handleTestCardAction = (test, actionType) => {
-  console.log(`'${test.name}' ${actionType} 요청 (Test ID: ${test.testId})`)
+  // console.log(`'${test.name}' ${actionType} 요청 (Test ID: ${test.testId})`)
   if (actionType === 'result') {
     router.push({
       name: 'TraineeTestResult',

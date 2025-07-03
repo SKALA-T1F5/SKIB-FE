@@ -68,22 +68,17 @@ const scoreDistribution = computed(() => {
 
 const chartData = computed(() => {
   const { bins, binCounts } = scoreDistribution.value;
-  // 본인 점수 위치 마커 데이터
-  const myScoreMarker = bins.map((bin, idx) => {
-    if (
-      props.myScore >= bin &&
-      (idx === bins.length - 1 || props.myScore < bins[idx + 1])
-    ) {
-      return binCounts[idx] + 0.5; // 마커를 해당 구간 위에 살짝 띄워서 표시
-    }
-    return null;
-  });
+  // x축: 0, 10, 20, ..., 100
+  // y축: 각 구간별 인원수
+  const data = bins.map((bin, i) => ({
+    x: bin,
+    y: binCounts[i]
+  }));
   return {
-    labels: bins.map((bin) => `${bin}${t('lineAreaChart.scoreUnit')}`),
     datasets: [
       {
         label: t('lineAreaChart.participantsLabel'),
-        data: binCounts,
+        data,
         backgroundColor: 'rgba(106, 138, 255, 0.2)',
         borderColor: 'rgba(106, 138, 255, 1)',
         borderWidth: 2,
@@ -93,23 +88,54 @@ const chartData = computed(() => {
         pointHoverRadius: 6,
         fill: true,
         tension: 0.4,
-      },
-      {
-        label: t('lineAreaChart.myScoreLabel'),
-        data: myScoreMarker,
-        backgroundColor: 'rgba(255, 193, 7, 1)',
-        borderColor: 'rgba(255, 193, 7, 1)',
-        pointRadius: 8,
-        pointBackgroundColor: 'rgba(255, 193, 7, 1)',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointHoverRadius: 10,
-        showLine: false,
-        fill: false,
+        showLine: true,
       },
     ],
   };
 });
+
+// Vertical Line 플러그인 정의
+const verticalLinePlugin = {
+  id: 'verticalLine',
+  afterDraw(chart) {
+    if (props.myScore == null) return;
+    const xAxis = chart.scales.x;
+    const yAxis = chart.scales.y;
+    if (!xAxis || !yAxis) return;
+    // myScore의 정확한 x좌표 계산 (bin index가 아니라 실제 점수값)
+    const x = xAxis.getPixelForValue(props.myScore);
+    const ctx = chart.ctx;
+    // 1. 세로 라인
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x, yAxis.top);
+    ctx.lineTo(x, yAxis.bottom);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#e8b13a';
+    ctx.stroke();
+    ctx.restore();
+    // 2. 내 점수 마커 (원)
+    // ctx.save();
+    // ctx.beginPath();
+    // ctx.arc(x, yAxis.bottom, 7, 0, 2 * Math.PI);
+    // ctx.fillStyle = '#e8b13a';
+    // ctx.shadowColor = '#fff';
+    // ctx.shadowBlur = 2;
+    // ctx.fill();
+    // ctx.lineWidth = 2;
+    // ctx.strokeStyle = '#fff';
+    // ctx.stroke();
+    // ctx.restore();
+    // 3. 'My Score' 라벨 (라인 오른쪽 상단)
+    ctx.save();
+    ctx.font = '10px sans-serif';
+    ctx.fillStyle = '#e8b13a';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('My Score', x + 10, yAxis.top + 6);
+    ctx.restore();
+  },
+};
 
 const chartOptions = computed(() => ({
   responsive: true,
@@ -123,7 +149,8 @@ const chartOptions = computed(() => ({
       intersect: false,
       callbacks: {
         title: function (context) {
-          return `${t('lineAreaChart.tooltipTitle')}: ${context[0].label}`;
+          // linear x축에서는 context[0].parsed.x 사용
+          return `${t('lineAreaChart.tooltipTitle')}: ${context[0].parsed.x}${t('lineAreaChart.scoreUnit')}`;
         },
         label: function (context) {
           let label = context.dataset.label || '';
@@ -137,9 +164,13 @@ const chartOptions = computed(() => ({
         },
       },
     },
+    verticalLine: verticalLinePlugin,
   },
   scales: {
     x: {
+      type: 'linear',
+      min: 0,
+      max: 100,
       grid: {
         display: true,
         drawOnChartArea: true,
@@ -147,7 +178,8 @@ const chartOptions = computed(() => ({
         color: '#e0e0e0',
       },
       ticks: {
-        display: true,
+        stepSize: 10,
+        callback: (value) => `${value}${t('lineAreaChart.scoreUnit')}`,
         color: '#6c757d',
         autoSkip: false,
         maxRotation: 0,
@@ -191,6 +223,14 @@ watch([() => props.myScore, () => props.allParticipantScores], () => {
     // 지금은 myScore가 변경될 때마다 가상 과거 데이터를 다시 생성
     // pastLevels.value = generatePastLevels();
 }, { deep: true });
+
+// Chart.js 플러그인 등록
+import { onMounted } from 'vue';
+onMounted(() => {
+  if (!ChartJS.registry.plugins.get('verticalLine')) {
+    ChartJS.register(verticalLinePlugin);
+  }
+});
 
 </script>
 

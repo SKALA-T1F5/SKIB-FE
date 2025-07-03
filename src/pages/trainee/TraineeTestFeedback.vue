@@ -2,76 +2,86 @@
   <MainLayout :show-sidebar="false">
     <template #content>
       <div class="feedback-main-content">
-        <div class="feedback-dashboard-layout">
-          <h1 class="dashboard-title">{{ $t('feedback_title') }}</h1>
-
-          <div v-if="isLoading" class="loading-indicator">{{ $t('feedback_loading') }}</div>
-          <div v-else-if="fetchError" class="error-message">
-            <p>{{ $t('feedback_load_fail') }}</p>
-            <p>{{ $t('feedback_error') }}: {{ fetchError.message }}</p>
+        <div class="feedback-dashboard-layout-wrapper">
+          <div class="feedback-download-bar">
+            <!-- <button class="download-pdf-btn" @click="downloadPdf">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke="#34495e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="4" y="17" width="16" height="1" rx="2" fill="#34495e"/>
+              </svg>
+            </button> -->
           </div>
-          <div v-else-if="!hasData" class="no-data-message">
-            <p>{{ $t('feedback_no_data') }}</p>
-          </div>
-          <div v-else>
-            <div class="top-row-grid">
-              <section class="dashboard-card summary-card">
-                <h2 class="card-title">{{ $t('feedback_summary_title') }}</h2>
-                <div class="summary-content">
-                  <div class="pass-fail-indicator">
-                    <p :class="['pass-fail-text', feedbackData.isPassed ? 'pass' : 'fail']">
-                      {{ feedbackData.isPassed ? $t('feedback_pass') : $t('feedback_fail') }}
-                    </p>
-                    <p class="congratulations" v-if="feedbackData.isPassed">{{ $t('feedback_congrats') }}</p>
-                    <p class="encouragement" v-else>{{ $t('feedback_try_again') }}</p>
-                  </div>
-                  <div class="summary-details">
-                    <p>
-                      {{ $t('feedback_total_correct_rate') }}:
-                      <span class="detail-value">{{ feedbackData.totalCorrectRate }}%</span>
-                    </p>
-                    <p>
-                      {{ $t('feedback_total_questions') }}:
-                      <span class="detail-value">{{ totalQuestions }}</span>
-                    </p>
-                    <p>
-                      {{ $t('feedback_correct_answers') }}:
-                      <span class="detail-value">{{ correctQuestions }}</span>
-                    </p>
-                    <p>
-                      {{ $t('feedback_wrong_answers') }}:
-                      <span class="detail-value">{{ wrongQuestions }}</span>
-                    </p>
-                  </div>
-                </div>
-              </section>
+          <div ref="pdfContent" class="feedback-dashboard-layout">
+            <h1 class="dashboard-title">{{ $t('feedback_title') }}</h1>
 
-              <section class="dashboard-card document-accuracy-card">
-                <h2 class="card-title">{{ $t('feedback_document_accuracy') }}</h2>
-                <DocumentAccuracyChart :document-accuracy="feedbackData.documentAccuracy" />
-              </section>
+            <div v-if="isLoading" class="loading-indicator">{{ $t('feedback_loading') }}</div>
+            <div v-else-if="fetchError" class="error-message">
+              <p>{{ $t('feedback_load_fail') }}</p>
+              <p>{{ $t('feedback_error') }}: {{ fetchError.message }}</p>
+            </div>
+            <div v-else-if="!hasData" class="no-data-message">
+              <p>{{ $t('feedback_no_data') }}</p>
+            </div>
+            <div v-else>
+              <div class="top-row-grid">
+                <section class="dashboard-card summary-card">
+                  <h2 class="card-title">{{ $t('feedback_summary_title') }}</h2>
+                  <div class="summary-content">
+                    <div class="pass-fail-indicator">
+                      <p :class="['pass-fail-text', feedbackData.isPassed ? 'pass' : 'fail']">
+                        {{ feedbackData.isPassed ? $t('feedback_pass') : $t('feedback_fail') }}
+                      </p>
+                      <p class="congratulations" v-if="feedbackData.isPassed">{{ $t('feedback_congrats') }}</p>
+                      <p class="encouragement" v-else>{{ $t('feedback_try_again') }}</p>
+                    </div>
+                    <div class="summary-details">
+                      <p>
+                        {{ $t('feedback_total_correct_rate') }}:
+                        <span class="detail-value">{{ feedbackData.totalCorrectRate }}%</span>
+                      </p>
+                      <p>
+                        {{ $t('feedback_total_questions') }}:
+                        <span class="detail-value">{{ totalQuestions }}</span>
+                      </p>
+                      <p>
+                        {{ $t('feedback_correct_answers') }}:
+                        <span class="detail-value">{{ correctQuestions }}</span>
+                      </p>
+                      <p>
+                        {{ $t('feedback_wrong_answers') }}:
+                        <span class="detail-value">{{ wrongQuestions }}</span>
+                      </p>
+                    </div>
+                  </div>
+                </section>
 
-              <section class="dashboard-card tag-capacity-card">
-                <h2 class="card-title">{{ $t('feedback_tag_evaluation') }}</h2>
-                <RadarChart :tag-accuracy="processedTagAccuracy" />
+                <section class="dashboard-card document-accuracy-card">
+                  <h2 class="card-title">{{ $t('feedback_document_accuracy') }}</h2>
+                  <DocumentAccuracyChart :document-accuracy="feedbackData.documentAccuracy" />
+                </section>
+
+                <section class="dashboard-card tag-capacity-card">
+                  <h2 class="card-title">{{ $t('feedback_tag_evaluation') }}</h2>
+                  <RadarChart :tag-accuracy="processedTagAccuracy" />
+                </section>
+              </div>
+
+              <section class="dashboard-card my-level-card">
+                <h2 class="card-title">{{ $t('feedback_my_level') }}</h2>
+                <LineAreaChart
+                  :my-score="feedbackData.totalCorrectRate"
+                  :all-participant-scores="allParticipantScores"
+                  :my-user-id="myUserId"
+                />
+                <!-- <p class="rank-summary">
+                  {{ $t('feedback_rank_prefix') }}
+                  <span class="highlight-rank">{{ myRank }}{{ $t('feedback_rank_suffix') }}</span>,
+                  {{ $t('feedback_top_prefix') }}
+                  <span class="highlight-percent">{{ topPercentage }}%</span>
+                  {{ $t('feedback_top_suffix') }}
+                </p> -->
               </section>
             </div>
-
-            <section class="dashboard-card my-level-card">
-              <h2 class="card-title">{{ $t('feedback_my_level') }}</h2>
-              <LineAreaChart
-                :my-score="feedbackData.totalCorrectRate"
-                :all-participant-scores="allParticipantScores"
-                :my-user-id="myUserId"
-              />
-              <p class="rank-summary">
-                {{ $t('feedback_rank_prefix') }}
-                <span class="highlight-rank">{{ myRank }}{{ $t('feedback_rank_suffix') }}</span>,
-                {{ $t('feedback_top_prefix') }}
-                <span class="highlight-percent">{{ topPercentage }}%</span>
-                {{ $t('feedback_top_suffix') }}
-              </p>
-            </section>
           </div>
         </div>
       </div>
@@ -86,6 +96,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import html2pdf from 'html2pdf.js'
 // 레이아웃 및 차트 컴포넌트
 import MainLayout from '@/components/layouts/MainLayout.vue'
 import RadarChart from '@/components/trainee/feedback/RadarChart.vue'
@@ -141,10 +152,11 @@ const hasData = computed(() => {
 
 // 내 순위가 상위 몇 %인지 계산
 const topPercentage = computed(() => {
-  if (totalParticipants.value <= 1) {
-    return 0.0
-  }
-  const percentage = ((myRank.value - 1) / (totalParticipants.value - 1)) * 100
+  if (totalParticipants.value <= 1) return 0.0
+  // 내 점수보다 낮은 사람 수
+  const lowerCount = allParticipantScores.value.filter(p => p.score < feedbackData.value.totalCorrectRate).length
+  // 상위 % = (내 점수보다 낮은 사람 수 / 전체 인원) * 100
+  const percentage = (lowerCount / totalParticipants.value) * 100
   return parseFloat(percentage.toFixed(1))
 })
 
@@ -170,6 +182,23 @@ const processedTagAccuracy = computed(() => {
   return translated
 })
 
+const pdfContent = ref(null)
+
+const downloadPdf = () => {
+  if (!pdfContent.value) return
+  html2pdf()
+    .set({
+      margin: [0.5, 0.5, 0.5, 0.5], // 상,우,하,좌 (inch) 넉넉하게
+      filename: '피드백_결과.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+      // width: 800, // A4 기준 강제 지정
+    })
+    .from(pdfContent.value)
+    .save()
+}
 
 // =========================
 // 5. 피드백 데이터 백엔드에서 불러오기
@@ -286,23 +315,9 @@ const calculateRank = (myScore) => {
     myRank.value = 0
     return
   }
-  // 점수 내림차순 정렬 후 내 점수의 순위 계산
-  const sortedScores = allParticipantScores.value.map((p) => p.score).sort((a, b) => b - a)
-  let currentRank = 1
-  let foundMyRank = false
-  for (let i = 0; i < sortedScores.length; i++) {
-    if (i > 0 && sortedScores[i] < sortedScores[i - 1]) {
-      currentRank = i + 1
-    }
-    if (sortedScores[i] === myScore && !foundMyRank) {
-      myRank.value = currentRank
-      foundMyRank = true
-    }
-  }
-  // 내 점수가 분포에 없으면 꼴찌 처리
-  if (!foundMyRank) {
-    myRank.value = totalParticipants.value
-  }
+  // 내 점수보다 높은 사람 수 + 1 = 내 순위
+  const higherCount = allParticipantScores.value.filter(p => p.score > myScore).length
+  myRank.value = higherCount + 1
 }
 
 // =========================
@@ -335,11 +350,36 @@ onMounted(() => {
   padding-bottom: 20px;
 }
 
+.feedback-dashboard-layout-wrapper {
+  position: relative;
+}
+
+.feedback-download-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.download-pdf-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.download-pdf-btn:hover {
+  background: #f0f0f0;
+}
+
 .feedback-dashboard-layout {
   display: grid;
   /* 2. 각 카드 간의 가로 세로 간격 동일하게 조정 */
   gap: 25px; /* 통일된 간격 */
   grid-template-rows: auto auto;
+  /* max-width: 800px; */
 }
 
 .top-row-grid {

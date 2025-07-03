@@ -54,6 +54,14 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  testQuestions: {
+    type: Array,
+    default: () => [],
+  },
+  userId: {
+    type: String,
+    default: '',
+  },
 })
 
 // =========================
@@ -62,21 +70,19 @@ const props = defineProps({
 const newMessage = ref('')
 const messages = ref([])
 const messagesContainer = ref(null)
-
-// =========================
-// 4. 사용자 ID
-// =========================
-const userId = 'trainee-001'
+const initialized = ref(false)
 
 // =========================
 // 5. FastAPI 챗봇 API 함수
 // =========================
 async function initializeTest(testQuestions) {
   try {
-    await axios.post('/api/chat/init', {
-      userId,
-      testQuestions,
-    })
+    const reqBody = {
+      userId: props.userId,
+      testQuestions: convertQuestions(testQuestions)
+    }
+    console.log('[initializeTest] /api/chat/init reqBody:', reqBody)
+    await axios.post('/api/chat/init', reqBody)
   } catch (e) {
     alert(t('initFail'))
   }
@@ -84,11 +90,13 @@ async function initializeTest(testQuestions) {
 
 async function askWithLanggraph(question, questionId) {
   try {
-    const res = await axios.post('/api/chat/ask-graph', {
-      userId,
+    const reqBody = {
+      userId: props.userId,
       question,
       id: questionId,
-    })
+    }
+    console.log('[askWithLanggraph] /api/chat/ask-graph reqBody:', reqBody)
+    const res = await axios.post('/api/chat/ask-graph', reqBody)
     return res.data.answer
   } catch (e) {
     alert(t('answerFail'))
@@ -98,7 +106,9 @@ async function askWithLanggraph(question, questionId) {
 
 async function resetSession() {
   try {
-    await axios.post('/api/chat/session/reset', null, { params: { user_id: userId } })
+    const params = { user_id: props.userId }
+    console.log('[resetSession] /api/chat/session/reset params:', params)
+    await axios.post('/api/chat/session/reset', null, { params })
   } catch (e) {
     alert(t('resetFail'))
   }
@@ -136,9 +146,35 @@ const sendMessage = async () => {
   }
 }
 
-// =========================
-// 8. 컴포넌트 마운트/언마운트
-// =========================
+function convertQuestions(questions) {
+  return Array.isArray(questions) ? questions.map(q => ({
+    id: q.id != null ? String(q.id) : '',
+    type: q.type || 'OBJECTIVE',
+    difficultyLevel: (q.difficultyLevel != null ? String(q.difficultyLevel) : (q.difficulty_level != null ? String(q.difficulty_level) : '')),
+    question: q.question || q.questionText || '',
+    answer: q.answer || q.correctAnswer || '',
+    explanation: q.explanation || '',
+    options: Array.isArray(q.options) ? q.options : [],
+    gradingCriteria: Array.isArray(q.grading_criteria) ? q.grading_criteria : (Array.isArray(q.gradingCriteria) ? q.gradingCriteria : []),
+    documentId: q.documentId != null ? String(q.documentId) : (q.document_id != null ? String(q.document_id) : ''),
+    documentName: q.documentName != null ? String(q.documentName) : (q.document_name != null ? String(q.document_name) : ''),
+    keywords: Array.isArray(q.keywords) ? q.keywords : [],
+    tags: Array.isArray(q.tags) ? q.tags : [],
+    generationType: q.generationType != null ? String(q.generationType) : (q.generation_type != null ? String(q.generation_type) : ''),
+  })) : []
+}
+
+watch(
+  () => props.testQuestions,
+  (newVal) => {
+    if (!initialized.value && Array.isArray(newVal) && newVal.length > 0) {
+      initializeTest(convertQuestions(newVal))
+      initialized.value = true
+    }
+  },
+  { immediate: true, deep: true }
+)
+
 onMounted(() => {
   messages.value = [
     {
@@ -146,7 +182,6 @@ onMounted(() => {
       text: t('greeting'),
     },
   ]
-  initializeTest([])
 })
 
 onUnmounted(() => {

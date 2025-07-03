@@ -111,7 +111,7 @@ import api from '@/config/axios'
 import AiGradingLoading from '@/components/trainee/test/AiGradingLoading.vue'
 
 import { useI18n } from 'vue-i18n'
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 // ===== [2] 라우터 및 기본 변수 선언 =====
 const router = useRouter()
@@ -243,9 +243,11 @@ const fetchTestQuestions = async () => {
     return
   }
   try {
-    const response = await api.get('/test/getUserTest', {
-      params: { userId: userId.value, testId: testId },
-    })
+    const lang = localStorage.getItem('lang') || 'ko'
+    const params = { userId: userId.value, testId: testId, lang }
+    // console.log('[fetchTestQuestions] params:', params)
+    const response = await api.get('/test/getUserTest', { params })
+    // console.log('[fetchTestQuestions] response:', response.data)
     const { statusCode, resultMsg, resultData } = response.data
     if (statusCode === 'OK' && resultData && Array.isArray(resultData.questions)) {
       // 제한시간 설정
@@ -364,16 +366,11 @@ const submitFinalTest = async () => {
   const answersToSend = allQuestions.value.map((q) => {
     const answer = userAnswers.value.get(q.id)
     return {
-      // id: q.rawId, // ObjectId 그대로 전달
-      // response: typeof answer === 'object' ? answer.value : answer,
       id: q.rawId, // ObjectId 그대로 전달
       response: typeof answer === 'object' ? answer.value : answer,
       questionType: q.type,
     }
   })
-  // console.log('🔍 요청 URL:', api.defaults.baseURL + '/answer')
-  // console.log('🔍 파라미터:', userId.value, testId)
-  // console.log('🔍 바디:', answersToSend)
   try {
     await api.post('/answer',
       { answers: answersToSend },
@@ -386,6 +383,10 @@ const submitFinalTest = async () => {
     )
     showGradingOverlay.value = false
     showCompletionButtons.value = true
+    if (removeRouterGuard) {
+      removeRouterGuard()
+      removeRouterGuard = null
+    }
   } catch (error) {
     showGradingOverlay.value = false
     alert(t('submitError'))
@@ -424,6 +425,14 @@ watch(
 )
 
 // ===== [14] 컴포넌트 마운트 시 시험 문제 불러오기 =====
+let removeRouterGuard = null
+
+// ===== [보안] blockEvent 함수는 전역에서 한 번만 정의 =====
+function blockEvent(e) {
+  e.preventDefault()
+  return false
+}
+
 onMounted(() => {
   fetchTestQuestions()
 
@@ -431,9 +440,8 @@ onMounted(() => {
   window.addEventListener('beforeunload', beforeUnloadHandler)
 
   // 라우터 이동 방지
-  router.beforeEach((to, from, next) => {
+  removeRouterGuard = router.beforeEach((to, from, next) => {
     if (!showCompletionButtons.value) {
-      // 시험 제출 전에는 이동 막기
       if (to.fullPath !== from.fullPath) {
         alert('시험 제출 전에는 페이지를 벗어날 수 없습니다.');
         next(false)
@@ -442,12 +450,41 @@ onMounted(() => {
     }
     next()
   })
+
+  // ===== [보안] 복사/붙여넣기/우클릭/드래그/개발자도구 차단 =====
+  document.addEventListener('copy', blockEvent)
+  document.addEventListener('cut', blockEvent)
+  document.addEventListener('paste', blockEvent)
+  document.addEventListener('contextmenu', blockEvent)
+  document.addEventListener('selectstart', blockEvent)
+  document.addEventListener('dragstart', blockEvent)
+  document.addEventListener('keydown', (e) => {
+    if (
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i') ||
+      (e.ctrlKey && e.key.toLowerCase() === 'u') ||
+      (e.key === 'PrintScreen')
+    ) {
+      e.preventDefault()
+      return false
+    }
+  })
+  // console.log('🛡️ blockEvent 활성화')
 })
 
 // ===== [14-1] 컴포넌트 언마운트 시 이벤트 해제 =====
 onUnmounted(() => {
   stopTimer()
   window.removeEventListener('beforeunload', beforeUnloadHandler)
+  // 보안 이벤트 해제
+  document.removeEventListener('copy', blockEvent)
+  document.removeEventListener('cut', blockEvent)
+  document.removeEventListener('paste', blockEvent)
+  document.removeEventListener('contextmenu', blockEvent)
+  document.removeEventListener('selectstart', blockEvent)
+  document.removeEventListener('dragstart', blockEvent)
+  document.removeEventListener('keydown', blockEvent)
+  // console.log('🔓 blockEvent 해제')
 })
 
 // ===== [14-2] 새로고침/닫기 방지 핸들러 =====
@@ -679,8 +716,8 @@ function beforeUnloadHandler(event) {
 }
 
 .answer-box:focus {
-  border-color: #a8dcf0;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  border-color: #25426e86;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0);
   outline: none;
 }
 
