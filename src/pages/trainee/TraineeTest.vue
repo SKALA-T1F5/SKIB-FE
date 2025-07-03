@@ -716,8 +716,8 @@ function beforeUnloadHandler(event) {
 }
 
 .answer-box:focus {
-  border-color: #a8dcf0;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  border-color: #25426e86;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0);
   outline: none;
 }
 
