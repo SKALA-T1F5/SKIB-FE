@@ -183,7 +183,7 @@ const fetchFeedbackData = async () => {
 
     // 2) 태그별 정확도 가공 (응답 구조에 맞게 수정)
     // resultData: [{ tagName, accuracyRate, correctCount, totalCount }, ...]
-    console.log('tagAccuracyResponse.data.resultData:', tagAccuracyResponse.data.resultData)
+    // console.log('tagAccuracyResponse.data.resultData:', tagAccuracyResponse.data.resultData)
     const tagAccuracyMap = {}
     const requiredTags = ["분석력", "문제해결력", "추론력", "이해력", "논리력"]
     if (Array.isArray(tagAccuracyResponse.data.resultData)) {
@@ -223,6 +223,7 @@ const fetchFeedbackData = async () => {
     feedbackData.value.documentAccuracy = documentAccuracyMap
 
     // 4) 전체 응시자 점수 분포(그래프용 배열 생성)
+    // scoreDistribution: [{ minScore, maxScore, userCount, percentage }, ...]
     const scoreDistribution = distributionResponse.data.resultData?.scoreDistribution || []
     const simulatedAllParticipantScores = []
     scoreDistribution.forEach((range) => {
@@ -236,9 +237,9 @@ const fetchFeedbackData = async () => {
     })
     allParticipantScores.value = simulatedAllParticipantScores
 
-    // 5) 내 점수, 전체 응시자 수 저장
-    const myCurrentScore = distributionResponse.data.resultData?.myScore || 0
-    totalParticipants.value = distributionResponse.data.resultData?.totalUserCount || 0
+    // 5) 내 점수, 전체 응시자 수 저장 
+    const myCurrentScore = distributionResponse.data.resultData?.myScore ?? 0
+    totalParticipants.value = distributionResponse.data.resultData?.totalUserCount ?? 0
     feedbackData.value.totalCorrectRate = myCurrentScore
 
     // 6) 내 순위 계산
