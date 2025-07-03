@@ -180,6 +180,8 @@ const currentProjectId = computed(
   () => route.params.projectId || localStorage.getItem('projectId') || 'mock-project-123',
 )
 
+let statusCheckInterval = null // Status polling interval ID
+
 // --- Step Navigation Functions ---
 
 const goToList = () => {
@@ -277,37 +279,32 @@ const handleTypeSelectionNext = (selectedType) => {
 
 // TestPrompt 컴포넌트에서 'next-step' 이벤트 발생 시 호출 (프롬프트 전달)
 const handlePromptNext = async (prompt) => {
-  // examPrompt.value = prompt; // 사용자가 입력한 프롬프트는 저장하되, TestConfig에는 AI summary를 넘김
   loadingMessage.value = 'AI가 테스트를 생성 중입니다...'
   isLoading.value = true // 중앙 로딩 시작
 
   try {
     const response = await axios.post('/test/createByLLM', null, {
-      // 요청 본문은 null
       params: {
-        userInput: prompt, // userInput을 쿼리 파라미터로 전달
-        projectId: currentProjectId.value, // projectId를 쿼리 파라미터로 전달
+        userInput: prompt,
+        projectId: currentProjectId.value,
       },
     })
 
     console.log('API 응답 (createByLLM):', response.data)
 
     if (response.data.statusCode === 'OK' && response.data.resultData) {
-      // API 응답 데이터를 TrainerTestManagement의 상태에 업데이트
-      // API 응답의 resultData에 직접 필드가 있으므로, examSetting 객체 없이 직접 매핑
       selectedDocument.value = {
-        title: response.data.resultData.name, // API 응답의 'name' 사용
+        title: response.data.resultData.name,
         examTime: response.data.resultData.limitedTime,
         difficulty: response.data.resultData.difficultyLevel,
         passScore: response.data.resultData.passScore,
         retakeAllowed: response.data.resultData.isRetake,
       }
-      // 이곳에서 API 응답의 summary를 examPrompt에 할당하여 TestConfig로 전달합니다.
-      examPrompt.value = response.data.resultData.summary //
+      examPrompt.value = response.data.resultData.summary
       revenues.value = response.data.resultData.documentConfigs.map((doc) => ({
         id: doc.documentId,
         name: doc.documentName,
-        keyword: doc.keywords || [], // 수정: keywords를 배열 그대로 사용
+        keyword: doc.keywords || [],
         selected: true,
         mcSet: doc.configuredObjectiveCount,
         sqSet: doc.configuredSubjectiveCount,
@@ -331,7 +328,7 @@ const handlePromptNext = async (prompt) => {
 
 // TestConfig 컴포넌트에서 'next-step' 이벤트 발생 시 호출
 const handleConfigNext = async (configData) => {
-  loadingMessage.value = '문제 생성 중입니다...'
+  loadingMessage.value = '문제 생성 시작...'
   isLoading.value = true
   try {
     const selectedDocs = revenues.value.filter(
@@ -347,16 +344,16 @@ const handleConfigNext = async (configData) => {
     const documentConfigsForApi = revenues.value
       .filter((doc) => doc.selected && (doc.mcSet > 0 || doc.sqSet > 0))
       .map((doc) => ({
-        documentId: doc.id, // 이 부분을 추가합니다.
-        documentName: doc.name, // 이 부분을 추가합니다.
-        keywords: doc.keyword ? doc.keyword.map((k) => k.trim()) : [], // 배열 그대로 사용
+        documentId: doc.id,
+        documentName: doc.name,
+        keywords: doc.keyword ? doc.keyword.map((k) => k.trim()) : [],
         configuredObjectiveCount: doc.mcSet,
         configuredSubjectiveCount: doc.sqSet,
       }))
 
     const requestBody = {
-      name: selectedDocument.value.title, // TestConfig에서 설정된 테스트 이름
-      summary: examPrompt.value, // TestPrompt에서 설정된 테스트 목표 (이제 AI summary)
+      name: selectedDocument.value.title,
+      summary: examPrompt.value,
       difficultyLevel: selectedDocument.value.difficulty,
       limitedTime: selectedDocument.value.examTime,
       passScore: selectedDocument.value.passScore,
@@ -364,44 +361,134 @@ const handleConfigNext = async (configData) => {
       documentConfigs: documentConfigsForApi,
     }
 
-    console.log('API Request Body:', requestBody)
+    console.log('API Request Body (POST /test):', requestBody)
 
+    // /test API 호출: 문제 생성을 시작하고 testId를 받습니다.
     const response = await axios.post('/test', requestBody, {
       params: {
         projectId: currentProjectId.value,
       },
     })
 
-    // console.log('API 응답:', response.data)
-
     if (
       response.data.statusCode === 'OK' &&
-      response.data.resultData &&
-      response.data.resultData.testId
+      response.data.resultData
+      // response.data.resultData.testId // 이 조건은 resultData가 숫자일 때 실패함
     ) {
-      testId.value = response.data.resultData.testId // API 응답에서 실제 testId 설정
-      // /test?:projectId API 응답에서 questions 부분을 받아와 Parsing
-
-      if (response.data.resultData.questions) {
-        questionsData.value = response.data.resultData.questions
-      } else {
-        questionsData.value = [] // questions 데이터가 없는 경우 빈 배열로 초기화
-        console.warn("API 응답에 'questions' 데이터가 포함되어 있지 않습니다.")
-      }
-
-      goToQuestion() // 문제 검토 단계로 이동
+      testId.value = response.data.resultData // API 응답에서 실제 testId 설정 (수정됨)
+      startTestGenerationStatusPolling(testId.value) // 문제 생성 상태 폴링 시작
     } else {
       console.error('API 응답이 실패했거나 데이터가 유효하지 않습니다.', response.data)
       alert('테스트 생성에 실패했습니다. 다시 시도해주세요.')
+      isLoading.value = false
+      loadingMessage.value = '데이터 로딩 중입니다...'
     }
   } catch (error) {
     console.error('시험 설정 저장 및 생성 중 오류 발생:', error)
     alert(
       '시험 설정 저장 및 생성 중 오류가 발생했습니다. 네트워크 연결을 확인하거나 나중에 다시 시도해주세요.',
     )
-  } finally {
     isLoading.value = false
     loadingMessage.value = '데이터 로딩 중입니다...'
+  }
+}
+
+// AI 문제 생성 상태를 폴링하는 함수
+const startTestGenerationStatusPolling = (testIdToPoll) => {
+  let attempts = 0
+  const maxAttempts = 600 // 5초 * 600 = 50분 (넉넉하게 설정)
+
+  statusCheckInterval = setInterval(async () => {
+    attempts++
+    if (attempts > maxAttempts) {
+      clearInterval(statusCheckInterval)
+      isLoading.value = false
+      loadingMessage.value = '테스트 생성 시간 초과'
+      alert('테스트 생성 시간이 초과되었습니다. 다시 시도해주세요.')
+      goToList() // 시간 초과 시 목록으로 돌아가기
+      return
+    }
+
+    try {
+      const response = await axios.get(`/test/status`, {
+        params: { testId: testIdToPoll },
+      })
+      const status = response.data.resultData
+      loadingMessage.value = `문제 생성 상태: ${getStatusMessage(status)}`
+
+      if (status === 'COMPLETED') {
+        clearInterval(statusCheckInterval)
+        await fetchGeneratedQuestions(testIdToPoll) // 완료 시 문제 데이터 가져오기
+        goToQuestion() // 문제 검토 단계로 이동
+        isLoading.value = false
+        loadingMessage.value = ''
+      } else if (status === 'FAILED') {
+        clearInterval(statusCheckInterval)
+        isLoading.value = false
+        loadingMessage.value = '문제 생성 실패'
+        alert('문제 생성에 실패했습니다. 관리자에게 문의해주세요.')
+        goToList() // 실패 시 목록으로 돌아가기
+      }
+    } catch (error) {
+      console.error('테스트 상태 확인 중 오류 발생:', error)
+      clearInterval(statusCheckInterval)
+      isLoading.value = false
+      loadingMessage.value = '테스트 상태 확인 오류'
+      alert('테스트 상태 확인 중 오류가 발생했습니다. 다시 시도해주세요.')
+      goToList() // 오류 발생 시 목록으로 돌아가기
+    }
+  }, 5000) // 5초 간격으로 요청
+}
+
+// 상태 메시지를 한글로 변환하는 헬퍼 함수
+const getStatusMessage = (status) => {
+  switch (status) {
+    case 'TEST_GENERATION_STARTED':
+      return '문제 생성 시작'
+    case 'LOADING_TEST_PLAN':
+      return '테스트 플랜 로딩 중'
+    case 'REFLECTING_TEST_PLAN':
+      return '테스트 플랜 반영 중'
+    case 'RETRIEVING_CONTEXT':
+      return '문맥 탐색 중'
+    case 'PREPROCESSING_CONTEXT':
+      return '문맥 전처리 중'
+    case 'GENERATING_QUESTION':
+      return '문제 생성 중'
+    case 'POSTPROCESSING_QUESTION':
+      return '문제 다듬는 중'
+    case 'FINALIZING_RESULTS':
+      return '결과 생성 중'
+    case 'COMPLETED':
+      return '문제 생성 완료'
+    case 'FAILED':
+      return '실패'
+    default:
+      return '알 수 없는 상태'
+  }
+}
+
+// 생성된 문제 데이터를 가져오는 함수
+const fetchGeneratedQuestions = async (testIdToFetch) => {
+  isLoading.value = true
+  loadingMessage.value = '생성된 문제 조회 중...'
+  try {
+    const response = await axios.get(`/test/${testIdToFetch}/questions`) // test/{testId}/questions 엔드포인트
+    if (response.data.statusCode === 'OK' && response.data.resultData) {
+      questionsData.value = response.data.resultData // questionsData ref에 직접 할당
+      console.log('Fetched Generated Questions:', questionsData.value)
+    } else {
+      console.error('생성된 문제 조회 실패:', response.data.resultMsg)
+      alert('생성된 문제를 불러오는 데 실패했습니다.')
+      questionsData.value = []
+    }
+  } catch (error) {
+    console.error('생성된 문제 조회 중 오류 발생:', error)
+    alert('생성된 문제를 불러오는 중 오류가 발생했습니다.')
+    questionsData.value = []
+  } finally {
+    isLoading.value = false
+    loadingMessage.value = ''
   }
 }
 
@@ -759,8 +846,8 @@ watch(currentProjectId, (newProjectId, oldProjectId) => {
 
 .add-new-test-card {
   width: 100%;
-  height: 100%;
-  min-height: 380px;
+  height: 100%; /* 고정 높이 대신 100%로 설정하여 부모 v-col의 높이에 맞춤 */
+  min-height: 380px; /* 원본에서 주어진 최소 높이 유지 */
   border: 2px dashed #a1a1a1;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
