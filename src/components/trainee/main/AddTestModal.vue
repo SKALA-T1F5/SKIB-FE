@@ -134,7 +134,7 @@ const handleAddTest = async () => {
       },
     })
 
-    console.log('API 응답:', response.data)
+    // console.log('API 응답:', response.data)
 
     // API 응답 구조에 따라 성공 여부 판단 로직 수정
     // 여기서는 `statusCode: 'OK'`를 성공 기준으로 가정합니다.

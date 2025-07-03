@@ -426,7 +426,38 @@ watch(
 // ===== [14] 컴포넌트 마운트 시 시험 문제 불러오기 =====
 onMounted(() => {
   fetchTestQuestions()
+
+  // 브라우저 새로고침/닫기 방지
+  window.addEventListener('beforeunload', beforeUnloadHandler)
+
+  // 라우터 이동 방지
+  router.beforeEach((to, from, next) => {
+    if (!showCompletionButtons.value) {
+      // 시험 제출 전에는 이동 막기
+      if (to.fullPath !== from.fullPath) {
+        alert('시험 제출 전에는 페이지를 벗어날 수 없습니다.');
+        next(false)
+        return
+      }
+    }
+    next()
+  })
 })
+
+// ===== [14-1] 컴포넌트 언마운트 시 이벤트 해제 =====
+onUnmounted(() => {
+  stopTimer()
+  window.removeEventListener('beforeunload', beforeUnloadHandler)
+})
+
+// ===== [14-2] 새로고침/닫기 방지 핸들러 =====
+function beforeUnloadHandler(event) {
+  if (!showCompletionButtons.value) {
+    event.preventDefault()
+    event.returnValue = ''
+    return ''
+  }
+}
 </script>
 
 <style scoped>
