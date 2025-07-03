@@ -125,6 +125,9 @@ const handleAddTest = async () => {
     return
   }
 
+  // 선택한 언어를 localStorage에 저장
+  localStorage.setItem('lang', selectedLang.value)
+
   try {
     const response = await api.post('/test/invite/register', null, {
       params: {

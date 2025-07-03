@@ -111,7 +111,7 @@ import api from '@/config/axios'
 import AiGradingLoading from '@/components/trainee/test/AiGradingLoading.vue'
 
 import { useI18n } from 'vue-i18n'
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 // ===== [2] 라우터 및 기본 변수 선언 =====
 const router = useRouter()
@@ -243,9 +243,11 @@ const fetchTestQuestions = async () => {
     return
   }
   try {
-    const response = await api.get('/test/getUserTest', {
-      params: { userId: userId.value, testId: testId },
-    })
+    const lang = localStorage.getItem('lang') || 'ko'
+    const params = { userId: userId.value, testId: testId, lang }
+    console.log('[fetchTestQuestions] params:', params)
+    const response = await api.get('/test/getUserTest', { params })
+    console.log('[fetchTestQuestions] response:', response.data)
     const { statusCode, resultMsg, resultData } = response.data
     if (statusCode === 'OK' && resultData && Array.isArray(resultData.questions)) {
       // 제한시간 설정
@@ -364,16 +366,11 @@ const submitFinalTest = async () => {
   const answersToSend = allQuestions.value.map((q) => {
     const answer = userAnswers.value.get(q.id)
     return {
-      // id: q.rawId, // ObjectId 그대로 전달
-      // response: typeof answer === 'object' ? answer.value : answer,
       id: q.rawId, // ObjectId 그대로 전달
       response: typeof answer === 'object' ? answer.value : answer,
       questionType: q.type,
     }
   })
-  // console.log('🔍 요청 URL:', api.defaults.baseURL + '/answer')
-  // console.log('🔍 파라미터:', userId.value, testId)
-  // console.log('🔍 바디:', answersToSend)
   try {
     await api.post('/answer',
       { answers: answersToSend },
@@ -386,6 +383,10 @@ const submitFinalTest = async () => {
     )
     showGradingOverlay.value = false
     showCompletionButtons.value = true
+    if (removeRouterGuard) {
+      removeRouterGuard()
+      removeRouterGuard = null
+    }
   } catch (error) {
     showGradingOverlay.value = false
     alert(t('submitError'))
@@ -424,6 +425,8 @@ watch(
 )
 
 // ===== [14] 컴포넌트 마운트 시 시험 문제 불러오기 =====
+let removeRouterGuard = null
+
 onMounted(() => {
   fetchTestQuestions()
 
@@ -431,9 +434,8 @@ onMounted(() => {
   window.addEventListener('beforeunload', beforeUnloadHandler)
 
   // 라우터 이동 방지
-  router.beforeEach((to, from, next) => {
+  removeRouterGuard = router.beforeEach((to, from, next) => {
     if (!showCompletionButtons.value) {
-      // 시험 제출 전에는 이동 막기
       if (to.fullPath !== from.fullPath) {
         alert('시험 제출 전에는 페이지를 벗어날 수 없습니다.');
         next(false)
