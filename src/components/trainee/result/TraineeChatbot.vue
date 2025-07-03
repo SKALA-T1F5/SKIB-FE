@@ -150,7 +150,7 @@ function convertQuestions(questions) {
   return Array.isArray(questions) ? questions.map(q => ({
     id: q.id != null ? String(q.id) : '',
     type: q.type || 'OBJECTIVE',
-    difficultyLevel: q.difficulty_level != null ? String(q.difficulty_level) : '',
+    difficultyLevel: (q.difficultyLevel != null ? String(q.difficultyLevel) : (q.difficulty_level != null ? String(q.difficulty_level) : '')),
     question: q.question || q.questionText || '',
     answer: q.answer || q.correctAnswer || '',
     explanation: q.explanation || '',

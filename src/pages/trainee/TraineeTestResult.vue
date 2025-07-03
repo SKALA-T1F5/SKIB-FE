@@ -168,7 +168,7 @@ const fetchTestQuestions = async () => {
     const prevQuestionId = currentQuestionId.value
     // 기존 allQuestions용 API
     const res = await api.get('/answer/getResult', { params })
-    // console.log('[fetchTestQuestions] resultData:', res.data.resultData)
+    console.log('[fetchTestQuestions] resultData:', res.data.resultData)
     if (res.data.statusCode === 'OK' && Array.isArray(res.data.resultData)) {
       allQuestions.value = res.data.resultData.map((q, index) => ({
         id: q.questionId,

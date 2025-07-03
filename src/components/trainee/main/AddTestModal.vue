@@ -14,7 +14,7 @@
               id="invite-link"
               type="text"
               v-model="linkInput"
-              placeholder="예: http://localhost:5173/trainee/test/123/abc"
+              placeholder="예: http://.../trainee/test/123/abc"
               class="invitation-input"
               :class="{ 'input-error': invitationLinkError }"
             />
@@ -44,9 +44,19 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/config/axios' // axios 인스턴스 임포트 (기존 코드에 있다고 가정)
+
+onMounted(() => {
+  const input = document.getElementById('invite-link')
+  if (input) {
+    input.addEventListener('paste', (e) => {
+      console.log('🔥 paste detected:', e)
+    })
+  }
+})
+
 
 const props = defineProps({
   isVisible: Boolean,
