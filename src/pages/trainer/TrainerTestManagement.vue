@@ -103,7 +103,7 @@
     />
 
     <TestQuestionReviewQuick
-      v-else-if="currentStep === 'question' && testCreationType === 'quick'"
+      v-else-if="currentStep === 'quick-question' && testCreationType === 'quick'"
       :test-id="testId"
       :is-loading="isLoading"
       :revenues="revenues"
@@ -231,9 +231,18 @@ const goToConfig = async () => {
   router.push({ query: { step: 'config' } }).catch(() => {})
 }
 
-const goToQuestion = () => {
+// AI 기반 테스트의 문제 검토 단계로 이동
+const goToAIQuestion = () => {
   router.push({ query: { step: 'question' } }).catch(() => {})
   isLoading.value = false
+}
+
+// 빠른 테스트의 문제 검토 단계로 이동
+const goToQuickQuestion = () => {
+  console.log('🔍 goToQuickQuestion 호출됨')
+  router.push({ query: { step: 'quick-question' } }).catch(() => {})
+  isLoading.value = false
+  console.log('🔍 라우터 푸시 완료, step: quick-question')
 }
 
 // goToGenerate 함수: linkToken 매개변수 추가
@@ -370,11 +379,7 @@ const handleConfigNext = async (configData) => {
       },
     })
 
-    if (
-      response.data.statusCode === 'OK' &&
-      response.data.resultData
-      // response.data.resultData.testId // 이 조건은 resultData가 숫자일 때 실패함
-    ) {
+    if (response.data.statusCode === 'OK' && response.data.resultData) {
       testId.value = response.data.resultData // API 응답에서 실제 testId 설정 (수정됨)
       startTestGenerationStatusPolling(testId.value) // 문제 생성 상태 폴링 시작
     } else {
@@ -419,7 +424,7 @@ const startTestGenerationStatusPolling = (testIdToPoll) => {
       if (status === 'COMPLETED') {
         clearInterval(statusCheckInterval)
         await fetchGeneratedQuestions(testIdToPoll) // 완료 시 문제 데이터 가져오기
-        goToQuestion() // 문제 검토 단계로 이동
+        goToAIQuestion() // AI 기반 테스트의 문제 검토 단계로 이동
         isLoading.value = false
         loadingMessage.value = ''
       } else if (status === 'FAILED') {
@@ -449,13 +454,13 @@ const getStatusMessage = (status) => {
       return '테스트 플랜 로딩 중'
     case 'REFLECTING_TEST_PLAN':
       return '테스트 플랜 반영 중'
-    case 'RETRIEVING_CONTEXT':
+    case 'RETRIEVING_CONTEXTS':
       return '문맥 탐색 중'
-    case 'PREPROCESSING_CONTEXT':
+    case 'PREPROCESSING_CONTEXTS':
       return '문맥 전처리 중'
-    case 'GENERATING_QUESTION':
+    case 'GENERATING_QUESTIONS':
       return '문제 생성 중'
-    case 'POSTPROCESSING_QUESTION':
+    case 'POSTPROCESSING_QUESTIONS':
       return '문제 다듬는 중'
     case 'FINALIZING_RESULTS':
       return '결과 생성 중'
@@ -496,12 +501,17 @@ const fetchGeneratedQuestions = async (testIdToFetch) => {
 const handleQuickConfigNext = async (updatedRevenues, totalTestQuestions) => {
   loadingMessage.value = '문제를 찾아오는 중입니다.'
   isLoading.value = true
+
+  console.log('🔍 handleQuickConfigNext 시작:', {
+    updatedRevenues,
+    totalTestQuestions,
+    currentProjectId: currentProjectId.value,
+  })
+
   try {
-    // TestQuickConfig에서 받은 데이터를 저장 (여기서는 testName, testDuration, passingScore는 더 이상 받지 않음)
-    // 이 값들은 TestQuestionReviewQuick에서 입력받거나 기본값으로 사용
-    quickTestName.value = '새로운 빠른 테스트' // 기본값 설정
-    quickTestDuration.value = 60 // 기본값 설정
-    quickPassingScore.value = 60 // 기본값 설정
+    quickTestName.value = '새로운 빠른 테스트'
+    quickTestDuration.value = 60
+    quickPassingScore.value = 60
 
     // 랜덤 테스트 생성 API 호출
     const response = await axios.get('/test/random', {
@@ -511,31 +521,36 @@ const handleQuickConfigNext = async (updatedRevenues, totalTestQuestions) => {
       },
     })
 
-    // API 응답이 성공적인지 확인
+    console.log('🔍 Random Test API 응답:', response.data)
+
     if (response.data.statusCode === 'OK') {
-      // resultData가 질문 객체들의 배열인지 확인
       if (Array.isArray(response.data.resultData)) {
-        questionsData.value = response.data.resultData // resultData를 직접 questionsData에 할당
+        console.log('🔍 questionsData 설정 전:', questionsData.value)
+        questionsData.value = response.data.resultData
+        console.log('🔍 questionsData 설정 후:', questionsData.value)
 
-        // 테스트 ID는 추후 별도의 API 호출로 할당되므로, 이 단계에서는 할당하지 않습니다.
-        // testId.value = 'quick-test-' + new Date().getTime(); // 이 라인을 제거합니다.
+        console.log('🔍 goToQuickQuestion 호출 전 상태:', {
+          currentStep: currentStep.value,
+          testCreationType: testCreationType.value,
+          questionsDataLength: questionsData.value.length,
+        })
 
-        goToQuestion() // 다음 단계 (문제 검토)로 이동
+        goToQuickQuestion()
+
+        console.log('🔍 goToQuickQuestion 호출 후 상태:', {
+          currentStep: currentStep.value,
+          testCreationType: testCreationType.value,
+        })
       } else {
-        // resultData가 배열이 아닐 경우 에러 처리
-        console.error(
-          'Random Test API 응답의 resultData 형식이 올바르지 않습니다 (배열이 아님):',
-          response.data,
-        )
+        console.error('🔍 resultData가 배열이 아님:', response.data)
         alert('빠른 테스트 생성에 실패했습니다: 올바르지 않은 응답 형식입니다.')
       }
     } else {
-      // statusCode가 'OK'가 아닐 경우 에러 처리
-      console.error('Random Test API 응답 실패:', response.data)
+      console.error('🔍 API 응답 실패:', response.data)
       alert('빠른 테스트 생성에 실패했습니다: ' + response.data.resultMsg)
     }
   } catch (error) {
-    console.error('빠른 시험 설정 저장 중 오류 발생:', error)
+    console.error('🔍 빠른 시험 설정 저장 중 오류 발생:', error)
     alert('빠른 시험 설정 저장 중 오류가 발생했습니다.')
   } finally {
     isLoading.value = false
@@ -742,30 +757,46 @@ const updateRevenues = (newVal) => {
 }
 
 onMounted(() => {
-  // 컴포넌트 마운트 시 URL 쿼리에서 currentStep을 초기화합니다.
-  currentStep.value = route.query.step || 'list' // 현재 라우트 쿼리에서 testCreationType을 설정합니다.
+  console.log('🔍 TrainerTestManagement mounted')
+  console.log('🔍 초기 route.query.step:', route.query.step)
+
+  currentStep.value = route.query.step || 'list'
 
   if (route.query.step === 'question') {
-    if (testId.value && String(testId.value).startsWith('quick-test-')) {
-      testCreationType.value = 'quick'
-    } else {
-      testCreationType.value = 'ai' // 기본값 또는 다른 로직으로 AI로 설정
-    }
+    testCreationType.value = 'ai'
+  } else if (route.query.step === 'quick-question') {
+    testCreationType.value = 'quick'
   }
 
-  fetchTests() // 컴포넌트 마운트 시 테스트 목록 로드
+  console.log('🔍 초기 상태:', {
+    currentStep: currentStep.value,
+    testCreationType: testCreationType.value,
+  })
+
+  fetchTests()
 })
 
 // route.query.step 변경을 감지하여 currentStep 업데이트 (브라우저 뒤로/앞으로 가기 등)
 watch(
   () => route.query.step,
   (newStep) => {
+    console.log('🔍 route.query.step 변경됨:', newStep)
     if (newStep) {
       currentStep.value = newStep
     } else {
-      currentStep.value = 'list' // step 쿼리 파라미터가 없으면 'list'로 간주
-    } // URL 쿼리 변경 시 testCreationType도 업데이트할 필요가 있다면 여기에 로직 추가
-    // 예: if (newStep === 'question' && route.query.type) testCreationType.value = route.query.type;
+      currentStep.value = 'list'
+    }
+
+    if (newStep === 'question') {
+      testCreationType.value = 'ai'
+    } else if (newStep === 'quick-question') {
+      testCreationType.value = 'quick'
+    }
+
+    console.log('🔍 상태 업데이트:', {
+      currentStep: currentStep.value,
+      testCreationType: testCreationType.value,
+    })
   },
 )
 

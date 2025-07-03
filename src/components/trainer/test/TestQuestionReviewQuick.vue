@@ -15,46 +15,83 @@
     </v-col>
   </v-row>
 
-  <v-row class="mt-4" align="stretch">
-    <v-col cols="12" sm="4" class="d-flex flex-column">
-      <v-card elevation="0" class="section-bg d-flex flex-column flex-grow-1">
+  <!-- 테스트 정보 Section (가로 1줄 배치) -->
+  <v-row class="mt-4">
+    <v-col cols="12">
+      <v-card elevation="0" class="section-bg">
+        <v-card-text class="pa-8">
+          <h4 class="section-title mb-6">테스트 정보</h4>
+          <v-row>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="internalTestName"
+                label="테스트명"
+                variant="outlined"
+                density="compact"
+                hide-details
+                bg-color="white"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model.number="internalTestDuration"
+                label="응시 제한 시간 (분)"
+                type="number"
+                variant="outlined"
+                density="compact"
+                hide-details
+                bg-color="white"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model.number="internalPassingScore"
+                label="합격 기준 점수"
+                type="number"
+                variant="outlined"
+                density="compact"
+                hide-details
+                bg-color="white"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+    </v-col>
+  </v-row>
+
+  <!-- 문제 정보 Section (TestQuestionReviewAI와 동일) -->
+  <v-row class="mt-4">
+    <v-col cols="12">
+      <v-card elevation="0" class="section-bg">
         <v-card-text class="pa-8 d-flex flex-column flex-grow-1">
-          <h4 class="section-title">테스트 정보</h4>
-          <v-text-field
-            v-model="internalTestName"
-            label="테스트명"
-            variant="outlined"
-            density="compact"
-            hide-details
-            class="mb-4"
-            bg-color="white"
-          ></v-text-field>
-          <v-text-field
-            v-model.number="internalTestDuration"
-            label="응시 제한 시간 (분)"
-            type="number"
-            variant="outlined"
-            density="compact"
-            hide-details
-            class="mb-4"
-            bg-color="white"
-          ></v-text-field>
-          <v-text-field
-            v-model.number="internalPassingScore"
-            label="합격 기준 점수"
-            type="number"
-            variant="outlined"
-            density="compact"
-            hide-details
-            class="mb-4"
-            bg-color="white"
-          ></v-text-field>
-
-          <v-divider class="my-4"></v-divider>
-
           <div class="d-flex justify-space-between align-center mb-6">
-            <h4 class="section-title mb-0">문제 목록</h4>
+            <h4 class="section-title mb-0">문제 상세 및 수정</h4>
+            <div class="d-flex align-center" style="gap: 8px">
+              <v-btn
+                variant="outlined"
+                color="#191d5a"
+                size="small"
+                :disabled="selectedQuestionIndex === 0 || questions.length === 0"
+                @click="moveToPreviousQuestion"
+              >
+                이전 문제
+              </v-btn>
+              <span class="text-subtitle-1 font-weight-medium" style="color: #191d5a">
+                {{ selectedQuestionIndex + 1 }} / {{ questions.length }}
+              </span>
+              <v-btn
+                variant="outlined"
+                color="#191d5a"
+                size="small"
+                :disabled="selectedQuestionIndex === questions.length - 1 || questions.length === 0"
+                @click="moveToNextQuestion"
+              >
+                다음 문제
+              </v-btn>
+            </div>
           </div>
+
           <div
             v-if="isFetchingQuestions"
             class="d-flex justify-center align-center py-10 flex-grow-1"
@@ -62,116 +99,118 @@
             <v-progress-circular indeterminate color="#191d5a" size="50"></v-progress-circular>
             <span class="ml-4 text-h6" style="color: #191d5a">문제 로딩 중...</span>
           </div>
-          <v-expansion-panels
-            v-else
-            variant="accordion"
-            class="question-list-panels flex-grow-1"
-            v-model="expandedPanels"
-          >
-            <v-expansion-panel
-              v-for="doc in documents"
-              :key="doc.id"
-              elevation="0"
-              :value="doc.id"
-              rounded="lg"
-            >
-              <v-expansion-panel-title class="text-body-1 font-weight-medium">
-                {{ doc.name.length > 20 ? doc.name.substring(0, 17) + '...' : doc.name }} ({{
-                  doc.questions.length
-                }})
-              </v-expansion-panel-title>
-              <v-expansion-panel-text>
-                <div class="question-list-scrollable">
-                  <v-list lines="two" class="py-0">
-                    <v-list-item
-                      v-for="(item, i) in doc.questions"
-                      :key="item.id"
-                      :active="selectedQuestionIndex === questions.indexOf(item)"
-                      color="secondary"
-                      rounded="sm"
-                      density="compact"
-                      @click="selectQuestion(questions.indexOf(item))"
-                      class="question-list-item"
-                    >
-                      <h6 class="text-body-2 text-medium-emphasis">
-                        Q{{ String(questions.indexOf(item) + 1).padStart(2, '0') }} ({{
-                          item.type === 'MCQ' ? '객관식' : '주관식'
-                        }})
-                      </h6>
-                      <p class="text-caption text-medium-emphasis">
-                        {{ item.question.substring(0, 30) }}...
-                      </p>
-                    </v-list-item>
-                  </v-list>
-                </div>
-              </v-expansion-panel-text>
-            </v-expansion-panel>
-          </v-expansion-panels>
-        </v-card-text>
-      </v-card>
-    </v-col>
 
-    <v-col cols="12" sm="8" class="d-flex flex-column">
-      <v-card elevation="0" class="section-bg flex-grow-1">
-        <v-card-text class="pa-8">
-          <h4 class="section-title mb-6">문제 정보</h4>
-          <div v-if="currentQuestion">
-            <div class="d-flex align-center flex-wrap mb-4">
-              <h4 class="text-h6 mt-1 mr-3 font-weight-bold" style="color: #191d5a">
-                Q{{ String(selectedQuestionIndex + 1).padStart(2, '0') }}
-              </h4>
-              <span class="text-h8 mt-1 mr-2" style="color: grey">
-                {{ currentQuestion.documentName }}
-              </span>
-              <v-chip
-                v-for="(keyword, kIdx) in currentQuestion.tags"
-                :key="kIdx"
-                size="x-small"
-                color="blue-grey-lighten-4"
-                variant="tonal"
-                rounded="lg"
-                class="ml-1 mr-1 my-1"
-              >
-                {{ keyword }}
-              </v-chip>
-              <span class="text-h8 mt-1 ml-2" style="color: grey"> | {{ difficultyStars }} </span>
-              <v-spacer></v-spacer>
-            </div>
+          <div v-else-if="currentQuestion" class="flex-grow-1 d-flex flex-column">
+            <v-card outlined class="mb-4 pa-4 flex-grow-1">
+              <v-chip-group column class="mb-4">
+                <v-chip label color="blue-grey lighten-5">
+                  유형: {{ currentQuestion.type === 'MCQ' ? '객관식' : '주관식' }}
+                </v-chip>
+                <v-chip label :color="getDifficultyColor(currentQuestion.difficulty)">
+                  난이도: {{ getDifficultyText(currentQuestion.difficulty) }}
+                </v-chip>
+                <v-chip label color="blue-grey lighten-5" v-if="currentQuestion.documentName">
+                  출처: {{ currentQuestion.documentName }}
+                </v-chip>
+              </v-chip-group>
 
-            <h4 class="text-h8 mt-1 font-weight-bold mb-2">문제</h4>
-            <v-textarea
-              v-model="currentQuestionAndOptions"
-              readonly
-              variant="plain"
-              rows="6"
-              auto-grow
-              hide-details
-              class="custom-textarea"
-              rounded="lg"
-              density="compact"
-            ></v-textarea>
+              <v-textarea
+                v-model="currentQuestion.question"
+                label="문제"
+                outlined
+                rows="3"
+                hide-details
+                class="mb-4"
+              ></v-textarea>
 
-            <v-divider class="my-6"></v-divider>
+              <div v-if="currentQuestion.type === 'MCQ'">
+                <h5 class="font-weight-medium text-subtitle-1 mb-2">선택지</h5>
+                <v-text-field
+                  v-for="(option, index) in currentQuestion.options"
+                  :key="index"
+                  v-model="currentQuestion.options[index]"
+                  :label="`선택지 ${index + 1}`"
+                  outlined
+                  dense
+                  hide-details
+                  class="mb-2"
+                ></v-text-field>
+              </div>
 
-            <div class="d-flex align-center mb-2">
-              <h4 class="text-h8 mt-1 font-weight-bold">정답 및 채점기준</h4>
-            </div>
-            <v-textarea
-              v-model="currentAnswerAndExplanation"
-              readonly
-              variant="plain"
-              rows="6"
-              auto-grow
-              hide-details
-              class="custom-textarea"
-              rounded="lg"
-              density="compact"
-            ></v-textarea>
+              <v-text-field
+                v-model="currentQuestion.answer"
+                label="정답"
+                outlined
+                dense
+                hide-details
+                class="mb-4"
+              ></v-text-field>
+
+              <v-textarea
+                v-model="currentQuestion.explanation"
+                label="풀이"
+                outlined
+                rows="3"
+                hide-details
+                class="mb-4"
+              ></v-textarea>
+
+              <div v-if="currentQuestion.type === 'Subjective' && currentQuestion.gradingCriteria">
+                <h5 class="font-weight-medium text-subtitle-1 mb-2">채점 기준</h5>
+                <table class="grading-table">
+                  <thead>
+                    <tr>
+                      <th class="score-column">점수</th>
+                      <th>기준</th>
+                      <th>예시</th>
+                      <th>비고</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(criteria, cIdx) in currentQuestion.gradingCriteria" :key="cIdx">
+                      <td class="score-column">{{ criteria.score }}</td>
+                      <td>{{ criteria.criteria }}</td>
+                      <td>{{ criteria.example }}</td>
+                      <td>{{ criteria.note }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <v-combobox
+                v-model="currentQuestion.keywords"
+                label="키워드 (쉼표로 구분)"
+                multiple
+                chips
+                outlined
+                dense
+                clearable
+                class="mt-4"
+              ></v-combobox>
+
+              <v-combobox
+                v-model="currentQuestion.tags"
+                label="태그 (쉼표로 구분)"
+                multiple
+                chips
+                outlined
+                dense
+                clearable
+              ></v-combobox>
+
+              <v-card-actions class="d-flex justify-end mt-4">
+                <v-btn color="#191d5a" class="white--text" @click="saveQuestionChanges">
+                  변경 사항 저장
+                </v-btn>
+                <v-btn color="red" class="white--text" @click="replaceQuestion">
+                  문제 교체 (AI 재요청)
+                </v-btn>
+              </v-card-actions>
+            </v-card>
           </div>
-          <div v-else class="text-center py-10">
-            <p class="text-h6 text-medium-emphasis">
-              좌측 목록에서 문제를 선택하여 상세 내용을 확인하세요.
-            </p>
+
+          <div v-else class="d-flex flex-column align-center justify-center flex-grow-1">
+            <p class="text-h6 text-medium-emphasis">문제 데이터를 불러오는 중입니다...</p>
           </div>
         </v-card-text>
       </v-card>
@@ -181,34 +220,14 @@
   <v-row class="bottom-fixed-actions">
     <v-col cols="12" class="d-flex justify-space-between align-center px-0">
       <v-btn variant="flat" color="grey" class="force-white" @click="prevStep"> 이전 단계 </v-btn>
-      <div class="d-flex align-center mr-2" style="gap: 8px">
-        <v-btn
-          variant="flat"
-          color="grey"
-          class="force-white"
-          :disabled="selectedQuestionIndex === 0 || questions.length === 0"
-          @click="moveToPreviousQuestion"
-        >
-          이전 문제
-        </v-btn>
-        <v-btn
-          variant="flat"
-          color="grey"
-          class="force-white"
-          :disabled="selectedQuestionIndex === questions.length - 1 || questions.length === 0"
-          @click="moveToNextQuestion"
-        >
-          다음 문제
-        </v-btn>
-        <v-btn
-          variant="flat"
-          color="#191d5a"
-          @click="nextStep"
-          :disabled="questions.length === 0 || isFetchingQuestions"
-        >
-          검토 완료
-        </v-btn>
-      </div>
+      <v-btn
+        variant="flat"
+        color="#191d5a"
+        @click="nextStep"
+        :disabled="questions.length === 0 || isFetchingQuestions"
+      >
+        검토 완료
+      </v-btn>
     </v-col>
   </v-row>
 </template>
@@ -216,9 +235,12 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 const router = useRouter()
 const emit = defineEmits(['next-step', 'prev-step', 'update:isLoading'])
+
+console.log('🔍 TestQuestionReviewQuick 컴포넌트 로드됨')
 
 const props = defineProps({
   testId: [Number, String],
@@ -285,7 +307,6 @@ function prevStep() {
   emit('prev-step')
 }
 
-const documents = ref([])
 const questions = ref([])
 const selectedQuestionIndex = ref(0)
 const isFetchingQuestions = ref(false)
@@ -293,82 +314,135 @@ const currentQuestion = computed(() => {
   return questions.value[selectedQuestionIndex.value]
 })
 
-const expandedPanels = ref([])
-
-const currentQuestionAndOptions = computed(() => {
-  if (!currentQuestion.value) return ''
-  let text = currentQuestion.value.question
-  if (currentQuestion.value.type === 'MCQ' && currentQuestion.value.options) {
-    currentQuestion.value.options.forEach((option, index) => {
-      text += `\n${String.fromCharCode(65 + index)}. ${option}`
-    })
+const getDifficultyColor = (level) => {
+  switch (level) {
+    case 1:
+    case 'EASY':
+      return 'green lighten-3'
+    case 2:
+    case 3:
+    case 'NORMAL':
+      return 'orange lighten-3'
+    case 4:
+    case 5:
+    case 'HARD':
+      return 'red lighten-3'
+    default:
+      return 'grey lighten-3'
   }
-  return text
-})
+}
 
-const currentAnswerAndExplanation = computed(() => {
-  if (!currentQuestion.value) return ''
-  return `정답: ${currentQuestion.value.answer}\n\n해설: ${currentQuestion.value.explanation}`
-})
-
-const difficultyStars = computed(() => {
-  if (!currentQuestion.value || typeof currentQuestion.value.difficulty !== 'number') return ''
-  return (
-    '★'.repeat(currentQuestion.value.difficulty) + '☆'.repeat(5 - currentQuestion.value.difficulty)
-  )
-})
+const getDifficultyText = (level) => {
+  switch (level) {
+    case 1:
+    case 2:
+    case 'EASY':
+      return '쉬움'
+    case 3:
+    case 'NORMAL':
+      return '보통'
+    case 4:
+    case 5:
+    case 'HARD':
+      return '어려움'
+    default:
+      return '보통'
+  }
+}
 
 const processQuestionsData = (data) => {
-  const docsMap = new Map()
-  const allQuestions = []
+  console.log('🔍 processQuestionsData 시작:', data)
 
-  data.forEach((q) => {
+  const allQuestions = data.map((q, index) => {
+    console.log(`🔍 문제 ${index} 처리:`, q)
+
     const processedQuestion = {
       id: q.id,
-      documentId: q.documentId || q.documentName, // documentId가 없는 경우 documentName 사용
-      documentName: q.documentName,
-      question: q.question || q.questionText, // question 또는 questionText 사용
+      documentId: q.documentId || q.documentName,
+      documentName: q.documentName || `문서 ${index + 1}`,
+      question: q.question || q.questionText,
       type:
-        q.type === 'MULTIPLE_CHOICE' ? 'MCQ' : q.type === 'SHORT_ANSWER' ? 'Subjective' : q.type, // 타입 매핑
-      options: q.options ? q.options.map((opt) => (typeof opt === 'object' ? opt.text : opt)) : [], // 옵션 형식 통일 (문자열 배열)
+        q.type === 'MULTIPLE_CHOICE' ? 'MCQ' : q.type === 'SHORT_ANSWER' ? 'Subjective' : q.type,
+      options: q.options ? q.options.map((opt) => (typeof opt === 'object' ? opt.text : opt)) : [],
       answer: q.answer,
       explanation: q.explanation,
+      keywords: q.keywords || [],
       tags: q.tags || [],
-      difficulty: q.difficulty || 3, // 기본 난이도 설정
+      difficulty: q.difficulty || 3,
+      gradingCriteria: q.gradingCriteria || null,
     }
 
-    if (!docsMap.has(processedQuestion.documentName)) {
-      docsMap.set(processedQuestion.documentName, {
-        id: processedQuestion.documentId,
-        name: processedQuestion.documentName,
-        questions: [],
-      })
-    }
-    docsMap.get(processedQuestion.documentName).questions.push(processedQuestion)
-    allQuestions.push(processedQuestion)
+    console.log(`🔍 처리된 문제 ${index}:`, processedQuestion)
+    return processedQuestion
   })
 
-  documents.value = Array.from(docsMap.values())
   questions.value = allQuestions
   selectedQuestionIndex.value = 0
-  if (questions.value.length > 0) {
-    expandedPanels.value = [documents.value[0]?.id]
-  } else {
-    expandedPanels.value = []
+
+  console.log('🔍 processQuestionsData 완료:', {
+    questions: questions.value,
+    questionsLength: questions.value.length,
+  })
+}
+
+const saveQuestionChanges = async () => {
+  if (!currentQuestion.value) return
+
+  try {
+    // 실제 API 연동 시에는 currentQuestion.value의 변경된 내용을 서버로 전송
+    // 예: await axios.put(`/api/questions/${currentQuestion.value.id}`, currentQuestion.value);
+    console.log('문제 변경 사항 저장:', currentQuestion.value)
+    alert('문제 변경 사항이 저장되었습니다.')
+  } catch (error) {
+    console.error('문제 변경 사항 저장 실패:', error)
+    alert('문제 변경 사항 저장에 실패했습니다.')
   }
+}
+
+const replaceQuestion = async () => {
+  if (!currentQuestion.value) return
+
+  // 이 부분은 AI에게 새로운 문제 생성을 요청하는 API 호출이 필요합니다.
+  alert('문제 교체 기능은 아직 구현되지 않았습니다. AI 재요청 로직이 필요합니다.')
+  console.log('문제 교체 요청 (AI 재요청):', currentQuestion.value)
+
+  // 예시: API 호출
+  // try {
+  //   const response = await axios.post('/api/regenerate-question', {
+  //     documentId: currentQuestion.value.documentId,
+  //     keywords: currentQuestion.value.keywords,
+  //     type: currentQuestion.value.type,
+  //     difficultyLevel: currentQuestion.value.difficultyLevel
+  //   });
+  //   const newQuestion = response.data.resultData;
+  //   // 기존 문제를 새 문제로 교체
+  //   questions.value[selectedQuestionIndex.value] = newQuestion;
+  //   alert('문제가 성공적으로 교체되었습니다!');
+  // } catch (error) {
+  //   console.error('문제 교체 실패:', error);
+  //   alert('문제 교체에 실패했습니다. 다시 시도해주세요.');
+  // }
 }
 
 watch(
   () => props.questionsData,
   (newQuestionsData) => {
+    console.log('🔍 questionsData prop 변경됨:', {
+      newQuestionsData,
+      length: newQuestionsData?.length,
+      isLoading: props.isLoading,
+    })
+
     isFetchingQuestions.value = props.isLoading
     if (newQuestionsData && newQuestionsData.length > 0) {
+      console.log('🔍 processQuestionsData 호출 - 데이터 있음')
       processQuestionsData(newQuestionsData)
     } else if (newQuestionsData && newQuestionsData.length === 0) {
-      documents.value = []
+      console.log('🔍 questionsData 빈 배열')
       questions.value = []
       selectedQuestionIndex.value = 0
-      expandedPanels.value = []
+    } else {
+      console.log('🔍 questionsData null 또는 undefined')
     }
   },
   { immediate: true },
@@ -377,13 +451,10 @@ watch(
 watch(
   () => props.isLoading,
   (newVal) => {
+    console.log('🔍 isLoading prop 변경됨:', newVal)
     isFetchingQuestions.value = newVal
   },
 )
-
-const selectQuestion = (index) => {
-  selectedQuestionIndex.value = index
-}
 
 const moveToNextQuestion = () => {
   if (selectedQuestionIndex.value < questions.value.length - 1) {
@@ -398,75 +469,14 @@ const moveToPreviousQuestion = () => {
 }
 
 onMounted(() => {
-  // 예시 데이터 로드
-  if (props.questionsData.length === 0 && !props.isLoading) {
-    processQuestionsData([
-      {
-        id: 'mock-q-1',
-        documentId: 'doc-1',
-        documentName: '데이터베이스 기초',
-        question:
-          '관계형 데이터베이스에서 여러 테이블 간의 관계를 정의하는 데 사용되는 키는 무엇입니까?',
-        type: 'MULTIPLE_CHOICE',
-        options: ['기본 키', '외래 키', '후보 키', '대리 키'],
-        answer: '외래 키',
-        explanation:
-          '외래 키는 한 테이블의 필드가 다른 테이블의 기본 키를 참조하여 두 테이블 간의 관계를 설정하는 데 사용됩니다.',
-        tags: ['데이터베이스', '관계형'],
-        difficulty: 4,
-      },
-      {
-        id: 'mock-q-2',
-        documentId: 'doc-1',
-        documentName: '데이터베이스 기초',
-        question: 'SQL에서 데이터를 삽입하는 데 사용되는 명령문은 무엇입니까?',
-        type: 'SHORT_ANSWER',
-        options: [],
-        answer: 'INSERT INTO',
-        explanation: 'INSERT INTO 명령문은 테이블에 새 행을 추가하는 데 사용됩니다.',
-        tags: ['SQL', '데이터 조작'],
-        difficulty: 3,
-      },
-      {
-        id: 'mock-q-3',
-        documentId: 'doc-2',
-        documentName: '네트워크 보안',
-        question: 'Dos 공격이란 무엇인지 설명하시오.',
-        type: 'SHORT_ANSWER',
-        options: [],
-        answer:
-          '서비스 거부(Denial-of-Service) 공격은 시스템의 리소스를 고갈시키거나 서비스를 중단시켜 사용자가 정상적으로 서비스를 이용할 수 없도록 만드는 공격입니다.',
-        explanation:
-          '주로 네트워크 트래픽을 과도하게 발생시키거나 시스템 취약점을 이용하여 이루어집니다.',
-        tags: ['네트워크', '보안'],
-        difficulty: 5,
-      },
-      {
-        id: 'mock-q-4',
-        documentId: 'doc-2',
-        documentName: '네트워크 보안',
-        question: '다음 중 암호화 방식이 아닌 것은?',
-        type: 'MULTIPLE_CHOICE',
-        options: ['AES', 'RSA', 'MD5', 'DES'],
-        answer: 'MD5',
-        explanation: 'MD5는 해싱 알고리즘으로, 암호화와는 다른 단방향 함수입니다.',
-        tags: ['암호화', '보안'],
-        difficulty: 4,
-      },
-      {
-        id: 'mock-q-5',
-        documentId: 'doc-3',
-        documentName: '운영체제 개론',
-        question: '교착 상태(Deadlock)의 4가지 필요 조건은 무엇입니까?',
-        type: 'SHORT_ANSWER',
-        options: [],
-        answer: '상호 배제, 점유와 대기, 비선점, 순환 대기',
-        explanation: '이 네 가지 조건이 모두 충족될 때 교착 상태가 발생할 수 있습니다.',
-        tags: ['운영체제', '프로세스'],
-        difficulty: 4,
-      },
-    ])
-  }
+  console.log('🔍 TestQuestionReviewQuick mounted')
+  console.log('🔍 초기 props:', {
+    questionsData: props.questionsData,
+    isLoading: props.isLoading,
+    testName: props.testName,
+    testDuration: props.testDuration,
+    passingScore: props.passingScore,
+  })
 })
 </script>
 
@@ -524,72 +534,38 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-/* Expansion panel styles */
-.question-list-panels :deep(.v-expansion-panel__content) {
-  padding-left: 0;
-  padding-right: 0;
+.force-white {
+  color: white !important;
 }
 
-.question-list-panels .v-expansion-panel {
-  background-color: #f8f8f8;
-  margin-bottom: 8px;
-  border: 1px solid #eee;
+.grading-table {
+  width: 100%;
+  min-width: 600px; /* 테이블 최소 너비 설정 (콘텐츠에 따라 조절) */
+  border-collapse: collapse;
+  margin-top: 10px;
+  background-color: #fcfdfe; /* Match li background */
+  border: 1px solid #e9ecef; /* Match li border */
+  border-radius: 8px; /* Match li border-radius */
+  overflow: hidden; /* Ensures border-radius is applied to content */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04); /* Match li shadow */
 }
 
-.question-list-panels .v-expansion-panel-title {
-  min-height: 48px;
-  padding: 0 16px;
+.grading-table :deep(th),
+.grading-table :deep(td) {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  font-size: 15px;
+  color: #495057;
+  white-space: nowrap; /* 셀 내용이 줄바꿈되지 않도록 */
 }
 
-.question-list-scrollable {
-  max-height: 250px;
-  overflow-y: auto;
-}
-
-/* 리스트 아이템 스타일 */
-.question-list-panels .v-list-item {
-  border-radius: 4px;
-  margin-bottom: 4px;
-  transition: background-color 0.2s ease;
-  padding-left: 12px;
-}
-
-.question-list-panels .v-list-item:hover {
-  background-color: #f9f9f9;
-}
-
-.question-list-panels .v-list-item.v-list-item--active {
-  background-color: #f5f5f5;
-  border-left: 4px solid #1976d2;
-  color: #191d5a;
-}
-
-.question-list-panels .v-list-item.v-list-item--active h6,
-.question-list-panels .v-list-item.v-list-item--active p {
-  color: #191d5a !important;
-}
-
-/* 텍스트 필드, 텍스트 영역 등의 글꼴 크기 조정 */
-.custom-textarea {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 16px !important;
-  transition: border-color 0.2s ease;
-  background-color: white !important;
-}
-
-.custom-textarea :deep(textarea) {
-  font-size: 0.95rem !important;
-  background-color: transparent !important;
-  padding-top: 8px !important;
-}
-
-.custom-textarea:hover {
-  border-color: #c0c0c0;
-}
-
-.custom-textarea.v-input--is-focused {
-  border-color: #1976d2;
-  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+/* "점수" 열 너비 조정 */
+.grading-table :deep(th.score-column),
+.grading-table :deep(td.score-column) {
+  width: 80px; /* 점수 열의 너비를 더 넓게 */
+  min-width: 80px; /* 최소 너비 유지 */
+  max-width: 80px; /* 최대 너비 제한 */
+  white-space: nowrap;
 }
 </style>
