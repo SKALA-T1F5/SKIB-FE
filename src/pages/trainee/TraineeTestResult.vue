@@ -63,7 +63,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import MainLayout from '@/components/layouts/MainLayout.vue'
 import TraineeTestResultSideBar from '@/components/trainee/result/TraineeTestResultSideBar.vue'
@@ -75,7 +75,7 @@ import { mdiChevronLeft, mdiChevronRight } from '@mdi/js'
 import api from '@/config/axios'
 
 import { useI18n } from 'vue-i18n'
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const router = useRouter()
 const route = useRoute()
@@ -141,16 +141,26 @@ onUnmounted(() => {
   document.removeEventListener('keydown', blockEvent)
 })
 
+// 언어 변경 시 API 재호출
+watch(locale, (newLang, oldLang) => {
+  console.log('[watch] locale changed:', oldLang, '→', newLang)
+  if (newLang !== oldLang) {
+    fetchTestQuestions()
+  }
+})
+
 const fetchTestQuestions = async () => {
   try {
     // userId, testId, lang 파라미터 준비
     const userId = localStorage.getItem('userId')
     let testId = route.params.testId
     if (!testId) testId = localStorage.getItem('testId')
-    const lang = localStorage.getItem('lang') || 'ko'
-    // console.log('[getResult] params:', { userId, testId, lang })
+    const lang = locale.value || 'ko'
+    console.log('[fetchTestQuestions] lang:', lang)
+    console.log('[getResult] params:', { userId, testId, lang })
     const params = { userId, testId, lang }
     const res = await api.get('/answer/getResult', { params })
+    console.log('[fetchTestQuestions] resultData:', res.data.resultData)
     if (res.data.statusCode === 'OK' && Array.isArray(res.data.resultData)) {
       allQuestions.value = res.data.resultData.map((q, index) => ({
         id: q.questionId,
