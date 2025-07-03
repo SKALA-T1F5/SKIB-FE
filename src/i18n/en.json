@@ -105,5 +105,14 @@
     "feedback_rank_prefix": "You ranked",
     "feedback_rank_suffix": "th among all participants",
     "feedback_top_prefix": "placing in the top",
-    "feedback_top_suffix": ""
+    "feedback_top_suffix": "",
+    "feedback_noDocumentAccuracyData": "No document accuracy data available.",
+    "userRoles": {
+      "trainer": "Trainer",
+      "trainee": "Trainee"
+    },
+    "userMenu": {
+      "myPage": "My Page",
+      "logout": "Logout"
+    }
   }

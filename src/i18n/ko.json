@@ -105,5 +105,14 @@
     "feedback_rank_prefix": "당신은 전체 응시자 중",
     "feedback_rank_suffix": "등",
     "feedback_top_prefix": "상위",
-    "feedback_top_suffix": "에 해당합니다."
+    "feedback_top_suffix": "에 해당합니다.",
+    "feedback_noDocumentAccuracyData": "문서별 정답률 데이터가 없습니다.",
+    "userRoles": {
+      "trainer": "트레이너",
+      "trainee": "훈련생"
+    },
+    "userMenu": {
+      "myPage": "마이페이지",
+      "logout": "로그아웃"
+    }
   }

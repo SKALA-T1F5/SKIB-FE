@@ -20,81 +20,32 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import SvgIcon from '@jamescoyle/vue-icon'
 import { mdiAccount, mdiMenuDown, mdiLock } from '@mdi/js'
 
 const router = useRouter()
+const { t, locale } = useI18n()
+
 const showUserMenu = ref(false)
 const isExamMode = ref(false)
 
 const name = ref('')
 const role = ref('')
-const currentLang = ref('ko') // 현재 언어를 추적하기 위한 ref 추가
 
 onMounted(() => {
   name.value = localStorage.getItem('name') || '사용자'
   role.value = localStorage.getItem('role') || ''
-
-  // Google Translate 위젯이 설정한 언어를 가져와 currentLang에 반영
-  const googleTranslateCookie = getCookie('googtrans')
-  if (googleTranslateCookie) {
-    const langMatch = googleTranslateCookie.match(/\/auto\/(ko|en|vi)/)
-    if (langMatch && langMatch[1]) {
-      currentLang.value = langMatch[1]
-    }
-  }
-
-  // Google Translate 위젯의 언어 변경을 감지하기 위한 MutationObserver 추가
-  const observer = new MutationObserver(() => {
-    const combo = document.querySelector('.goog-te-combo')
-    if (combo && combo.value !== currentLang.value) {
-      currentLang.value = combo.value
-    }
-  })
-  observer.observe(document.body, { subtree: true, childList: true })
 })
 
-// 쿠키에서 값을 가져오는 헬퍼 함수
-const getCookie = (name) => {
-  const value = `; ${document.cookie}`
-  const parts = value.split(`; ${name}=`)
-  if (parts.length === 2) return parts.pop().split(';').shift()
-  return null
-}
-
-// 'role' 텍스트를 현재 언어에 따라 계산
 const roleText = computed(() => {
-  if (currentLang.value === 'ko') {
-    if (role.value === 'TRAINER') return '트레이너'
-    if (role.value === 'TRAINEE') return '훈련생'
-    return role.value
-  } else if (currentLang.value === 'en') {
-    if (role.value === 'TRAINER') return 'Trainer'
-    if (role.value === 'TRAINEE') return 'Trainee'
-    return role.value
-  } else if (currentLang.value === 'vi') {
-    if (role.value === 'TRAINER') return 'Huấn luyện viên'
-    if (role.value === 'TRAINEE') return 'Thực tập sinh'
-    return role.value
-  }
+  if (role.value === 'TRAINER') return t('userRoles.trainer')
+  if (role.value === 'TRAINEE') return t('userRoles.trainee')
   return role.value
 })
 
-// '마이페이지' 텍스트를 현재 언어에 따라 계산
-const myPageText = computed(() => {
-  if (currentLang.value === 'ko') return '마이페이지'
-  if (currentLang.value === 'en') return 'My Page'
-  if (currentLang.value === 'vi') return 'Trang của tôi'
-  return '마이페이지'
-})
-
-// '로그아웃' 텍스트를 현재 언어에 따라 계산
-const logoutText = computed(() => {
-  if (currentLang.value === 'ko') return '로그아웃'
-  if (currentLang.value === 'en') return 'Logout'
-  if (currentLang.value === 'vi') return 'Đăng xuất'
-  return '로그아웃'
-})
+const myPageText = computed(() => t('userMenu.myPage'))
+const logoutText = computed(() => t('userMenu.logout'))
 
 const toggleUserMenu = () => {
   if (!isExamMode.value) {
