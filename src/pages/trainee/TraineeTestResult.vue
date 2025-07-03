@@ -39,8 +39,7 @@
 
           <div class="submit-and-exit-buttons">
             <div class="left-buttons">
-              <button class="nav-button" @click="goToPreviousQuestion"
-                :disabled="!hasPreviousQuestion">
+              <button class="nav-button" @click="goToPreviousQuestion" :disabled="!hasPreviousQuestion">
                 <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> {{ $t('prev') }}
               </button>
             </div>
@@ -48,17 +47,20 @@
               <button class="nav-button" @click="goToNextQuestion" :disabled="!hasNextQuestion">
                 {{ $t('next') }} <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
               </button>
-                <button class="exit-button" @click="exitTestResult">{{ $t('exit') }}</button>
+              <button class="exit-button" @click="exitTestResult">{{ $t('exit') }}</button>
             </div>
           </div>
 
-
+          <div v-if="isTranslating" class="translating-message-overlay">
+            언어 변경 중 ...
+          </div>
 
         </div>
 
         <TraineeChatbot :current-question-id="currentQuestionId" />
       </div>
     </template>
+
   </MainLayout>
 </template>
 
@@ -82,6 +84,7 @@ const route = useRoute()
 
 const allQuestions = ref([])
 const currentQuestionId = ref(null)
+const isTranslating = ref(false)
 
 const currentQuestion = computed(() => {
   if (!currentQuestionId.value || allQuestions.value.length === 0) {
@@ -151,6 +154,7 @@ watch(locale, (newLang, oldLang) => {
 
 const fetchTestQuestions = async () => {
   try {
+    isTranslating.value = true
     // userId, testId, lang 파라미터 준비
     const userId = localStorage.getItem('userId')
     let testId = route.params.testId
@@ -159,6 +163,8 @@ const fetchTestQuestions = async () => {
     console.log('[fetchTestQuestions] lang:', lang)
     console.log('[getResult] params:', { userId, testId, lang })
     const params = { userId, testId, lang }
+    // 언어 변경 전 현재 문제 id 저장
+    const prevQuestionId = currentQuestionId.value
     const res = await api.get('/answer/getResult', { params })
     console.log('[fetchTestQuestions] resultData:', res.data.resultData)
     if (res.data.statusCode === 'OK' && Array.isArray(res.data.resultData)) {
@@ -179,14 +185,18 @@ const fetchTestQuestions = async () => {
         score: q.score,
       }))
       if (allQuestions.value.length > 0) {
-        currentQuestionId.value = allQuestions.value[0].id
+        // 기존에 보고 있던 문제 id가 있으면 그걸로, 없으면 첫 번째 문제로
+        const found = allQuestions.value.find(q => q.id === prevQuestionId)
+        currentQuestionId.value = found ? found.id : allQuestions.value[0].id
       }
     } else {
       allQuestions.value = []
     }
+    isTranslating.value = false
   } catch (error) {
     console.error('/answer/getResult API 호출 실패:', error)
     allQuestions.value = []
+    isTranslating.value = false
   }
 }
 
@@ -390,5 +400,22 @@ const exitTestResult = () => {
 .right-buttons {
   display: flex;
   gap: 15px;
+}
+
+.translating-message-overlay {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  color: #fff;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  z-index: 99999;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  opacity: 0.96;
 }
 </style>
