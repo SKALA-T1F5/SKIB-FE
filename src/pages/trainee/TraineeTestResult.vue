@@ -63,7 +63,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '@/components/layouts/MainLayout.vue'
 import TraineeTestResultSideBar from '@/components/trainee/result/TraineeTestResultSideBar.vue'
@@ -98,6 +98,45 @@ const hasNextQuestion = computed(() => currentQuestionIndex.value < allQuestions
 
 onMounted(() => {
   fetchTestQuestions()
+
+  // ===== [보안] 복사/붙여넣기/우클릭/드래그/개발자도구 차단 =====
+  const blockEvent = (e) => {
+    e.preventDefault()
+    return false
+  }
+  document.addEventListener('copy', blockEvent)
+  document.addEventListener('cut', blockEvent)
+  document.addEventListener('paste', blockEvent)
+  document.addEventListener('contextmenu', blockEvent)
+  document.addEventListener('selectstart', blockEvent)
+  document.addEventListener('dragstart', blockEvent)
+  // F12, Ctrl+Shift+I, Ctrl+U, PrintScreen 등 차단
+  document.addEventListener('keydown', (e) => {
+    if (
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i') ||
+      (e.ctrlKey && e.key.toLowerCase() === 'u') ||
+      (e.key === 'PrintScreen')
+    ) {
+      e.preventDefault()
+      return false
+    }
+  })
+})
+
+onUnmounted(() => {
+  // 보안 이벤트 해제
+  const blockEvent = (e) => {
+    e.preventDefault()
+    return false
+  }
+  document.removeEventListener('copy', blockEvent)
+  document.removeEventListener('cut', blockEvent)
+  document.removeEventListener('paste', blockEvent)
+  document.removeEventListener('contextmenu', blockEvent)
+  document.removeEventListener('selectstart', blockEvent)
+  document.removeEventListener('dragstart', blockEvent)
+  document.removeEventListener('keydown', blockEvent)
 })
 
 // UI 확인을 위한 Sample Data (Hardcoded) - 이전과 동일하므로 생략
