@@ -58,17 +58,23 @@ const isDocumentTabActive = ref(false) // 문서 관리 탭 활성화 여부를 
 const mapApiStatusToKorean = (status) => {
   switch (status) {
     case 'UPLOAD_COMPLETED':
-      return '업로드 완료'
-    case 'PREPROCESSING':
-      return '전처리 중'
+      return '문서 업로드 완료'
+    case 'PREPROCESSING_START': // 추가
+      return '문서 전처리 시작'
+    case 'PARSING_DOCUMENT': // 추가
+      return '문서 파싱 중'
+    case 'ANALYZING_CONTENT': // 추가
+      return '문서 분석 중'
     case 'SUMMARIZING':
-      return '요약 중'
+      return '문서 요약 중'
+    case 'STORING_VECTORDB': // 추가
+      return '문서 저장 중'
     case 'SUMMARY_COMPLETED':
-      return '요약 완료'
+      return '최종 업로드 완료'
     case 'FAILED':
       return '실패'
     default:
-      return '알 수 없음'
+      return '문서 상태 확인 중'
   }
 }
 
@@ -100,12 +106,12 @@ const fetchDocuments = async () => {
 
         if (existingDocIndex === -1) {
           documents.value.push(fetchedDoc)
-          if (fetchedDoc.status !== '요약 완료' && fetchedDoc.status !== '실패') {
+          if (fetchedDoc.status !== '최종 업로드 완료' && fetchedDoc.status !== '실패') {
             startStatusUpdateForDocument(fetchedDoc.id)
           }
         } else {
           documents.value[existingDocIndex].status = fetchedDoc.status
-          if (fetchedDoc.status === '요약 완료' || fetchedDoc.status === '실패') {
+          if (fetchedDoc.status === '최종 업로드 완료' || fetchedDoc.status === '실패') {
             stopStatusUpdateForDocument(fetchedDoc.id)
           } else {
             if (!documentStatusIntervals.value.has(fetchedDoc.id)) {
@@ -150,7 +156,7 @@ const fetchDocumentStatus = async (documentId) => {
       const docIndex = documents.value.findIndex((doc) => doc.id === documentId)
       if (docIndex !== -1) {
         documents.value[docIndex].status = updatedStatus
-        if (updatedStatus === '요약 완료' || updatedStatus === '실패') {
+        if (updatedStatus === '최종 업로드 완료' || updatedStatus === '실패') {
           stopStatusUpdateForDocument(documentId)
         }
       }

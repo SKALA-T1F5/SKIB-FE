@@ -117,13 +117,16 @@ function getFileIcon(fileType) {
 
 function getStatusColor(status) {
   switch (status) {
+    case '최종 업로드 완료': // 최종 완료 상태는 별도로 강조
+      return 'green-darken-2' // 'success'보다 더 진한 녹색으로 변경
     case '업로드 완료':
-    case '요약 완료':
-      return 'success'
-    case '업로드 중':
-    case '전처리 중':
+      return 'success' // 일반 업로드 완료
+    case 'PREPROCESSING_START':
+    case 'PARSING_DOCUMENT':
+    case 'ANALYZING_CONTENT':
+    case 'STORING_VECTORDB':
       return 'info'
-    case '요약 중':
+    case '문서 요약 중':
       return 'warning'
     case '실패':
       return 'error'
@@ -134,14 +137,16 @@ function getStatusColor(status) {
 
 function getStatusIcon(status) {
   switch (status) {
+    case '최종 업로드 완료': // 최종 완료 상태는 별도 아이콘 사용
+      return 'mdi-check-all' // 이중 체크 아이콘으로 변경
     case '업로드 완료':
-    case '요약 완료':
-      return 'mdi-check-circle'
-    case '업로드 중':
-      return 'mdi-upload'
-    case '전처리 중':
+      return 'mdi-check-circle' // 일반 업로드 완료 아이콘
+    case 'PREPROCESSING_START':
+    case 'PARSING_DOCUMENT':
+    case 'ANALYZING_CONTENT':
+    case 'STORING_VECTORDB':
       return 'mdi-cog-outline'
-    case '요약 중':
+    case '문서 요약 중':
       return 'mdi-timer-sand'
     case '실패':
       return 'mdi-alert-circle'
