@@ -114,6 +114,15 @@
       "comprehension": "Comprehension",
       "logic": "Logic"
     },
+    "lineAreaChart": {
+      "scoreUnit": "pts",
+      "participantsLabel": "Number of Participants",
+      "myScoreLabel": "My Score",
+      "tooltipTitle": "Score Range",
+      "peopleUnit": " people",
+      "xAxisLabel": "Score",
+      "yAxisLabel": "Number of Participants"
+    },
     "userRoles": {
       "trainer": "Trainer",
       "trainee": "Trainee"

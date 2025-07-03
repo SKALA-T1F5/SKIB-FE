@@ -9,6 +9,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -33,6 +34,8 @@ ChartJS.register(
   Legend,
   Filler
 );
+
+const { t } = useI18n();
 
 const props = defineProps({
   myScore: Number, // 현재 나의 점수 (레벨)
@@ -76,10 +79,10 @@ const chartData = computed(() => {
     return null;
   });
   return {
-    labels: bins.map((bin) => `${bin}점`),
+    labels: bins.map((bin) => `${bin}${t('lineAreaChart.scoreUnit')}`),
     datasets: [
       {
-        label: '응시자 수',
+        label: t('lineAreaChart.participantsLabel'),
         data: binCounts,
         backgroundColor: 'rgba(106, 138, 255, 0.2)',
         borderColor: 'rgba(106, 138, 255, 1)',
@@ -92,7 +95,7 @@ const chartData = computed(() => {
         tension: 0.4,
       },
       {
-        label: '내 점수',
+        label: t('lineAreaChart.myScoreLabel'),
         data: myScoreMarker,
         backgroundColor: 'rgba(255, 193, 7, 1)',
         borderColor: 'rgba(255, 193, 7, 1)',
@@ -108,7 +111,7 @@ const chartData = computed(() => {
   };
 });
 
-const chartOptions = {
+const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -120,7 +123,7 @@ const chartOptions = {
       intersect: false,
       callbacks: {
         title: function (context) {
-          return `점수 구간: ${context[0].label}`;
+          return `${t('lineAreaChart.tooltipTitle')}: ${context[0].label}`;
         },
         label: function (context) {
           let label = context.dataset.label || '';
@@ -128,7 +131,7 @@ const chartOptions = {
             label += ': ';
           }
           if (context.parsed.y !== null) {
-            label += context.parsed.y + '명';
+            label += context.parsed.y + t('lineAreaChart.peopleUnit');
           }
           return label;
         },
@@ -152,7 +155,7 @@ const chartOptions = {
       },
       title: {
         display: true,
-        text: '점수',
+        text: t('lineAreaChart.xAxisLabel'),
         color: '#495057',
         font: { size: 14, weight: 'bold' },
       },
@@ -169,18 +172,18 @@ const chartOptions = {
         stepSize: 1,
         color: '#6c757d',
         callback: function (value) {
-          return value + '명';
+          return value + t('lineAreaChart.peopleUnit');
         },
       },
       title: {
         display: true,
-        text: '응시자 수',
+        text: t('lineAreaChart.yAxisLabel'),
         color: '#495057',
         font: { size: 14, weight: 'bold' },
       },
     },
   },
-};
+}));
 
 // props 변경 감지 (나의 점수가 변경될 경우 등)
 watch([() => props.myScore, () => props.allParticipantScores], () => {

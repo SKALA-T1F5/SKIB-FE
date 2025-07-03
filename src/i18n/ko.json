@@ -114,6 +114,15 @@
       "comprehension": "이해력",
       "logic": "논리력"
     },
+    "lineAreaChart": {
+      "scoreUnit": "점",
+      "participantsLabel": "응시자 수",
+      "myScoreLabel": "내 점수",
+      "tooltipTitle": "점수 구간",
+      "peopleUnit": "명",
+      "xAxisLabel": "점수",
+      "yAxisLabel": "응시자 수"
+    },
     "userRoles": {
       "trainer": "트레이너",
       "trainee": "훈련생"
