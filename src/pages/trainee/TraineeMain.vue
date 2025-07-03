@@ -223,7 +223,7 @@ const fetchTests = async () => {
       alert('테스트 목록을 불러오는 데 실패했습니다. 서버 응답을 확인해주세요.')
       tests.value = []
     }
-    console.log('Fetched tests from API:', tests.value)
+    // console.log('Fetched tests from API:', tests.value)
   } catch (error) {
     console.error('테스트 데이터를 불러오는 데 실패했습니다:', error)
     alert('테스트 목록을 불러오는 데 실패했습니다. 잠시 후 다시 시도해주세요.')

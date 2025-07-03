@@ -1,10 +1,12 @@
 import { createI18n } from 'vue-i18n'
 import ko from './ko.json'
 import en from './en.json'
+import vi from './vi.json'
 
 const messages = {
   ko,
-  en
+  en,
+  vi
 }
 
 const i18n = createI18n({

@@ -372,7 +372,7 @@ const handleConfigNext = async (configData) => {
       },
     })
 
-    console.log('API 응답:', response.data)
+    // console.log('API 응답:', response.data)
 
     if (
       response.data.statusCode === 'OK' &&
@@ -424,7 +424,7 @@ const handleQuickConfigNext = async (updatedRevenues, totalTestQuestions) => {
       },
     })
 
-    console.log('Random Test API 응답:', response.data)
+    // console.log('Random Test API 응답:', response.data)
 
     if (
       response.data.statusCode === 'OK' &&
@@ -473,7 +473,7 @@ const handleQuestionNext = async ({ selectedQuestionIds, toDeleteQuestionIds }) 
       },
     })
 
-    console.log('Finalize API 응답:', response.data)
+    // console.log('Finalize API 응답:', response.data)
 
     if (response.data.statusCode === 'OK') {
       // response.data.resultData.testLinkToken에서 토큰을 추출합니다.
