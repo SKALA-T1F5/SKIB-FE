@@ -507,28 +507,30 @@ const handleQuickConfigNext = async (updatedRevenues, totalTestQuestions) => {
     const response = await axios.get('/test/random', {
       params: {
         projectId: currentProjectId.value,
-        count: totalTestQuestions, // 총 문제 수 (count)를 파라미터로 전달
+        count: totalTestQuestions,
       },
     })
 
-    // console.log('Random Test API 응답:', response.data)
+    // API 응답이 성공적인지 확인
+    if (response.data.statusCode === 'OK') {
+      // resultData가 질문 객체들의 배열인지 확인
+      if (Array.isArray(response.data.resultData)) {
+        questionsData.value = response.data.resultData // resultData를 직접 questionsData에 할당
 
-    if (
-      response.data.statusCode === 'OK' &&
-      response.data.resultData &&
-      response.data.resultData.testId
-    ) {
-      testId.value = response.data.resultData.testId
+        // 테스트 ID는 추후 별도의 API 호출로 할당되므로, 이 단계에서는 할당하지 않습니다.
+        // testId.value = 'quick-test-' + new Date().getTime(); // 이 라인을 제거합니다.
 
-      if (response.data.resultData.questions) {
-        questionsData.value = response.data.resultData.questions
+        goToQuestion() // 다음 단계 (문제 검토)로 이동
       } else {
-        questionsData.value = []
-        console.warn("API 응답에 'questions' 데이터가 포함되어 있지 않습니다.")
+        // resultData가 배열이 아닐 경우 에러 처리
+        console.error(
+          'Random Test API 응답의 resultData 형식이 올바르지 않습니다 (배열이 아님):',
+          response.data,
+        )
+        alert('빠른 테스트 생성에 실패했습니다: 올바르지 않은 응답 형식입니다.')
       }
-
-      goToQuestion() // 문제 검토 단계로 이동
     } else {
+      // statusCode가 'OK'가 아닐 경우 에러 처리
       console.error('Random Test API 응답 실패:', response.data)
       alert('빠른 테스트 생성에 실패했습니다: ' + response.data.resultMsg)
     }
