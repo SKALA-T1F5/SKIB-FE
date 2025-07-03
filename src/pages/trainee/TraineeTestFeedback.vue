@@ -73,13 +73,13 @@
                   :all-participant-scores="allParticipantScores"
                   :my-user-id="myUserId"
                 />
-                <p class="rank-summary">
+                <!-- <p class="rank-summary">
                   {{ $t('feedback_rank_prefix') }}
                   <span class="highlight-rank">{{ myRank }}{{ $t('feedback_rank_suffix') }}</span>,
                   {{ $t('feedback_top_prefix') }}
                   <span class="highlight-percent">{{ topPercentage }}%</span>
                   {{ $t('feedback_top_suffix') }}
-                </p>
+                </p> -->
               </section>
             </div>
           </div>
