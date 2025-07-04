@@ -68,11 +68,10 @@ const formatTime = (minutes) => {
   justify-content: space-between;
   min-width: 280px;
   max-width: 100%;
-  height: auto;
-  min-height: 220px;
-  flex-grow: 1;
-  flex-shrink: 1;
-  flex-basis: auto;
+  height: 240px;
+  min-height: 240px;
+  max-height: 240px;
+  flex: 1 1 0;
 }
 
 /* 상태 태그 (PASS/FAIL) */

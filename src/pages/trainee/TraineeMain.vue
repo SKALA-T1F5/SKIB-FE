@@ -34,6 +34,12 @@
 
   <AddTestModal :isVisible="addTestModalVisible" :invitationLinkError="invitationLinkError" @close="hideAddTestModal"
     @addTest="addTestByLink" />
+
+  <ResultTypeSelectModal
+    v-if="showResultTypeModal"
+    @select="onResultTypeSelected"
+    @close="showResultTypeModal = false"
+  />
 </template>
 
 <script setup>
@@ -46,6 +52,7 @@ import SearchInput from '@/components/layouts/SearchInput.vue'
 import TraineeMainSideBar from '@/components/trainee/main/TraineeMainSideBar.vue'
 import TraineeTestCard from '@/components/trainee/main/TraineeTestCard.vue'
 import AddTestModal from '@/components/trainee/main/AddTestModal.vue'
+import ResultTypeSelectModal from '@/components/trainee/main/ResultTypeSelectModal.vue'
 
 const router = useRouter()
 const userName = ref(localStorage.getItem('name') || '사용자')
@@ -209,8 +216,11 @@ const fetchTests = async () => {
           score: test.score,
           limitedTime: test.limitedTime,
           createdAt: test.createdAt,
+          // isPassed: 합격 여부 (1: 합격, 0: 불합격)
           isPassed: typeof test.isPassed === 'string' ? Number(test.isPassed) : (typeof test.isPassed === 'boolean' ? (test.isPassed ? 1 : 0) : test.isPassed),
+          // retake: 재응시 여부 (1: 이미 재응시함, 0: 아직 재응시 안함)
           retake: typeof test.retake === 'string' ? Number(test.retake) : (typeof test.retake === 'boolean' ? (test.retake ? 1 : 0) : test.retake),
+          // isRetake: 재응시 가능 여부 (1: 재응시 가능, 0: 재응시 불가)
           isRetake: typeof test.isRetake === 'string' ? Number(test.isRetake) : (typeof test.isRetake === 'boolean' ? (test.isRetake ? 1 : 0) : test.isRetake),
           passScore: test.passScore,
         }
@@ -242,19 +252,18 @@ const handleResetFilters = () => {
   fetchTests()
 }
 
+const showResultTypeModal = ref(false)
+const selectedResultType = ref('FIRST')
+const pendingTest = ref(null)
+
 const handleTestCardAction = (test, actionType) => {
-  // console.log(`'${test.name}' ${actionType} 요청 (Test ID: ${test.testId})`)
   if (actionType === 'result') {
-    router.push({
-      name: 'TraineeTestResult',
-      params: { testId: test.testId.toString() },
-      state: {
-        testName: test.name,
-        actualScore: test.score,
-        isPassed: test.isPassed,
-        passScore: test.passScore,
-      },
-    })
+    if (test.retake === 1) {
+      pendingTest.value = test
+      showResultTypeModal.value = true
+    } else {
+      goToResult(test, 'FIRST')
+    }
   } else if (actionType === 'feedback') {
     router.push({
       name: 'TraineeTestFeedback',
@@ -278,6 +287,28 @@ const handleTestCardAction = (test, actionType) => {
       },
     })
   }
+}
+
+const onResultTypeSelected = (type) => {
+  showResultTypeModal.value = false
+  if (pendingTest.value) {
+    goToResult(pendingTest.value, type)
+    pendingTest.value = null
+  }
+}
+
+const goToResult = (test, attemptType) => {
+  router.push({
+    name: 'TraineeTestResult',
+    params: { testId: test.testId.toString() },
+    state: {
+      testName: test.name,
+      actualScore: test.score,
+      isPassed: test.isPassed,
+      passScore: test.passScore,
+      attemptType,
+    },
+  })
 }
 
 onMounted(() => {
