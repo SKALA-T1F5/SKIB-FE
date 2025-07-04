@@ -86,7 +86,7 @@ const allQuestions = ref([])
 const chatbotQuestions = ref([])
 const currentQuestionId = ref(null)
 const isTranslating = ref(false)
-const userId = localStorage.getItem('userId') || ''
+const userId = Number(localStorage.getItem('userId')) || 0
 
 const currentQuestion = computed(() => {
   if (!currentQuestionId.value || allQuestions.value.length === 0) {
@@ -157,8 +157,8 @@ const fetchTestQuestions = async () => {
   try {
     isTranslating.value = true
     // userId, testId, lang 파라미터 준비
-    let testId = route.params.testId
-    if (!testId) testId = localStorage.getItem('testId')
+    let testId = Number(route.params.testId)
+    if (!testId) testId = Number(localStorage.getItem('testId')) || 0
     const lang = locale.value || 'ko'
     // console.log('[fetchTestQuestions] lang:', lang)
     // console.log('[getResult] params:', { userId, testId, lang })
@@ -167,7 +167,7 @@ const fetchTestQuestions = async () => {
     const prevQuestionId = currentQuestionId.value
     // 기존 allQuestions용 API
     const res = await api.get('/answer/getResult', { params })
-    // console.log('[fetchTestQuestions] resultData:', res.data.resultData)
+    console.log('[fetchTestQuestions] resultData:', res.data.resultData)
     if (res.data.statusCode === 'OK' && Array.isArray(res.data.resultData)) {
       allQuestions.value = res.data.resultData.map((q, index) => ({
         id: q.questionId,
