@@ -81,7 +81,10 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits, watch } from 'vue'
+import { ref, defineProps, defineEmits, watch, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
 
 const props = defineProps({
   isLoading: {
@@ -96,14 +99,25 @@ const props = defineProps({
 
 const emit = defineEmits(['prev-step', 'next-step', 'update:loading', 'update:exam-prompt'])
 
-const internalExamPrompt = ref(props.examPrompt) // props에서 받은 값을 초기값으로 설정
+// route.query.prompt가 있으면 이를 초기값으로 사용, 없으면 props.examPrompt 사용
+const internalExamPrompt = ref(route.query.prompt || props.examPrompt)
 
 watch(
   () => props.examPrompt,
   (newVal) => {
-    internalExamPrompt.value = newVal
+    // props.examPrompt가 변경되었지만 query.prompt가 없을 때만 업데이트
+    if (!route.query.prompt) {
+      internalExamPrompt.value = newVal
+    }
   },
 )
+
+onMounted(() => {
+  // 마운트 시 query.prompt가 있으면 부모에게 알림
+  if (route.query.prompt) {
+    emitUpdateExamPrompt()
+  }
+})
 
 const examplePrompts = ref([
   'UI 컴포넌트 개발 원칙과 활용 방법에 대한 실무 중심의 객관식 시험을 출제해주세요.',

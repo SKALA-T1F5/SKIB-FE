@@ -7,28 +7,57 @@
       </button>
     </div>
     <div class="ai-summary-content">
-      <!-- 1. 시험 목표 -->
-      <div class="ai-summary-item">
-        <h3>시험 목표</h3>
-        <p>{{ aiOutputData.examGoal }}</p>
-      </div>
-
-      <!-- 2. 종합 평가 -->
-      <div class="ai-summary-item">
-        <h3>
-          종합 평가
+      <!-- 아이콘과 시험 목표, 종합 평가를 하나의 그리드로 구성 -->
+      <div class="exam-overview-grid">
+        <!-- 왼쪽 아이콘 영역 -->
+        <div class="readiness-emoji-container">
+          <!-- Lottie 애니메이션 for FAIL -->
+          <lottie-player
+            v-if="aiOutputData.projectReadiness.toUpperCase() === 'FAIL'"
+            src="https://app.lottiefiles.com/share/7b6ff39f-a80e-4a6d-b0ff-5817dc8ecd20"
+            background="transparent"
+            speed="1"
+            style="width: 60px; height: 60px"
+            loop
+            autoplay
+            class="readiness-lottie"
+            :title="`프로젝트 준비도: ${aiOutputData.projectReadiness}`"
+          ></lottie-player>
+          <!-- Lottie 애니메이션 for EXCELLENT -->
+          <lottie-player
+            v-else-if="aiOutputData.projectReadiness.toUpperCase() === 'EXCELLENT'"
+            src="https://app.lottiefiles.com/share/438504d9-ba51-4294-a11a-8c5b0aaf5750"
+            background="transparent"
+            speed="1"
+            style="width: 60px; height: 60px"
+            loop
+            autoplay
+            class="readiness-lottie excellent-animation"
+            :title="`프로젝트 준비도: ${aiOutputData.projectReadiness}`"
+          ></lottie-player>
+          <!-- 기존 이모지 for other states (GOOD 등) -->
           <span
-            class="readiness-emoji-inline"
+            v-else
+            class="readiness-emoji-main"
             :title="`프로젝트 준비도: ${aiOutputData.projectReadiness}`"
           >
             {{ getReadinessEmoji(aiOutputData.projectReadiness) }}
           </span>
-        </h3>
-        <div class="overall-evaluation">
-          <div class="evaluation-content">
-            <p>
-              {{ aiOutputData.overallEvaluation }}
-            </p>
+        </div>
+
+        <!-- 오른쪽 상단: 시험 목표 -->
+        <div class="exam-goal-section">
+          <h3>시험 목표</h3>
+          <p>{{ aiOutputData.examGoal }}</p>
+        </div>
+
+        <!-- 오른쪽 하단: 종합 평가 -->
+        <div class="overall-evaluation-section">
+          <h3>종합 평가</h3>
+          <div class="overall-evaluation">
+            <div class="evaluation-content">
+              <p>{{ aiOutputData.overallEvaluation }}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -40,9 +69,9 @@
           <table class="document-table">
             <thead>
               <tr>
-                <th>문서명</th>
-                <th>정답률</th>
-                <th>평가</th>
+                <th class="col-document-name">문서명</th>
+                <th class="col-accuracy-rate">정답률</th>
+                <th class="col-comment">평가</th>
               </tr>
             </thead>
             <tbody>
@@ -83,15 +112,14 @@
             </tbody>
           </table>
         </div>
+        <!-- 주요 개선점을 강점 및 약점 아래에 텍스트로 추가 -->
+        <div v-if="aiOutputData.improvementPoints" class="improvement-points-section">
+          <h4>주요 개선점</h4>
+          <p>{{ aiOutputData.improvementPoints }}</p>
+        </div>
       </div>
 
-      <!-- 5. 개선점 -->
-      <div class="ai-summary-item">
-        <h3>주요 개선점</h3>
-        <p>{{ aiOutputData.improvementPoints }}</p>
-      </div>
-
-      <!-- 6. 제안 주제 (카드 형태) -->
+      <!-- 5. 제안 주제 (카드 형태) -->
       <div class="ai-summary-item">
         <h3>제안 주제</h3>
         <div class="suggested-topics-cards">
@@ -99,12 +127,10 @@
             class="topic-card"
             v-for="(topic, index) in aiOutputData.suggestedTopics"
             :key="index"
+            @click="navigateToTestCreation(topic)"
           >
             <v-icon class="topic-icon" size="19">mdi-lightbulb-on</v-icon>
             <div class="topic-content">{{ topic }}</div>
-            <button class="create-test-btn" @click="navigateToTestCreation(topic)">
-              테스트 생성하러 가기
-            </button>
           </div>
         </div>
       </div>
@@ -113,6 +139,7 @@
 </template>
 
 <script setup>
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -125,6 +152,29 @@ const props = defineProps({
 })
 
 defineEmits(['download'])
+
+// Lottie Player 스크립트 로드
+onMounted(() => {
+  if (!document.querySelector('script[src*="lottie-player"]')) {
+    const script = document.createElement('script')
+    script.src = 'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js'
+    document.head.appendChild(script)
+  }
+})
+
+// 데이터 존재 여부 확인
+const hasData = computed(() => {
+  return (
+    props.aiOutputData &&
+    (props.aiOutputData.examGoal ||
+      props.aiOutputData.performanceByDocument.length > 0 ||
+      props.aiOutputData.insights.length > 0 ||
+      props.aiOutputData.improvementPoints ||
+      props.aiOutputData.suggestedTopics.length > 0 ||
+      props.aiOutputData.overallEvaluation ||
+      props.aiOutputData.projectReadiness)
+  )
+})
 
 // 정답률에 따른 클래스 반환
 const getAccuracyClass = (rate) => {
@@ -140,29 +190,27 @@ const getReadinessEmoji = (readiness) => {
       return '😊'
     case 'GOOD':
       return '😐'
-    case 'FAIL':
-      return '😞'
     default:
       return '😐'
   }
 }
 
-// 인사이트 텍스트에서 태그 포맷팅 (# 와 ' ' 모두 처리)
+// 인사이트 텍스트에서 태그 포맷팅 (작은따옴표로 감싸진 태그만 처리)
 const formatInsightText = (text) => {
-  // # 태그 처리
-  let formatted = text.replace(/#([^#\s,)]+)/g, '<span class="tag-highlight">#$1</span>')
-  // 작은따옴표로 감싸진 태그 처리
-  formatted = formatted.replace(/'([^']+)'/g, '<span class="tag-highlight">$1</span>')
+  // 작은따옴표로 감싸진 태그만 처리
+  const formatted = text.replace(/'([^']+)'/g, '<span class="tag-highlight">$1</span>')
   return formatted
 }
 
 // 테스트 생성 페이지로 이동
 const navigateToTestCreation = (topic) => {
-  // TestPrompt 페이지로 라우팅하고 topic을 파라미터로 전달
-  router.push({
-    path: '/trainer/test/prompt', // TestPrompt 경로로 변경
+  const targetRoute = {
+    path: '/trainer/test/prompt',
     query: { prompt: topic },
-  })
+  }
+  const resolvedRoute = router.resolve(targetRoute)
+  console.log('라우팅 주소:', resolvedRoute.href) // 라우팅 주소 콘솔 출력
+  router.push(targetRoute)
 }
 </script>
 
@@ -236,10 +284,108 @@ const navigateToTestCreation = (topic) => {
   overflow-y: auto;
 }
 
+/* 로딩 상태 스타일 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  padding: 60px 20px;
+  min-height: 300px;
+}
+
+.loading-gif {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 20px;
+  object-fit: contain;
+}
+
+.loading-text {
+  font-size: 16px;
+  color: #1e2251;
+  font-weight: 500;
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
+}
+
 .ai-summary-item {
   margin-bottom: 5px;
 }
 
+/* 시험 개요 그리드 레이아웃 */
+.exam-overview-grid {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  grid-template-rows: auto auto;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.readiness-emoji-container {
+  grid-row: 1 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.readiness-emoji-main {
+  font-size: 40px;
+  cursor: help;
+  transition: transform 0.2s ease;
+}
+
+.readiness-emoji-main:hover {
+  transform: scale(1.1);
+}
+
+/* Lottie 애니메이션 스타일 */
+.readiness-lottie {
+  cursor: help;
+  transition: transform 0.2s ease;
+  border-radius: 50%;
+}
+
+.readiness-lottie:hover {
+  transform: scale(1.1);
+}
+
+/* EXCELLENT 상태 애니메이션 추가 스타일 */
+.excellent-animation {
+  filter: drop-shadow(0 0 8px rgba(40, 167, 69, 0.3));
+}
+
+.excellent-animation:hover {
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 12px rgba(40, 167, 69, 0.5));
+}
+
+.exam-goal-section,
+.overall-evaluation-section {
+  margin-bottom: 5px;
+}
+
+.exam-goal-section h3,
+.overall-evaluation-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e2251;
+  margin-bottom: 12px;
+  padding-bottom: 5px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.exam-goal-section p,
+.overall-evaluation-section p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #555;
+  margin: 0;
+}
+
+/* 일반 ai-summary-item의 h3 스타일 */
 .ai-summary-item h3 {
   font-size: 18px;
   font-weight: 600;
@@ -249,33 +395,6 @@ const navigateToTestCreation = (topic) => {
   border-bottom: 2px solid #e9ecef;
 }
 
-.evaluation-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  padding-bottom: 5px;
-  border-bottom: 2px solid #e9ecef;
-}
-
-.evaluation-header h3 {
-  margin-bottom: 0;
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-.readiness-emoji-inline {
-  font-size: 20px;
-  cursor: help;
-  transition: transform 0.2s ease;
-  margin-left: 8px;
-  vertical-align: middle;
-}
-
-.readiness-emoji-inline:hover {
-  transform: scale(1.1);
-}
-
 .ai-summary-item p {
   font-size: 14px;
   line-height: 1.6;
@@ -283,32 +402,7 @@ const navigateToTestCreation = (topic) => {
   margin: 0;
 }
 
-.project-readiness {
-  margin-top: 15px;
-  padding: 12px 16px;
-  border-radius: 8px;
-  background-color: #f8f9fa;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.readiness-label {
-  font-weight: 500;
-  color: #495057;
-}
-
-.readiness-emoji {
-  font-size: 24px;
-  cursor: help;
-  transition: transform 0.2s ease;
-}
-
-.readiness-emoji:hover {
-  transform: scale(1.1);
-}
-
-/* 문서별 정답률 표 - 반응형 개선 */
+/* 문서별 정답률 표 - 4:1:5 비율 적용 */
 .document-table-container {
   overflow-x: auto;
   border: 1px solid #e0e0e0;
@@ -320,6 +414,7 @@ const navigateToTestCreation = (topic) => {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  table-layout: fixed;
 }
 
 .document-table th,
@@ -337,11 +432,23 @@ const navigateToTestCreation = (topic) => {
   position: sticky;
   top: 0;
   z-index: 1;
+  text-align: center;
+}
+
+.col-document-name {
+  width: 33.33%;
+}
+
+.col-accuracy-rate {
+  width: 11.11%;
+}
+
+.col-comment {
+  width: 55.56%;
 }
 
 .document-table .document-name {
   font-weight: 500;
-  max-width: 200px;
   word-break: break-word;
 }
 
@@ -372,15 +479,44 @@ const navigateToTestCreation = (topic) => {
   word-break: break-word;
 }
 
+@media (max-width: 1024px) {
+  .exam-overview-grid {
+    gap: 15px;
+  }
+}
+
 @media (max-width: 768px) {
+  .exam-overview-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 15px;
+  }
+
+  .readiness-emoji-container {
+    grid-row: 1 / 2;
+    grid-column: 1 / 2;
+    align-self: center;
+    justify-self: center;
+  }
+
+  .readiness-emoji-main {
+    font-size: 32px;
+  }
+
+  .readiness-lottie {
+    width: 50px !important;
+    height: 50px !important;
+  }
+
+  .excellent-animation {
+    width: 50px !important;
+    height: 50px !important;
+  }
+
   .document-table th,
   .document-table td {
     padding: 8px;
     font-size: 12px;
-  }
-
-  .document-table .document-name {
-    max-width: 150px;
   }
 
   .document-table .comment {
@@ -449,8 +585,8 @@ const navigateToTestCreation = (topic) => {
 }
 
 .insight-content :deep(.tag-highlight) {
-  background-color: #e7f1ff;
-  color: #0066cc;
+  background-color: #f8f9fa;
+  color: #495057;
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 11px;
@@ -499,7 +635,7 @@ const navigateToTestCreation = (topic) => {
   flex: 1;
   min-width: 250px;
   max-width: calc(33.333% - 10.666px);
-  min-height: 160px;
+  min-height: 120px;
   cursor: pointer;
   box-shadow: none;
   position: relative;
@@ -534,35 +670,25 @@ const navigateToTestCreation = (topic) => {
   hyphens: auto;
 }
 
-.create-test-btn {
-  background-color: #1e2251;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  align-self: stretch;
-  margin-top: auto;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
+/* 주요 개선점 섹션 스타일 */
+.improvement-points-section {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e9ecef;
 }
 
-.create-test-btn:hover {
-  background-color: #2a2f5a;
-  box-shadow: 0 2px 6px rgba(30, 34, 81, 0.2);
+.improvement-points-section h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e2251;
+  margin-bottom: 10px;
 }
 
-.create-test-btn:focus {
-  outline: 2px solid #4a507f;
-  outline-offset: 2px;
-}
-
-.create-test-btn:active {
-  background-color: #1a1e47;
+.improvement-points-section p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #555;
+  margin: 0;
 }
 
 /* 반응형 디자인 */
@@ -581,19 +707,14 @@ const navigateToTestCreation = (topic) => {
   .topic-card {
     max-width: 100%;
     min-width: 100%;
-    min-height: 140px;
-  }
-
-  .create-test-btn {
-    font-size: 11px;
-    padding: 8px 12px;
+    min-height: 100px;
   }
 }
 
 @media (max-width: 480px) {
   .topic-card {
     padding: 12px;
-    min-height: 120px;
+    min-height: 90px;
   }
 
   .topic-content {

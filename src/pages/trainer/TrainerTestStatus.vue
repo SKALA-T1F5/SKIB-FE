@@ -145,8 +145,9 @@ const learnerCorrectnessData = ref([]) // 학습자별 정오표 데이터
 // API 연동 함수들
 const fetchTrainerFeedback = async (id) => {
   try {
-    const response = await axios.get(`/feedback/trainer-feedback`, { params: { testId: id } })
-    aiOutputData.value = response.data
+    const response = await axios.post(`/feedback/trainer-feedback?testId=${id}`)
+    // API 응답 구조에 맞게 resultData를 추출
+    aiOutputData.value = response.data.resultData
   } catch (error) {
     console.error('트레이너 피드백을 불러오는 데 실패했습니다:', error)
     aiOutputData.value = {
@@ -295,113 +296,6 @@ const tagRadarData = computed(() => {
     ],
   }
 })
-
-// ScoreDistribution 관련 computed 주석처리
-// // 응시자 목록 (더미 데이터 생성 로직 유지, 실제 학습자명은 API에서 받아오면 변경)
-// const participantsList = computed(() => {
-//   const participants = []
-//   const names = [
-//     '김철수',
-//     '이영희',
-//     '박민수',
-//     '정수연',
-//     '최대현',
-//     '한지민',
-//     '강태욱',
-//     '윤서아',
-//     '임현우',
-//     '조미영',
-//   ]
-
-//   // learnerScores가 없으므로 임시로 더미 점수 생성 (실제 API 응답에 맞춰 수정 필요)
-//   // 여기서는 단순히 10명의 가상 응시자 데이터를 생성합니다.
-//   if (
-//     trainerStatusData.value.learnerScores.length === 0 &&
-//     trainerStatusData.value.totalParticipants > 0
-//   ) {
-//     for (let i = 0; i < trainerStatusData.value.totalParticipants; i++) {
-//       // 예시 점수: 40점부터 100점 사이 랜덤
-//       trainerStatusData.value.learnerScores.push(Math.floor(Math.random() * 61) + 40)
-//     }
-//   }
-
-//   trainerStatusData.value.learnerScores.forEach((score, index) => {
-//     participants.push({
-//       name:
-//         names[index % names.length] +
-//         (Math.floor(index / names.length) > 0 ? Math.floor(index / names.length) + 1 : ''),
-//       score: score,
-//       pass: score >= 70,
-//     })
-//   })
-
-//   return participants.sort((a, b) => b.score - a.score)
-// })
-
-// // 점수 분포 데이터
-// const scoreDistribution = computed(() => {
-//   const scores = trainerStatusData.value.learnerScores
-//   const bins = { '0-49': 0, '50-59': 0, '60-69': 0, '70-79': 0, '80-89': 0, '90-100': 0 }
-
-//   scores.forEach((score) => {
-//     if (score >= 0 && score <= 49) bins['0-49']++
-//     else if (score >= 50 && score <= 59) bins['50-59']++
-//     else if (score >= 60 && score <= 69) bins['60-69']++
-//     else if (score >= 70 && score <= 79) bins['70-79']++
-//     else if (score >= 80 && score <= 89) bins['80-89']++
-//     else if (score >= 90 && score <= 100) bins['90-100']++
-//   })
-
-//   return {
-//     labels: Object.keys(bins),
-//     datasets: [
-//       {
-//         label: '응시자 수',
-//         data: Object.values(bins),
-//         backgroundColor: 'rgba(30, 34, 81, 0.2)',
-//         borderColor: '#1e2251',
-//         fill: 'origin',
-//         tension: 0.4,
-//         pointBackgroundColor: '#1e2251',
-//         pointBorderColor: '#fff',
-//         pointHoverBackgroundColor: '#a2a6d4',
-//         pointHoverBorderColor: '#1e2251',
-//       },
-//     ],
-//   }
-// })
-
-// const scoreDistributionChartOptions = computed(() => ({
-//   responsive: true,
-//   maintainAspectRatio: false,
-//   plugins: {
-//     legend: { display: false },
-//     tooltip: {
-//       callbacks: {
-//         label: function (context) {
-//           const label = context.dataset.label || ''
-//           const rawValue = context.parsed.y
-//           const total = trainerStatusData.value.learnerScores.length
-//           const percentage = total ? ((rawValue / total) * 100).toFixed(1) : '0.0'
-//           return `${label}: ${rawValue}명 (${percentage}%)`
-//         },
-//       },
-//     },
-//   },
-//   scales: {
-//     x: {
-//       title: { display: true, text: '점수 구간', color: '#343a40' },
-//       grid: { display: false },
-//       ticks: { color: '#495057' },
-//     },
-//     y: {
-//       title: { display: true, text: '학습자 수', color: '#343a40' },
-//       beginAtZero: true,
-//       ticks: { color: '#495057', stepSize: 5 },
-//       grid: { color: 'rgba(0, 0, 0, 0.05)' },
-//     },
-//   },
-// }))
 
 // 데이터 존재 여부 확인을 위한 computed 속성 추가
 const hasAISummaryData = computed(
