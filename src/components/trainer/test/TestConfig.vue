@@ -270,9 +270,28 @@ const emitUpdateRevenues = () => {
 /* Common header styles */
 .header-section {
   display: flex;
-  padding-bottom: 2px;
+  align-items: flex-end;
+  gap: 18px;
+  margin-bottom: 24px;
 }
 
+.section-title-main {
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 1;
+  margin: 0;
+  color: #333;
+}
+
+.section-subtitle {
+  font-size: 12px;
+  color: #a1a1a1;
+  font-weight: normal;
+  margin-left: 0;
+  white-space: nowrap;
+  line-height: 1;
+  padding-bottom: 2px;
+}
 /* 새로 추가된 섹션 배경 스타일 */
 .section-bg {
   background: #eef2f6; /* 회색 배경 */
@@ -282,6 +301,9 @@ const emitUpdateRevenues = () => {
 }
 
 .section-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 18px;
   font-family: inherit;
 }
 
