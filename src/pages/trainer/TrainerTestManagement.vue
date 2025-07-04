@@ -673,7 +673,9 @@ const handleCopyLink = async (testIdToCopy) => {
       const inviteToken = response.data.resultData // API 응답이 오로지 토큰이라고 하셨으므로 바로 할당
 
       // 복사할 링크 조합 (http://localhost:5173/trainee/test/:testId/:inviteToken)
-      const baseUrl = 'http://localhost:5173' // 또는 환경 변수 등으로 관리되는 실제 프론트엔드 URL
+      // const baseUrl = 'http://localhost:5173' // 로컬
+      const baseUrl = 'https://skib-frontend.skala25a.project.skala-ai.com/' // 배포
+
       const copiedLink = `${baseUrl}/trainee/test/${testIdToCopy}/${inviteToken}`
 
       if (navigator.clipboard) {
