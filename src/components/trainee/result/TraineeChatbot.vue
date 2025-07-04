@@ -13,6 +13,15 @@
       >
         <p>{{ message.text }}</p>
       </div>
+      
+      <!-- 로딩 중 말풍선 -->
+      <div v-if="isLoading" class="message bot-msg loading-msg">
+        <div class="loading-dots">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
     </div>
 
     <div class="chatbot-input-area">
@@ -71,6 +80,7 @@ const newMessage = ref('')
 const messages = ref([])
 const messagesContainer = ref(null)
 const initialized = ref(false)
+const isLoading = ref(false)
 
 // =========================
 // 5. FastAPI 챗봇 API 함수
@@ -135,7 +145,18 @@ const sendMessage = async () => {
     messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
   }
 
+  // 로딩 시작
+  isLoading.value = true
+  await nextTick()
+  if (messagesContainer.value) {
+    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+  }
+
   const answer = await askWithLanggraph(questionText, props.currentQuestionId || 'Q01')
+  
+  // 로딩 종료
+  isLoading.value = false
+  
   messages.value.push({
     sender: 'bot',
     text: answer,
@@ -351,5 +372,54 @@ onUnmounted(() => {
   color: white;
   width: 1em;
   height: 1em;
+}
+
+.loading-msg {
+  background-color: #f0f2f5;
+  align-self: flex-start;
+  margin-right: auto;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  color: #343a40;
+  min-width: 60px;
+}
+
+.loading-dots {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #6c757d;
+  animation: loadingDots 1.4s infinite ease-in-out;
+}
+
+.dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0s;
+}
+
+@keyframes loadingDots {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 </style>
