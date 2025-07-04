@@ -37,11 +37,11 @@
                     <div class="summary-details">
                       <p>
                         {{ $t('feedback_total_correct_rate') }}:
-                        <span class="detail-value">{{ feedbackData.totalCorrectRate }}%</span>
+                        <span class="detail-value">{{ feedbackData.totalCorrectRate }}{{ $t('scoreUnit') }}</span>
                       </p>
                       <p>
-                        {{ $t('feedback_total_questions') }}:
-                        <span class="detail-value">{{ totalQuestions }}</span>
+                        {{ $t('feedback_pass_score') }}:
+                        <span class="detail-value">{{ feedbackData.passScore }}{{ $t('scoreUnit') }}</span>
                       </p>
                       <p>
                         {{ $t('feedback_correct_answers') }}:
@@ -127,6 +127,7 @@ const feedbackData = ref({
   totalQuestions: 0, // 전체 문항 수
   correctQuestions: 0, // 맞은 문항 수
   wrongQuestions: 0, // 틀린 문항 수
+  passScore: 0, // 합격 기준 점수
 })
 
 // 전체 응시자 점수 분포(그래프용)
@@ -234,6 +235,7 @@ const fetchFeedbackData = async () => {
     feedbackData.value.totalQuestions = (result.correctCount ?? 0) + (result.incorrectCount ?? 0)
     feedbackData.value.correctQuestions = result.correctCount ?? 0
     feedbackData.value.wrongQuestions = result.incorrectCount ?? 0
+    feedbackData.value.passScore = result.passScore ?? 0
 
     // 2) 태그별 정확도 가공 (응답 구조에 맞게 수정)
     // resultData: [{ tagName, accuracyRate, correctCount, totalCount }, ...]

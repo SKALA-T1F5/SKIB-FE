@@ -209,8 +209,11 @@ const fetchTests = async () => {
           score: test.score,
           limitedTime: test.limitedTime,
           createdAt: test.createdAt,
+          // isPassed: 합격 여부 (1: 합격, 0: 불합격)
           isPassed: typeof test.isPassed === 'string' ? Number(test.isPassed) : (typeof test.isPassed === 'boolean' ? (test.isPassed ? 1 : 0) : test.isPassed),
+          // retake: 재응시 여부 (1: 이미 재응시함, 0: 아직 재응시 안함)
           retake: typeof test.retake === 'string' ? Number(test.retake) : (typeof test.retake === 'boolean' ? (test.retake ? 1 : 0) : test.retake),
+          // isRetake: 재응시 가능 여부 (1: 재응시 가능, 0: 재응시 불가)
           isRetake: typeof test.isRetake === 'string' ? Number(test.isRetake) : (typeof test.isRetake === 'boolean' ? (test.isRetake ? 1 : 0) : test.isRetake),
           passScore: test.passScore,
         }
