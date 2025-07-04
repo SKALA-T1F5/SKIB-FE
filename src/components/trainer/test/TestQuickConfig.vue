@@ -123,14 +123,13 @@ watch(
 )
 
 const headers = [
-  { title: '문서명', key: 'name', width: '40%' },
-  { title: '키워드', key: 'keyword', sortable: false, width: '30%' },
+  { title: '문서명', key: 'name', width: '60%', align: 'center' }, // 가운데 정렬 추가
   {
     title: '문서별 총 문제',
     key: 'totalQuestionsPerDoc',
     align: 'center',
     sortable: false,
-    width: '30%',
+    width: '40%',
   },
 ]
 
@@ -250,11 +249,20 @@ const emitNextStep = async () => {
   background-color: transparent !important;
 }
 
+/* 표 내 요소들의 좌우 여백을 같게 조정 */
 .v-data-table :deep(td),
 .v-data-table :deep(th) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-left: 16px !important; /* 기본 패딩 값으로 통일 */
+  padding-right: 16px !important; /* 기본 패딩 값으로 통일 */
+}
+
+/* 문서명 열의 헤더와 셀 내용을 가운데 정렬 */
+.v-data-table :deep(th.text-start:nth-child(1)),
+.v-data-table :deep(td:nth-child(1)) {
+  text-align: center !important;
 }
 
 .centered-input :deep(input) {
