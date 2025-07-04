@@ -37,7 +37,11 @@
               <td>{{ problem.type }}</td>
               <td>{{ problem.difficulty }}</td>
               <td :class="{ 'low-accuracy': problem.accuracy < 60 }">
-                {{ problem.accuracy ? problem.accuracy.toFixed(1) + '%' : 'N/A' }}
+                {{
+                  problem.accuracy !== null && problem.accuracy !== undefined
+                    ? problem.accuracy.toFixed(1) + '%'
+                    : 'N/A'
+                }}
               </td>
               <td class="toggle-column">
                 <v-icon>{{
