@@ -134,5 +134,9 @@
     },
     "translating": "언어 변경 중 ...",
     "confirmExitResult": "테스트 결과 화면을 종료하시겠습니까?",
-    "loadingTestResult": "시험 결과를 로딩 중입니다..."
+    "loadingTestResult": "시험 결과를 로딩 중입니다...",
+    "resultTypeSelect_title": "어떤 결과를 확인하시겠습니까?",
+    "resultTypeSelect_first": "최초 응시 결과",
+    "resultTypeSelect_retry": "재응시 결과",
+    "close": "닫기"
   }

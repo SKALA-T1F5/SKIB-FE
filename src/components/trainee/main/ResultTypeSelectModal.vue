@@ -1,12 +1,16 @@
 <template>
   <div class="modal-overlay">
     <div class="modal-content">
-      <h3>어떤 결과를 확인하시겠습니까?</h3>
+      <!-- <h3>어떤 결과를 확인하시겠습니까?</h3> -->
+      <h3>{{ $t('resultTypeSelect_title') }}</h3>
       <div class="modal-buttons">
-        <button @click="$emit('select', 'FIRST')">최초 응시 결과</button>
-        <button @click="$emit('select', 'RETRY')">재응시 결과</button>
+        <!-- <button @click="$emit('select', 'FIRST')">최초 응시 결과</button> -->
+        <button @click="$emit('select', 'FIRST')">{{ $t('resultTypeSelect_first') }}</button>
+        <!-- <button @click="$emit('select', 'RETRY')">재응시 결과</button> -->
+        <button @click="$emit('select', 'RETRY')">{{ $t('resultTypeSelect_retry') }}</button>
       </div>
-      <button class="close-btn" @click="$emit('close')">닫기</button>
+      <!-- <button class="close-btn" @click="$emit('close')">닫기</button> -->
+      <button class="close-btn" @click="$emit('close')">{{ $t('close') }}</button>
     </div>
   </div>
 </template>

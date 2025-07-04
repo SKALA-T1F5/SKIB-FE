@@ -88,6 +88,15 @@ const currentQuestionId = ref(null)
 const isTranslating = ref(false)
 const userId = Number(localStorage.getItem('userId')) || 0
 
+// attemptType 라우터 state 또는 쿼리에서 받아오기 (없으면 FIRST)
+let initialAttemptType = 'FIRST'
+if (router.options.history.state && router.options.history.state.attemptType) {
+  initialAttemptType = router.options.history.state.attemptType
+} else if (route.query.attemptType) {
+  initialAttemptType = route.query.attemptType
+}
+const attemptType = ref(initialAttemptType)
+
 const currentQuestion = computed(() => {
   if (!currentQuestionId.value || allQuestions.value.length === 0) {
     return null
@@ -160,9 +169,8 @@ const fetchTestQuestions = async () => {
     let testId = Number(route.params.testId)
     if (!testId) testId = Number(localStorage.getItem('testId')) || 0
     const lang = locale.value || 'ko'
-    // attemptType 기본값 추가
-    const attemptType = 'FIRST'
-    const params = { userId, testId, lang, attemptType }
+    // attemptType 반영
+    const params = { userId, testId, lang, attemptType: attemptType.value }
     // 언어 변경 전 현재 문제 id 저장
     const prevQuestionId = currentQuestionId.value
     // 기존 allQuestions용 API
