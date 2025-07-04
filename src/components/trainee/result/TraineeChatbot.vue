@@ -92,7 +92,7 @@ async function initializeTest(testQuestions) {
       testQuestions: convertQuestions(testQuestions)
     }
     console.log('[initializeTest] /api/chat/init reqBody:', reqBody)
-    await axios.post('/api/chat/init', reqBody)
+    await axios.post('https://skib-ai.skala25a.project.skala-ai.com/chat/init', reqBody)
   } catch (e) {
     alert(t('initFail'))
   }
@@ -106,7 +106,7 @@ async function askWithLanggraph(question, questionId) {
       id: questionId,
     }
     console.log('[askWithLanggraph] /api/chat/ask-graph reqBody:', reqBody)
-    const res = await axios.post('/api/chat/ask-graph', reqBody)
+    const res = await axios.post('https://skib-ai.skala25a.project.skala-ai.com/chat/ask-graph', reqBody)
     return res.data.answer
   } catch (e) {
     alert(t('answerFail'))
@@ -118,7 +118,7 @@ async function resetSession() {
   try {
     const params = { user_id: props.userId }
     console.log('[resetSession] /api/chat/session/reset params:', params)
-    await axios.post('/api/chat/session/reset', null, { params })
+    await axios.post('https://skib-ai.skala25a.project.skala-ai.com/chat/session/reset', null, { params })
   } catch (e) {
     alert(t('resetFail'))
   }
