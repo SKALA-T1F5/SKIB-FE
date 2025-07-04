@@ -54,7 +54,10 @@ const props = defineProps({
   flex-direction: column;
   overflow-y: auto; /* 내용이 넘칠 경우 스크롤 */
   min-height: 0; /* Flex 아이템의 최소 높이 설정 */
-  height: 100%; /* 부모 높이만큼 채우도록 설정 */
+  height: 95%; /* 부모 높이만큼 채우도록 설정 */
+  max-height: 95%;
+  min-width: 0;
+  width: 98%;
 }
 
 .solution-title {

@@ -1,14 +1,11 @@
 <template>
   <div class="question-area">
     <div class="question-header">
-      <h4 class="question-title">문제</h4>
+      <h4 class="question-number">{{ questionId }}</h4>
       <div class="header-right">
-        <span :class="['difficulty-tag', `difficulty-${difficultyLevel.toLowerCase()}`]">
-          {{ difficultyLevel }}
-        </span>
-        <div class="tag-list">
-          <span class="tag" v-for="tag in question.tags" :key="tag">{{ tag }}</span>
-        </div>
+        <span class="metadata-item source">{{ documentName }}</span>
+        <span class="metadata-item keywords">{{ formatTags(questionTags) }}</span>
+        <span class="metadata-item difficulty">{{ formatDifficulty(difficultyLevel) }}</span>
       </div>
     </div>
     <div class="question-content">
@@ -67,7 +64,41 @@ const props = defineProps({
     required: true,
     validator: (value) => ['OBJECTIVE', 'SUBJECTIVE'].includes(value),
   },
+  questionId: {
+    type: String,
+    required: true,
+  },
+  documentName: {
+    type: String,
+    required: true,
+  },
+  questionTags: {
+    type: Array,
+    default: () => [],
+  },
 })
+
+const formatTags = (tags) => {
+  if (Array.isArray(tags)) {
+    return tags.slice(0, 2).join(', ') + (tags.length > 2 ? ' 외' : '')
+  }
+  return tags || '태그 없음'
+}
+
+const formatDifficulty = (level) => {
+  const difficultyMap = {
+    EASY: '쉬움',
+    NORMAL: '보통',
+    HARD: '어려움',
+    1: '쉬움',
+    2: '보통',
+    3: '어려움',
+    easy: '쉬움',
+    medium: '보통',
+    hard: '어려움',
+  }
+  return difficultyMap[level] || level
+}
 </script>
 
 <style scoped>
@@ -81,7 +112,10 @@ const props = defineProps({
   flex-direction: column;
   overflow-y: auto; /* 내용이 넘칠 경우 스크롤 */
   min-height: 0; /* Flex 아이템의 최소 높이 설정 */
-  height: 100%; /* 부모 높이만큼 채우도록 설정 */
+  height: 95%; /* 부모 높이만큼 채우도록 설정 */
+  max-height: 95%;
+  min-width: 0;
+  width: 98%;
 }
 
 .question-header {
@@ -91,13 +125,15 @@ const props = defineProps({
   margin-bottom: 20px;
   flex-wrap: wrap;
   flex-shrink: 0; /* 헤더가 줄어들지 않도록 고정 */
+  gap: 12px;
 }
 
-.question-title {
-  font-size: 22px;
+.question-number {
+  font-size: 24px;
   font-weight: 700;
   color: #343a40;
   margin: 0;
+  flex-shrink: 0;
 }
 
 .header-right {
@@ -107,43 +143,32 @@ const props = defineProps({
   flex-wrap: wrap;
 }
 
-.difficulty-tag {
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
+.metadata-item {
+  padding: 4px 10px;
+  border: 1px solid #e9ecef;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #495057;
+  flex-shrink: 0;
 }
 
-.difficulty-easy {
-  background-color: #e6ffe6; /* Light Green */
-  color: #28a745; /* Dark Green */
+.metadata-item.source {
+  background-color: #e3f2fd;
+  color: #1565c0;
+  border-color: #bbdefb;
 }
 
-.difficulty-normal {
-  background-color: #fff3cd; /* Light Yellow */
-  color: #ffc107; /* Dark Yellow */
+.metadata-item.keywords {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+  border-color: #e1bee7;
 }
 
-.difficulty-hard {
-  background-color: #f8d7da; /* Light Red */
-  color: #dc3545; /* Dark Red */
-}
-
-.tag-list {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.tag {
-  background-color: #e0f2f7;
-  color: #007bb5;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
+.metadata-item.difficulty {
+  background-color: #fff3e0;
+  color: #ef6c00;
+  border-color: #ffcc02;
 }
 
 .question-content {

@@ -13,29 +13,77 @@
       <div class="trainer-test-question-content-wrapper">
         <div class="trainer-test-question-main-content">
           <div class="trainer-test-question-container-inner">
-            <div class="top-nav">
-              <h3 class="question-number-top" v-if="currentQuestion">{{ currentQuestion.id }}.</h3>
-              <div class="nav-buttons-wrapper">
+            <!-- 상단 영역: 좌측 테스트명, 중앙 드롭다운, 우측 문제 번호들 -->
+            <div class="top-header">
+              <!-- 좌측: 테스트명 -->
+              <div class="left-section">
+                <h2 class="test-title" v-if="testInfo">{{ testInfo.name }}</h2>
+              </div>
+
+              <!-- 중앙: 출처 문서 드롭다운 -->
+              <div class="center-section">
+                <div class="source-dropdown-container">
+                  <label for="source-select" class="dropdown-label">출처 문서:</label>
+                  <select
+                    id="source-select"
+                    v-model="selectedSourceDocument"
+                    @change="onSourceDocumentChange"
+                    class="source-dropdown"
+                  >
+                    <option value="">전체 문서</option>
+                    <option v-for="doc in uniqueDocuments" :key="doc.id" :value="doc.id">
+                      {{ doc.name }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- 우측: 문제 번호 네비게이션 -->
+              <div class="question-numbers-container">
                 <button
-                  class="nav-button"
-                  @click="goToPreviousQuestion"
-                  :disabled="!hasPreviousQuestion"
+                  class="nav-arrow left-arrow"
+                  @click="scrollQuestionNumbers('left')"
+                  :disabled="!canScrollLeft"
                 >
-                  <svg-icon type="mdi" :path="mdiChevronLeft" class="nav-icon" /> 이전 문제
+                  <svg-icon type="mdi" :path="mdiChevronLeft" class="arrow-icon" />
                 </button>
-                <button class="nav-button" @click="goToNextQuestion" :disabled="!hasNextQuestion">
-                  다음 문제 <svg-icon type="mdi" :path="mdiChevronRight" class="nav-icon" />
+                <div class="question-numbers-nav" ref="questionNumbersRef">
+                  <button
+                    v-for="question in filteredQuestions"
+                    :key="question.id"
+                    @click="goToQuestion(question.id)"
+                    :class="['question-number-btn', { active: currentQuestionId === question.id }]"
+                  >
+                    {{ question.id }}
+                  </button>
+                </div>
+                <button
+                  class="nav-arrow right-arrow"
+                  @click="scrollQuestionNumbers('right')"
+                  :disabled="!canScrollRight"
+                >
+                  <svg-icon type="mdi" :path="mdiChevronRight" class="arrow-icon" />
                 </button>
               </div>
             </div>
 
+            <!-- 메인 컨텐츠 영역: 좌측 문제, 우측 풀이 -->
             <div class="question-solution-area" v-if="currentQuestion">
-              <TrainerQuestionArea
-                :question="currentQuestion"
-                :difficulty-level="currentQuestion.difficulty_level"
-                :question-type="currentQuestion.type"
-                :correct-answer="currentQuestion.correctAnswer"
-              />
+              <!-- 좌측: 문제 영역 -->
+              <div class="question-area-wrapper">
+                <!-- 문제 컨텐츠 -->
+                <TrainerQuestionArea
+                  :question="currentQuestion"
+                  :difficulty-level="currentQuestion.difficulty_level"
+                  :question-type="currentQuestion.type"
+                  :correct-answer="currentQuestion.correctAnswer"
+                  :question-id="currentQuestion.id"
+                  :document-name="currentQuestion.documentName"
+                  :question-tags="currentQuestion.tags"
+                />
+              </div>
+
+              <!-- 우측: 풀이 영역 -->
               <TrainerSolutionArea
                 :explanation="currentQuestion.explanation"
                 :grading-criteria="currentQuestion.gradingCriteria"
@@ -50,6 +98,7 @@
               <p v-else>문제를 로딩 중입니다...</p>
             </div>
 
+            <!-- 나가기 버튼 -->
             <div class="exit-button-container">
               <button class="exit-button" @click="exitPage">나가기</button>
             </div>
@@ -61,7 +110,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import MainLayout from '@/components/layouts/MainLayout.vue'
 import TrainerSideBar from '@/components/trainer/TrainerSideBar.vue'
@@ -77,6 +126,11 @@ const route = useRoute()
 const allQuestions = ref([])
 const currentQuestionId = ref(null)
 const isLoading = ref(true)
+const selectedSourceDocument = ref('')
+const questionNumbersRef = ref(null)
+const canScrollLeft = ref(false)
+const canScrollRight = ref(false)
+const testInfo = ref(null)
 
 const associatedProject = ref(null)
 const userProjects = ref([])
@@ -88,13 +142,27 @@ const currentQuestion = computed(() => {
   return allQuestions.value.find((q) => q.id === currentQuestionId.value)
 })
 
-const currentQuestionIndex = computed(() => {
-  if (!currentQuestion.value) return -1
-  return allQuestions.value.findIndex((q) => q.id === currentQuestion.value?.id)
+// 고유한 문서 목록 계산
+const uniqueDocuments = computed(() => {
+  const documents = new Map()
+  allQuestions.value.forEach((question) => {
+    if (question.documentId && !documents.has(question.documentId)) {
+      documents.set(question.documentId, {
+        id: question.documentId,
+        name: question.documentName || `문서 ${question.documentId}`,
+      })
+    }
+  })
+  return Array.from(documents.values())
 })
 
-const hasPreviousQuestion = computed(() => currentQuestionIndex.value > 0)
-const hasNextQuestion = computed(() => currentQuestionIndex.value < allQuestions.value.length - 1)
+// 선택된 문서에 따른 필터링된 문제 목록
+const filteredQuestions = computed(() => {
+  if (!selectedSourceDocument.value) {
+    return allQuestions.value
+  }
+  return allQuestions.value.filter((q) => q.documentId === selectedSourceDocument.value)
+})
 
 onMounted(() => {
   const testId = route.params.testId
@@ -146,33 +214,58 @@ const fetchTestQuestions = async (testId) => {
       },
     })
 
-    // 변경된 부분: response.data.resultData.questions 로 접근
-    const fetchedData = response.data?.resultData?.questions
-    if (Array.isArray(fetchedData)) {
-      allQuestions.value = fetchedData.map((rawQ, index) => {
-        const generatedId = `Q${(index + 1).toString().padStart(2, '0')}`
-        return {
-          id: generatedId,
-          type: rawQ.type,
-          difficulty_level: rawQ.difficulty_level,
-          questionText: rawQ.question,
-          options: rawQ.options,
-          correctAnswer: rawQ.answer,
-          explanation: rawQ.explanation,
-          gradingCriteria: rawQ.grading_criteria,
-          document_id: rawQ.document_id,
-          tags: rawQ.tags,
-        }
-      })
+    const resultData = response.data?.resultData
+    if (resultData) {
+      // 테스트 정보 저장
+      testInfo.value = {
+        testId: resultData.testId,
+        name: resultData.name,
+        limitedTime: resultData.limitedTime,
+        createdAt: resultData.createdAt,
+        passScore: resultData.passScore,
+      }
 
-      if (allQuestions.value.length > 0) {
-        currentQuestionId.value = allQuestions.value[0].id
+      // 문제 데이터 처리
+      const fetchedQuestions = resultData.questions
+      if (Array.isArray(fetchedQuestions)) {
+        allQuestions.value = fetchedQuestions.map((rawQ, index) => {
+          const generatedId = `Q${(index + 1).toString().padStart(2, '0')}`
+          return {
+            id: generatedId,
+            originalId: rawQ.id,
+            type: rawQ.type,
+            difficulty_level: rawQ.difficulty_level,
+            questionText: rawQ.question,
+            options: rawQ.options,
+            correctAnswer: rawQ.answer,
+            explanation: rawQ.explanation,
+            gradingCriteria: rawQ.grading_criteria,
+            documentId: rawQ.documentId,
+            documentName: rawQ.documentName,
+            keywords: rawQ.keywords,
+            tags: rawQ.tags,
+            generationType: rawQ.generationType,
+          }
+        })
+
+        if (allQuestions.value.length > 0) {
+          currentQuestionId.value = allQuestions.value[0].id
+        } else {
+          currentQuestionId.value = null
+          console.log('테스트 내 문제가 없습니다.')
+        }
+
+        // 스크롤 상태 업데이트
+        nextTick(() => {
+          updateScrollState()
+        })
       } else {
+        console.warn('API 응답에 문제 배열이 없습니다.', fetchedQuestions)
+        allQuestions.value = []
         currentQuestionId.value = null
-        console.log('테스트 내 문제가 없습니다.')
       }
     } else {
-      console.warn('API 응답이 예상된 문제 배열 형태가 아닙니다.', fetchedData)
+      console.warn('API 응답에 resultData가 없습니다.', response.data)
       allQuestions.value = []
       currentQuestionId.value = null
     }
@@ -259,18 +352,57 @@ const handleQuestionSelectFromSidebar = (questionId) => {
   currentQuestionId.value = questionId
 }
 
-const goToPreviousQuestion = () => {
-  const currentIndex = allQuestions.value.findIndex((q) => q.id === currentQuestionId.value)
-  if (currentIndex > 0) {
-    currentQuestionId.value = allQuestions.value[currentIndex - 1].id
-  }
+const goToQuestion = (questionId) => {
+  currentQuestionId.value = questionId
 }
 
-const goToNextQuestion = () => {
-  const currentIndex = allQuestions.value.findIndex((q) => q.id === currentQuestionId.value)
-  if (currentIndex < allQuestions.value.length - 1) {
-    currentQuestionId.value = allQuestions.value[currentIndex + 1].id
+const onSourceDocumentChange = () => {
+  // 선택된 문서가 변경되면 해당 문서의 첫 번째 문제로 이동
+  if (filteredQuestions.value.length > 0) {
+    currentQuestionId.value = filteredQuestions.value[0].id
   }
+  // 스크롤 상태 업데이트
+  nextTick(() => {
+    updateScrollState()
+  })
+}
+
+const scrollQuestionNumbers = (direction) => {
+  const container = questionNumbersRef.value
+  if (!container) return
+
+  const scrollAmount = 200 // 스크롤할 픽셀 수
+  if (direction === 'left') {
+    container.scrollBy({ left: -scrollAmount, behavior: 'smooth' })
+  } else {
+    container.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+  }
+
+  // 스크롤 후 상태 업데이트
+  setTimeout(updateScrollState, 300)
+}
+
+const updateScrollState = () => {
+  const container = questionNumbersRef.value
+  if (!container) return
+
+  canScrollLeft.value = container.scrollLeft > 0
+  canScrollRight.value = container.scrollLeft < container.scrollWidth - container.clientWidth
+}
+
+const formatDifficulty = (level) => {
+  const difficultyMap = {
+    EASY: '쉬움',
+    NORMAL: '보통',
+    HARD: '어려움',
+    1: '쉬움',
+    2: '보통',
+    3: '어려움',
+    easy: '쉬움',
+    medium: '보통',
+    hard: '어려움',
+  }
+  return difficultyMap[level] || level
 }
 
 const exitPage = () => {
@@ -306,67 +438,156 @@ const exitPage = () => {
   flex-direction: column;
   flex: 1;
   overflow: hidden;
-  padding-bottom: 20px;
 }
 
-.top-nav {
+/* 상단 헤더: 테스트명, 중앙 드롭다운, 문제 번호들 */
+.top-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
   flex-shrink: 0;
-  height: 48px;
+  min-height: 48px;
+  gap: 20px;
 }
 
-.question-number-top {
-  font-size: 26px;
-  font-weight: 700;
-  color: #343a40;
-  margin: 0;
-  padding-right: 20px;
+.left-section {
+  flex: 1;
+  min-width: 0;
 }
 
-.nav-buttons-wrapper {
+.center-section {
+  flex-shrink: 0;
   display: flex;
-  gap: 12px;
+  justify-content: center;
 }
 
-.nav-button {
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 10px 18px;
+.test-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.source-dropdown-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.dropdown-label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.source-dropdown {
+  padding: 6px 10px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  background-color: white;
+  font-size: 13px;
+  color: #495057;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+  width: 150px;
+}
+
+.source-dropdown:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  outline: 0;
+}
+
+/* 문제 번호 네비게이션 컨테이너 */
+.question-numbers-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 30%;
+  width: 35%;
+  max-width: 40%;
+  flex-shrink: 0;
+}
+
+.nav-arrow {
+  background-color: white;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  padding: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  font-size: 15px;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.nav-arrow:hover:not(:disabled) {
+  background-color: #f8f9fa;
+  border-color: #adb5bd;
+}
+
+.nav-arrow:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  background-color: #f8f9fa;
+}
+
+.arrow-icon {
+  font-size: 16px;
+  color: #495057;
+}
+
+.question-numbers-nav {
+  display: flex;
+  gap: 8px;
+  overflow-x: hidden;
+  padding: 4px;
+  scroll-behavior: smooth;
+  flex: 1;
+}
+
+.question-number-btn {
+  background-color: white;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
   font-weight: 500;
   color: #495057;
-  transition: all 0.2s ease-in-out;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: 44px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
-.nav-button:hover:not(:disabled) {
-  background-color: #f0f0f0;
-  border-color: #d0d0d0;
-  color: #343a40;
-  transform: translateY(-1px);
+.question-number-btn:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
 }
 
-.nav-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-  background-color: #f8f9fa;
-  color: #adb5bd;
+.question-number-btn.active {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: white;
+  font-weight: 600;
 }
 
-.nav-icon {
-  font-size: 20px;
-  margin: 0 5px;
-  color: #6c757d;
-}
-.nav-button:hover:not(:disabled) .nav-icon {
-  color: #495057;
+/* 문제 영역 래퍼 */
+.question-area-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .question-solution-area {
@@ -376,14 +597,13 @@ const exitPage = () => {
   gap: 25px;
   overflow: hidden;
   min-height: 0;
-  height: calc(100% - 48px - 25px);
 }
 
 .exit-button-container {
-  position: absolute;
+  position: fixed;
   bottom: 20px;
-  right: 0;
-  text-align: right;
+  right: 20px;
+  z-index: 1000;
   flex-shrink: 0;
 }
 
@@ -391,15 +611,15 @@ const exitPage = () => {
   background-color: #1e2251;
   color: white;
   border: none;
-  border-radius: 10px;
-  padding: 12px 25px;
-  font-size: 16px;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition:
     background-color 0.2s ease-in-out,
     transform 0.1s ease-in-out;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .exit-button:hover {
