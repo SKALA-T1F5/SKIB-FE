@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      IMAGE_REGISTRY: docker.io/yoonalim2003
+      IMAGE_REGISTRY: amdp-registry.skala-ai.com/skala25a
       IMAGE_NAME: sk-team-09-frontend
       IMAGE_TAG_BASE: 1.0.0
       K8S_NAMESPACE: sk-team-09
@@ -33,8 +33,8 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: amdp-registry.skala-ai.com
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
+          username: ${{ secrets.REGISTRY_USERNAME_SKALA }}
+          password: ${{ secrets.REGISTRY_PASSWORD_SKALA }}
 
       - name: Build and Push Docker Image
         run: |
