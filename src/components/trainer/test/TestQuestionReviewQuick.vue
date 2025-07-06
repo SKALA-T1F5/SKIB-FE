@@ -593,7 +593,7 @@ onMounted(() => {
   padding: 16px 0;
   border-top: 1px solid #eee;
   z-index: 100;
-  max-width: 1150px; /* TestQuestionReviewAI와 맞춤 */
+  max-width: 100%; /* TestQuestionReviewAI와 맞춤 */
   left: 0;
   right: 0;
   margin: 0 auto;
