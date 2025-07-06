@@ -26,13 +26,11 @@
       <v-data-table
         :headers="headers"
         :items="filteredTrainees"
-        :items-per-page="10"
+        :items-per-page="-1"
+        hide-default-footer
         class="elevation-0 trainee-table"
         no-data-text="해당하는 훈련생이 없습니다."
         item-key="id"
-        show-expand
-        single-expand
-        v-model:expanded="expanded"
       >
         <template v-slot:item.name="{ item }">
           <div class="trainee-info-cell">
@@ -41,19 +39,13 @@
           </div>
         </template>
         <template v-slot:item.email="{ item }">
-          {{ item.email }}
+          <div class="table-cell-center">{{ item.email }}</div>
         </template>
         <template v-slot:item.affiliation="{ item }">
-          {{ item.affiliation }}
+          <div class="table-cell-center">{{ item.affiliation }}</div>
         </template>
         <template v-slot:item.assignedDate="{ item }">
-          {{ item.assignedDate }}
-        </template>
-
-        <template v-slot:expanded-item="{ item }">
-          <td :colspan="headers.length + 1" class="expanded-test-results-cell">
-            <TraineeTestResults :trainee-id="item.id" />
-          </td>
+          <div class="table-cell-center">{{ item.assignedDate }}</div>
         </template>
 
         <template v-slot:no-data>
@@ -63,10 +55,6 @@
           </div>
         </template>
       </v-data-table>
-
-      <div class="list-footer">
-        <span class="total-count">총 {{ filteredTrainees.length }}명 훈련생</span>
-      </div>
     </section>
   </div>
 </template>
@@ -74,22 +62,19 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import TraineeTestResults from '@/components/trainer/trainee/TraineeTestResults.vue'
-import axios from 'axios'
+import axios from '@/config/axios'
 
 const route = useRoute()
 
 const trainees = ref([])
 const searchQuery = ref('')
-const expanded = ref([])
 const projectId = ref(null)
 
 const headers = [
-  { title: '이름', value: 'name', align: 'start', sortable: true },
-  { title: '이메일', value: 'email', sortable: true },
-  { title: '소속', value: 'affiliation', sortable: true },
-  { title: '배정일', value: 'assignedDate', sortable: true },
-  { title: '', value: 'data-table-expand', sortable: false },
+  { title: '이름', value: 'name', align: 'center', sortable: true },
+  { title: '이메일', value: 'email', align: 'center', sortable: true },
+  { title: '소속', value: 'affiliation', align: 'center', sortable: true },
+  { title: '배정일', value: 'assignedDate', align: 'center', sortable: true },
 ]
 
 const filteredTrainees = computed(() => {
@@ -99,10 +84,10 @@ const filteredTrainees = computed(() => {
   const lowerCaseSearch = searchQuery.value.toLowerCase()
   return trainees.value.filter(
     (trainee) =>
-      trainee.name.toLowerCase().includes(lowerCaseSearch) ||
-      trainee.email.toLowerCase().includes(lowerCaseSearch) ||
-      trainee.affiliation.toLowerCase().includes(lowerCaseSearch) ||
-      trainee.id.toLowerCase().includes(lowerCaseSearch),
+      (trainee.name || '').toLowerCase().includes(lowerCaseSearch) ||
+      (trainee.email || '').toLowerCase().includes(lowerCaseSearch) ||
+      (trainee.affiliation || '').toLowerCase().includes(lowerCaseSearch) ||
+      (trainee.id || '').toString().toLowerCase().includes(lowerCaseSearch),
   )
 })
 
@@ -125,17 +110,21 @@ const fetchTrainees = async () => {
       // type이 'TRAINEE'인 사용자만 필터링
       trainees.value = response.data.resultData.trainee.map((trainee) => ({
         id: trainee.userId,
-        name: trainee.name,
+        // name이 null이면 email의 @ 앞부분을 사용하거나 '이름 없음'으로 표시
+        name: trainee.name || trainee.email.split('@')[0] || '이름 없음',
         email: trainee.email,
-        affiliation: trainee.department,
+        affiliation: trainee.department || '소속 없음',
         assignedDate: trainee.createdAt.split('T')[0],
       }))
+      
+      console.log('처리된 훈련생 데이터:', trainees.value)
     } else {
-      console.error('API 응답 오류:', response.data.resultMsg)
+      console.error('API 응답 오류:', response.data.resultMsg || '알 수 없는 오류')
       trainees.value = []
     }
   } catch (error) {
     console.error('훈련생 목록을 불러오는 중 오류 발생:', error)
+    console.error('에러 상세:', error.response?.data || error.message)
     trainees.value = []
   }
 }
@@ -222,14 +211,15 @@ onMounted(() => {
 .trainee-info-cell {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   font-size: 1rem;
   color: #333;
+  padding-left: 16px;
 }
 
-/* 확장된 행의 내부 여백 제거 */
-.expanded-test-results-cell {
-  padding: 0 !important;
-  background-color: #f7f9fc; /* 확장된 부분 배경색 살짝 다르게 */
+.table-cell-center {
+  text-align: center;
+  width: 100%;
 }
 
 .no-results-table {
@@ -248,33 +238,22 @@ onMounted(() => {
   margin-top: 15px;
 }
 
-.list-footer {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 16px 0 0 0;
-}
-
-.total-count {
-  color: #888;
-  font-size: 0.95rem;
-}
-
 /* Vuetify 컴포넌트 오버라이드 */
 .v-data-table > .v-data-table__wrapper > table > thead > tr > th {
   font-size: 1rem !important;
   font-weight: 600 !important;
   color: #444 !important;
+  text-align: center !important;
 }
 
 .v-data-table > .v-data-table__wrapper > table > tbody > tr > td {
   font-size: 0.95rem !important;
   color: #555 !important;
+  text-align: center !important;
 }
 
-/* 확장 아이콘 색상 및 크기 조정 */
-.v-data-table .v-data-table__expand-icon {
-  color: #1976d2 !important; /* primary blue */
-  font-size: 18px !important;
+/* 이름 열만 좌측 정렬 */
+.v-data-table > .v-data-table__wrapper > table > tbody > tr > td:first-child {
+  text-align: left !important;
 }
 </style>
