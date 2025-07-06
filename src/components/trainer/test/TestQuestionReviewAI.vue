@@ -154,7 +154,16 @@
 
             <div class="solution-section flex-grow-1">
               <h4 class="solution-title">정답 및 해설</h4>
+              <div
+                v-if="currentQuestion.type === 'Subjective' && currentQuestion.answer"
+                class="solution-text-scrollable mb-4"
+              >
+                <p class="font-weight-medium mb-2">정답 예시:</p>
+                <p>{{ currentQuestion.answer }}</p>
+              </div>
+
               <div v-if="currentQuestion.explanation" class="solution-text-scrollable">
+                <p class="font-weight-medium mb-2">해설:</p>
                 {{ currentQuestion.explanation }}
               </div>
               <div
