@@ -644,30 +644,27 @@ const fetchTests = async () => {
   isLoading.value = true
   loadingMessage.value = '테스트 목록을 불러오는 중입니다...'
   try {
-    // API 호출: projectId를 쿼리 파라미터로 전달
     const response = await axios.get('/test/getTests', {
       params: { projectId: currentProjectId.value },
     })
 
     if (response.data.statusCode === 'OK' && response.data.resultData) {
       const fetchedTestsPromises = response.data.resultData.tests.map(async (test) => {
-        // 각 테스트에 대해 통계 데이터 fetch
         const stats = await fetchTestBasicStatistics(test.testId)
         return {
-          id: test.testId, // testId를 id로 매핑
+          id: test.testId,
           name: test.name,
-          difficulty: 'NORMAL', // API에 없는 필드는 기본값 또는 목업 데이터 유지
-          timeLimit: test.limitedTime, // limitedTime을 timeLimit으로 매핑
-          passingScore: test.passScore || 60, // passScore가 null이면 기본값 60
-          createdAt: test.createdAt.split('T')[0], // 'YYYY-MM-DD' 형식으로 변환
-          retakeable: true, // API에 없는 필드는 기본값 또는 목업 데이터 유지
-          passCount: stats.passCount, // fetchTestBasicStatistics에서 가져온 값
-          totalApplicants: stats.totalTakers, // fetchTestBasicStatistics에서 가져온 값
-          averageScore: stats.averageScore, // fetchTestBasicStatistics에서 가져온 값
-          token: test.testLinkToken || null, // testLinkToken 추가
+          difficulty: test.difficultyLevel, // ★ 이 부분 수정: API에서 받은 difficultyLevel 사용
+          timeLimit: test.limitedTime,
+          passingScore: test.passScore || 60,
+          createdAt: test.createdAt.split('T')[0],
+          retakeable: true,
+          passCount: stats.passCount,
+          totalApplicants: stats.totalTakers,
+          averageScore: stats.averageScore,
+          token: test.testLinkToken || null,
         }
       })
-      // 모든 통계 데이터 fetch가 완료될 때까지 기다림
       tests.value = await Promise.all(fetchedTestsPromises)
     } else {
       console.error('API 응답 오류:', response.data.resultMsg)
