@@ -11,33 +11,7 @@
       <div class="exam-overview-grid">
         <!-- 왼쪽 아이콘 영역 -->
         <div class="readiness-emoji-container">
-          <!-- Lottie 애니메이션 for FAIL -->
-          <lottie-player
-            v-if="aiOutputData.projectReadiness.toUpperCase() === 'FAIL'"
-            src="https://app.lottiefiles.com/share/7b6ff39f-a80e-4a6d-b0ff-5817dc8ecd20"
-            background="transparent"
-            speed="1"
-            style="width: 60px; height: 60px"
-            loop
-            autoplay
-            class="readiness-lottie"
-            :title="`프로젝트 준비도: ${aiOutputData.projectReadiness}`"
-          ></lottie-player>
-          <!-- Lottie 애니메이션 for EXCELLENT -->
-          <lottie-player
-            v-else-if="aiOutputData.projectReadiness.toUpperCase() === 'EXCELLENT'"
-            src="https://app.lottiefiles.com/share/438504d9-ba51-4294-a11a-8c5b0aaf5750"
-            background="transparent"
-            speed="1"
-            style="width: 60px; height: 60px"
-            loop
-            autoplay
-            class="readiness-lottie excellent-animation"
-            :title="`프로젝트 준비도: ${aiOutputData.projectReadiness}`"
-          ></lottie-player>
-          <!-- 기존 이모지 for other states (GOOD 등) -->
           <span
-            v-else
             class="readiness-emoji-main"
             :title="`프로젝트 준비도: ${aiOutputData.projectReadiness}`"
           >
@@ -139,10 +113,11 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
 
 const props = defineProps({
   aiOutputData: {
@@ -152,15 +127,6 @@ const props = defineProps({
 })
 
 defineEmits(['download'])
-
-// Lottie Player 스크립트 로드
-onMounted(() => {
-  if (!document.querySelector('script[src*="lottie-player"]')) {
-    const script = document.createElement('script')
-    script.src = 'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js'
-    document.head.appendChild(script)
-  }
-})
 
 // 데이터 존재 여부 확인
 const hasData = computed(() => {
@@ -187,9 +153,15 @@ const getAccuracyClass = (rate) => {
 const getReadinessEmoji = (readiness) => {
   switch (readiness.toUpperCase()) {
     case 'EXCELLENT':
-      return '😊'
+      return '🎉'
     case 'GOOD':
+      return '😊'
+    case 'FAIR':
       return '😐'
+    case 'POOR':
+      return '😞'
+    case 'FAIL':
+      return '😢'
     default:
       return '😐'
   }
@@ -202,14 +174,31 @@ const formatInsightText = (text) => {
   return formatted
 }
 
+// 현재 프로젝트 ID 가져오기
+const getCurrentProjectId = () => {
+  // 현재 라우트에서 projectId를 가져오거나, 다른 방법으로 프로젝트 ID를 획득
+  return route.params.projectId || route.query.projectId
+}
+
 // 테스트 생성 페이지로 이동
 const navigateToTestCreation = (topic) => {
-  const targetRoute = {
-    path: '/trainer/test/prompt',
-    query: { prompt: topic },
+  const projectId = getCurrentProjectId()
+  
+  if (!projectId) {
+    console.error('프로젝트 ID를 찾을 수 없습니다.')
+    return
   }
+
+  const targetRoute = {
+    path: `https://skib-frontend.skala25a.project.skala-ai.com/trainer/project/${projectId}/test`,
+    query: { 
+      step: 'prompt'
+    },
+  }
+  
   const resolvedRoute = router.resolve(targetRoute)
   console.log('라우팅 주소:', resolvedRoute.href) // 라우팅 주소 콘솔 출력
+  
   router.push(targetRoute)
 }
 </script>
@@ -339,27 +328,6 @@ const navigateToTestCreation = (topic) => {
 
 .readiness-emoji-main:hover {
   transform: scale(1.1);
-}
-
-/* Lottie 애니메이션 스타일 */
-.readiness-lottie {
-  cursor: help;
-  transition: transform 0.2s ease;
-  border-radius: 50%;
-}
-
-.readiness-lottie:hover {
-  transform: scale(1.1);
-}
-
-/* EXCELLENT 상태 애니메이션 추가 스타일 */
-.excellent-animation {
-  filter: drop-shadow(0 0 8px rgba(40, 167, 69, 0.3));
-}
-
-.excellent-animation:hover {
-  transform: scale(1.15);
-  filter: drop-shadow(0 0 12px rgba(40, 167, 69, 0.5));
 }
 
 .exam-goal-section,
@@ -501,16 +469,6 @@ const navigateToTestCreation = (topic) => {
 
   .readiness-emoji-main {
     font-size: 32px;
-  }
-
-  .readiness-lottie {
-    width: 50px !important;
-    height: 50px !important;
-  }
-
-  .excellent-animation {
-    width: 50px !important;
-    height: 50px !important;
   }
 
   .document-table th,
