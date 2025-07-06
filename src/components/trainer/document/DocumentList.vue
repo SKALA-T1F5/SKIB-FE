@@ -32,33 +32,26 @@
         <tbody>
           <tr v-for="doc in documents" :key="doc.id" class="doc-row">
             <td class="text-truncate" @click="selectDocument(doc)">
-              <v-icon size="20" color="#888" class="mr-2">
-                {{ getFileIcon(doc.fileType) }}
-              </v-icon>
               {{ doc.originalName }}
             </td>
             <td @click="selectDocument(doc)">
-              <v-icon size="18" color="#888" class="mr-1">mdi-calendar-check-outline</v-icon>
               {{ formatDate(doc.uploadDate) }}
             </td>
             <td @click="selectDocument(doc)">
-              <v-icon size="18" color="#888" class="mr-1">mdi-harddisk</v-icon>
               {{ formatSize(doc.fileSize) }}
             </td>
             <td @click="selectDocument(doc)">
-              <v-icon size="18" color="#888" class="mr-1">mdi-file-find-outline</v-icon>
               {{ doc.fileType }}
             </td>
             <td>
               <v-chip :color="getStatusColor(doc.status)" density="compact">
-                <v-icon start :icon="getStatusIcon(doc.status)"></v-icon>
                 {{ doc.status }}
               </v-chip>
             </td>
             <td class="text-center">
               <v-icon
                 size="20"
-                color="#e57373"
+                color=""
                 @click.stop="confirmDelete(doc.id)"
                 class="delete-icon"
                 >mdi-delete</v-icon
@@ -119,17 +112,19 @@ function getStatusColor(status) {
   switch (status) {
     case '최종 업로드 완료': // 최종 완료 상태는 별도로 강조
       return 'green-darken-2' // 'success'보다 더 진한 녹색으로 변경
-    case '업로드 완료':
-      return 'success' // 일반 업로드 완료
-    case 'PREPROCESSING_START':
-    case 'PARSING_DOCUMENT':
-    case 'ANALYZING_CONTENT':
-    case 'STORING_VECTORDB':
+    case '문서 전처리 대기 중':
+      return 'grey'
+    case '문서 전처리 시작':
+    case '문서 파싱 중':
+    case '문서 분석 중':
+    case '문서 저장 중':
       return 'info'
     case '문서 요약 중':
       return 'warning'
     case '실패':
       return 'error'
+    case '문서 상태 확인 중':
+      return 'grey'
     default:
       return 'grey'
   }
@@ -139,17 +134,19 @@ function getStatusIcon(status) {
   switch (status) {
     case '최종 업로드 완료': // 최종 완료 상태는 별도 아이콘 사용
       return 'mdi-check-all' // 이중 체크 아이콘으로 변경
-    case '업로드 완료':
-      return 'mdi-check-circle' // 일반 업로드 완료 아이콘
-    case 'PREPROCESSING_START':
-    case 'PARSING_DOCUMENT':
-    case 'ANALYZING_CONTENT':
-    case 'STORING_VECTORDB':
+    case '문서 전처리 대기 중':
+      return 'mdi-clock-outline'
+    case '문서 전처리 시작':
+    case '문서 파싱 중':
+    case '문서 분석 중':
+    case '문서 저장 중':
       return 'mdi-cog-outline'
     case '문서 요약 중':
       return 'mdi-timer-sand'
     case '실패':
       return 'mdi-alert-circle'
+    case '문서 상태 확인 중':
+      return 'mdi-information-outline'
     default:
       return 'mdi-information-outline'
   }
