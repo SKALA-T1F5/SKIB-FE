@@ -619,6 +619,26 @@ const handleQuestionNext = async ({ selectedQuestionIds, toDeleteQuestionIds }) 
   }
 }
 
+// 테스트 기본 통계를 불러오는 함수 (반환값으로 통계 데이터 제공)
+const fetchTestBasicStatistics = async (id) => {
+  try {
+    const response = await axios.get(`/feedback/test-basic-statistics`, { params: { testId: id } })
+    if (response.data.statusCode === 'OK' && response.data.resultData) {
+      return {
+        averageScore: response.data.resultData.averageScore,
+        passCount: response.data.resultData.passCount,
+        totalTakers: response.data.resultData.totalTakers,
+      }
+    } else {
+      console.error('테스트 기본 통계를 불러오는 데 실패했습니다:', response.data.resultMsg)
+      return { averageScore: 0, passCount: 0, totalTakers: 0 }
+    }
+  } catch (error) {
+    console.error('테스트 기본 통계를 불러오는 데 실패했습니다:', error)
+    return { averageScore: 0, passCount: 0, totalTakers: 0 }
+  }
+}
+
 // --- Data Fetching for TestList content ---
 const fetchTests = async () => {
   isLoading.value = true
@@ -630,20 +650,25 @@ const fetchTests = async () => {
     })
 
     if (response.data.statusCode === 'OK' && response.data.resultData) {
-      // API 응답 데이터를 TestCard 컴포넌트가 사용하는 형식으로 매핑
-      tests.value = response.data.resultData.tests.map((test) => ({
-        id: test.testId, // testId를 id로 매핑
-        name: test.name,
-        difficulty: 'NORMAL', // API에 없는 필드는 기본값 또는 목업 데이터 유지
-        timeLimit: test.limitedTime, // limitedTime을 timeLimit으로 매핑
-        passingScore: test.passScore || 60, // passScore가 null이면 기본값 60
-        createdAt: test.createdAt.split('T')[0], // 'YYYY-MM-DD' 형식으로 변환
-        retakeable: true, // API에 없는 필드는 기본값 또는 목업 데이터 유지
-        passCount: 0, // API에 없는 필드는 기본값 또는 목업 데이터 유지
-        totalApplicants: 0, // API에 없는 필드는 기본값 또는 목업 데이터 유지
-        averageScore: 0, // API에 없는 필드는 기본값 또는 목업 데이터 유지
-        token: test.testLinkToken || null, // testLinkToken 추가
-      }))
+      const fetchedTestsPromises = response.data.resultData.tests.map(async (test) => {
+        // 각 테스트에 대해 통계 데이터 fetch
+        const stats = await fetchTestBasicStatistics(test.testId)
+        return {
+          id: test.testId, // testId를 id로 매핑
+          name: test.name,
+          difficulty: 'NORMAL', // API에 없는 필드는 기본값 또는 목업 데이터 유지
+          timeLimit: test.limitedTime, // limitedTime을 timeLimit으로 매핑
+          passingScore: test.passScore || 60, // passScore가 null이면 기본값 60
+          createdAt: test.createdAt.split('T')[0], // 'YYYY-MM-DD' 형식으로 변환
+          retakeable: true, // API에 없는 필드는 기본값 또는 목업 데이터 유지
+          passCount: stats.passCount, // fetchTestBasicStatistics에서 가져온 값
+          totalApplicants: stats.totalTakers, // fetchTestBasicStatistics에서 가져온 값
+          averageScore: stats.averageScore, // fetchTestBasicStatistics에서 가져온 값
+          token: test.testLinkToken || null, // testLinkToken 추가
+        }
+      })
+      // 모든 통계 데이터 fetch가 완료될 때까지 기다림
+      tests.value = await Promise.all(fetchedTestsPromises)
     } else {
       console.error('API 응답 오류:', response.data.resultMsg)
       tests.value = []
