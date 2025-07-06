@@ -37,7 +37,7 @@
     </div>
 
     <div class="test-footer-trainer">
-      <button class="action-button-trainer" @click="goToQuestions(test.id)">
+      <button class="action-button-trainer primary-button" @click="goToQuestions(test.id)">
         <v-icon size="18" class="mr-1">mdi-format-list-bulleted</v-icon> 문제목록
       </button>
       <button class="action-button-trainer primary-button" @click="goToDashboard(test.id)">
@@ -266,25 +266,6 @@ const formattedCreatedAt = computed(() => {
   white-space: nowrap; /* 버튼 내부 텍스트는 한 줄로 유지 (베트남어가 길 경우 문제가 될 수 있음) */
 }
 
-/* 추가: 베트남어처럼 긴 텍스트로 인해 버튼 내부 줄바꿈이 필요한 경우 */
-/* .action-button-trainer의 white-space: nowrap;을 제거하고 아래를 추가 */
-/*
-.action-button-trainer {
-  white-space: normal;
-  word-break: keep-all; // 단어 단위로 줄바꿈 시도
-  overflow-wrap: break-word; // 단어가 길면 강제로 줄바꿈
-}
-*/
-/* 또는 폰트 크기를 조절하는 미디어 쿼리 추가 */
-/*
-@media (max-width: 450px) {
-  .action-button-trainer {
-    font-size: 12px; // 작은 화면에서 폰트 크기 줄이기
-    padding: 6px 8px;
-  }
-}
-*/
-
 /* 화면 너비가 600px 이하일 때 버튼이 두 개씩 한 줄에 배치되도록 조정 */
 @media (max-width: 600px) {
   .action-button-trainer {
@@ -319,9 +300,9 @@ const formattedCreatedAt = computed(() => {
 }
 
 .action-button-trainer.delete-button {
-  background-color: #ef5350;
+  background-color: #adadad;
   color: white;
-  border-color: #ef5350;
+  border-color: #adadad;
 }
 
 .action-button-trainer.delete-button:hover {

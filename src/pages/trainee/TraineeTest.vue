@@ -372,8 +372,9 @@ const submitFinalTest = async () => {
     }
   })
   try {
+    const lang = localStorage.getItem('lang') || 'ko'
     await api.post('/answer',
-      { answers: answersToSend },
+      { answers: answersToSend, lang: lang },
       {
         params: {
           userId: userId.value,

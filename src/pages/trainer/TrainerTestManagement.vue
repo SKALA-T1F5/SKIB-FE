@@ -619,31 +619,53 @@ const handleQuestionNext = async ({ selectedQuestionIds, toDeleteQuestionIds }) 
   }
 }
 
+// 테스트 기본 통계를 불러오는 함수 (반환값으로 통계 데이터 제공)
+const fetchTestBasicStatistics = async (id) => {
+  try {
+    const response = await axios.get(`/feedback/test-basic-statistics`, { params: { testId: id } })
+    if (response.data.statusCode === 'OK' && response.data.resultData) {
+      return {
+        averageScore: response.data.resultData.averageScore,
+        passCount: response.data.resultData.passCount,
+        totalTakers: response.data.resultData.totalTakers,
+      }
+    } else {
+      console.error('테스트 기본 통계를 불러오는 데 실패했습니다:', response.data.resultMsg)
+      return { averageScore: 0, passCount: 0, totalTakers: 0 }
+    }
+  } catch (error) {
+    console.error('테스트 기본 통계를 불러오는 데 실패했습니다:', error)
+    return { averageScore: 0, passCount: 0, totalTakers: 0 }
+  }
+}
+
 // --- Data Fetching for TestList content ---
 const fetchTests = async () => {
   isLoading.value = true
   loadingMessage.value = '테스트 목록을 불러오는 중입니다...'
   try {
-    // API 호출: projectId를 쿼리 파라미터로 전달
     const response = await axios.get('/test/getTests', {
       params: { projectId: currentProjectId.value },
     })
 
     if (response.data.statusCode === 'OK' && response.data.resultData) {
-      // API 응답 데이터를 TestCard 컴포넌트가 사용하는 형식으로 매핑
-      tests.value = response.data.resultData.tests.map((test) => ({
-        id: test.testId, // testId를 id로 매핑
-        name: test.name,
-        difficulty: 'NORMAL', // API에 없는 필드는 기본값 또는 목업 데이터 유지
-        timeLimit: test.limitedTime, // limitedTime을 timeLimit으로 매핑
-        passingScore: test.passScore || 60, // passScore가 null이면 기본값 60
-        createdAt: test.createdAt.split('T')[0], // 'YYYY-MM-DD' 형식으로 변환
-        retakeable: true, // API에 없는 필드는 기본값 또는 목업 데이터 유지
-        passCount: 0, // API에 없는 필드는 기본값 또는 목업 데이터 유지
-        totalApplicants: 0, // API에 없는 필드는 기본값 또는 목업 데이터 유지
-        averageScore: 0, // API에 없는 필드는 기본값 또는 목업 데이터 유지
-        token: test.testLinkToken || null, // testLinkToken 추가
-      }))
+      const fetchedTestsPromises = response.data.resultData.tests.map(async (test) => {
+        const stats = await fetchTestBasicStatistics(test.testId)
+        return {
+          id: test.testId,
+          name: test.name,
+          difficulty: test.difficultyLevel, // ★ 이 부분 수정: API에서 받은 difficultyLevel 사용
+          timeLimit: test.limitedTime,
+          passingScore: test.passScore || 60,
+          createdAt: test.createdAt.split('T')[0],
+          retakeable: true,
+          passCount: stats.passCount,
+          totalApplicants: stats.totalTakers,
+          averageScore: stats.averageScore,
+          token: test.testLinkToken || null,
+        }
+      })
+      tests.value = await Promise.all(fetchedTestsPromises)
     } else {
       console.error('API 응답 오류:', response.data.resultMsg)
       tests.value = []

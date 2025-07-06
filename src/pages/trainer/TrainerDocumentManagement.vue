@@ -58,7 +58,7 @@ const isDocumentTabActive = ref(false) // 문서 관리 탭 활성화 여부를 
 const mapApiStatusToKorean = (status) => {
   switch (status) {
     case 'UPLOAD_COMPLETED':
-      return '문서 업로드 완료'
+      return '문서 전처리 대기 중'
     case 'PREPROCESSING_START': // 추가
       return '문서 전처리 시작'
     case 'PARSING_DOCUMENT': // 추가
